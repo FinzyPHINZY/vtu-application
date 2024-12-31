@@ -1,0 +1,32 @@
+meta {
+  name: Update-role
+  type: http
+  seq: 5
+}
+
+put {
+  url: http://localhost:7000/api/user/677381d5a0a8b3444d7b6c29/role
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NzM4MWQ1YTBhOGIzNDQ0ZDdiNmMyOSIsIm5hbWUiOiJ1c2VyIiwiZW1haWwiOiJ1c2VyQGdtYWlsLmNvbSIsInBob25lTnVtYmVyIjoiKzIzNDU2Nzg5MDEyMzUiLCJpYXQiOjE3MzU2MjMxNDUsImV4cCI6MTczNTcwOTU0NX0.U5ZrBoE-3ETD9sHkYKrWXN7uhLS8e6mafqAbne1ZbUI
+}
+
+body:json {
+  {
+    "role": "user"
+  }
+}
+
+response:json {
+  "success": true,
+  "message": "User role updated to user successfully.",
+  "user": {
+    "id": "677381d5a0a8b3444d7b6c29",
+    "name": "user",
+    "email": "user@gmail.com",
+    "role": "user"
+  }
+}
