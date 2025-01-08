@@ -65,6 +65,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    isGoogleUser: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
