@@ -1,6 +1,86 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import OTP from '../models/OTP.js';
+
+const sendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // generate a four digit otp
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    console.log(otp);
+
+    // Save OTP in MongoDB
+    await OTP.findOneAndUpdate(
+      { email },
+      { code: otp, createdAt: new Date(), verified: false },
+      { upsert: true }
+    );
+
+    // todo: integrate an sms service here
+    // const message = await client.messages.create({
+    //   body: `Your OTP is: ${otp}`,
+    //   from: '+1234567890',
+    //   messagingServiceSid: 'MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+    //   to: phoneNumber,
+    // });
+    // await smsService.send(phoneNumber, `Your OTP is: ${otp}`);
+
+    console.log('OTP generated and saved:', otp);
+
+    // demo
+    res.status(200).json({
+      message: 'OTP sent successfully',
+      otp, // remember to remove this in production boluwatife!!!
+    });
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ error: 'Failed to send OTP' });
+  }
+};
+
+const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Fetch OTP from database
+    const otpRecord = await OTP.findOne({ email });
+
+    if (!otpRecord) {
+      return res.status(400).json({ error: 'Invalid OTP' });
+    }
+
+    const createdAt = otpRecord.createdAt;
+    const now = new Date();
+
+    const isExpired = now.getTime() - createdAt.getTime() > 15 * 60 * 1000;
+    if (isExpired) {
+      // Delete expired OTP
+      await OTP.deleteOne({ email });
+      return res.status(400).json({ error: 'OTP expired' });
+    }
+
+    if (otpRecord.code !== otp) {
+      return res.status(400).json({ error: 'Invalid OTP' });
+    }
+
+    otpRecord.verified = true;
+    await otpRecord.save();
+
+    // Delete OTP after successful verification
+    await OTP.deleteOne({ email });
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP verified successfully',
+      email,
+    });
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    res.status(500).json({ error: 'Failed to verify OTP' });
+  }
+};
 
 const fetchUser = async (req, res) => {
   try {
@@ -194,4 +274,12 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-export { signUp, login, fetchUser, fetchUsers, updateUserRole };
+export {
+  signUp,
+  login,
+  fetchUser,
+  fetchUsers,
+  updateUserRole,
+  sendOTP,
+  verifyOTP,
+};
