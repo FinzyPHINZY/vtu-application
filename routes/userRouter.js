@@ -5,7 +5,6 @@ import {
   tokenExtractor,
   userExtractor,
 } from '../utils/middleware.js';
-import passport from 'passport';
 const router = express.Router();
 
 router.use(tokenExtractor);
@@ -24,26 +23,6 @@ router.get(
 // Description  Fetch a list of all users
 // Access       Private (Admin only)
 router.get('/', authorizeRoles('admin', 'user'), UserController.fetchUsers);
-
-// Route        POST /api/user/send-otp
-// Desc         Send OTP to User Email Address
-// Access       Public
-router.post('/send-otp', UserController.sendOTP);
-
-// Route        POST /api/user/verify-otp
-// Desc         Verify OTP
-// Access       Public
-router.post('/verify-otp', UserController.verifyOTP);
-
-// Route        POST /api/user/signup
-// Desc         Register new user
-// Access       Public
-router.post('/signup', UserController.signUp);
-
-// Route        POST /api/user/login
-// Desc         Authenticate user and return token
-// Access       Public
-router.post('/login', UserController.login);
 
 // Route       PUT /api/user/:id/role
 // Desc        Update user role
