@@ -20,10 +20,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       match: /^\+?\d{1,15}$/,
     },
-    passwordHash: {
-      type: String,
-      required: true,
-    },
     role: {
       type: String,
       enum: ['admin', 'user'],

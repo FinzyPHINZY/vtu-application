@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import rateLimit from 'express-rate-limit';
+import { AllowedIPs } from './constants.js';
+
 export const requestLogger = (req, res, next) => {
   console.log('Method: ', req.method);
   console.log('Path: ', req.path);
@@ -51,4 +54,38 @@ export const authorizeRoles = (...allowedRoles) => {
 
     next();
   };
+};
+
+export const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {
+    statusCode: 429,
+    message: 'Too many requests, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const otpRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 3,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many OTP requests. Please try again after a minute.',
+  },
+});
+
+export const ipWhitelistMiddleware = (req, res, next) => {
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  if (AllowedIPs.includes(clientIP)) {
+    return next();
+  }
+
+  return res.status(403).json({
+    statusCode: 403,
+    message: 'Forbidden: Your IP is not allowed to access this resource.',
+  });
 };
