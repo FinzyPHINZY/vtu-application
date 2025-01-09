@@ -2,7 +2,7 @@
 
 ---
 
-### **Phase 1: User Management Revamp**
+### **Phase 1: User Management Revamp ✅**
 
 1. **OTP-Based Sign-In**
 
@@ -21,7 +21,7 @@
 
 ---
 
-### **Phase 2: Bank Account Integration**
+### **Phase 2: Bank Account Integration ⏳**
 
 1. **Virtual Account Creation**
 
