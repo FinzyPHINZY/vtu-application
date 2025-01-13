@@ -8,6 +8,9 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import BuyData from './pages/BuyData';
 import BuyAirtime from './pages/BuyAirtime';
+import Home from './pages/Home';
+import BuyElectricity from './pages/BuyElectricity';
+import BuyCable from './pages/BuyCable';
 
 function App() {
 
@@ -23,6 +26,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/buy-data" element={<BuyData />} />
           <Route path="/buy-airtime" element={<BuyAirtime />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/buy-electricity" element={<BuyElectricity />} />
+          <Route path="/buy-cable" element={<BuyCable />} />
         </Routes>
       </Router>
     </>

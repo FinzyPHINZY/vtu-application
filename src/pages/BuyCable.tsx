@@ -4,16 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
-import { CancelIcon, LeftArrowIcon } from '../assets/svg'
+import { LeftArrowIcon } from '../assets/svg'
+import DSTV from '../assets/images/dstv.png'
 
-const BuyData = () => {
+const BuyCable = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [selectedPackage, setSelectedPackage] = useState('');
     const [packageError, setPackageError] = useState('');
     const [number, setNumber] = useState('');
     const [numberError, setNumberError] = useState('');
-    const [showModal, setShowModal] = useState(false);
+
 
     useEffect(() => {
 
@@ -45,6 +46,7 @@ const BuyData = () => {
         setPackageError('');
     };
 
+
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setNumber(value);
@@ -63,16 +65,9 @@ const BuyData = () => {
         }
         if (selectedPackage && number && number.length === 11) {
             setPackageError('');
-            setSelectedPackage('')
-            setNumber('')
             setNumberError('');
-            setShowModal(true);
+            navigate('/otp');
         }
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-        navigate('/otp');
     };
 
     return (
@@ -81,17 +76,22 @@ const BuyData = () => {
                 isMobileView ? (
                     // JSX for screens below 768px
                     <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
-                          {showModal && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
-                            <p className='text-white font-[400] text-base font-poppins'>Buy Data</p>
+                            <p className='text-white font-[400] text-base font-poppins'>Buy Cable</p>
                             <div>       </div>
                         </div>
-
+                        <p className='text-white mt-14 font-[400] text-sm font-poppins '>Select network</p>
+                        <div className='flex justify-between items-center py-3 mt-5 '>
+                            <img src={DSTV} className='w-15 h-15 rounded-xl' />
+                            <img src={DSTV} className='w-15 h-15 rounded-xl' />
+                            <img src={DSTV} className='w-15 h-15 rounded-xl' />
+                            <img src={DSTV} className='w-15 h-15 rounded-xl' />
+                        </div>
                         <form className='mt-20 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
                             <div>
                                 <div>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Select package</p>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Select Package</p>
                                     <div className="relative">
                                         <select
                                             value={selectedPackage}
@@ -113,8 +113,9 @@ const BuyData = () => {
 
                                     {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
                                 </div>
-                                <div className='mt-12'>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Phone number</p>
+
+                                <div className='mt-5'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Smartcard number</p>
                                     <input
                                         type="number"
                                         value={number}
@@ -136,7 +137,6 @@ const BuyData = () => {
                 ) : (
                     // JSX for screens above 768px
                     <div className='min-h-screen w-full gap-4 bg-black p-5 flex flex-col justify-between'>
-                          {showModal && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
                         <div className='text-white font-[500] font-kavoon text-2xl'>Bold data</div>
                         <div className='flex justify-center items-center '>
                             <img src={DesktopImage} className='w-60 h-60 ' />
@@ -158,40 +158,8 @@ const BuyData = () => {
                         </div>
                     </div>
                 )}
-
-            {/* Modal Component */}
-            {showModal && (
-                <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[300px] py-5 px-10 flex z-50 justify-between flex-col'>
-                    <div className='flex justify-between items-center'>
-                        <div>             </div>
-                        <p className='text-white font-[500]  font-poppins text-base '>Summary</p>
-                        <div onClick={() => setShowModal(false)}>
-                            <CancelIcon />
-                        </div>
-
-                    </div>
-                    <div className='flex justify-between items-center mt-4'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Type:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>MTN SME DATA</p>
-                    </div>
-                    <div className='flex justify-between items-center mt-4'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>09056811438</p>
-                    </div>
-                    <div className='flex justify-between items-center mt-4'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>$200</p>
-                    </div>
-                    <button
-
-                        onClick={handleCloseModal}
-                        className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
-                    </button>
-                </div>
-            )}
         </div>
     )
 }
 
-export default BuyData
+export default BuyCable
