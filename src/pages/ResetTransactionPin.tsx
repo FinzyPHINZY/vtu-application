@@ -6,7 +6,7 @@ import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 
-const OTP = () => {
+const ResetTransactionPin = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [otp, setOtp] = useState('');
@@ -60,7 +60,7 @@ const OTP = () => {
                     <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
-
+                            <p className='text-white font-[400] text-base font-poppins'>Reset Transaction pin</p>
                             <div>       </div>
                         </div>
                         <div className='text-white font-[600] text-lg font-poppins mt-10'>Enter OTP</div>
@@ -82,6 +82,7 @@ const OTP = () => {
                                 <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Verify</p>
                             </button>
                         </form>
+                        <p className='text-[#FF3D00] font-[400] text-sm font-poppins mt-5'>Resend OTP</p>
                     </div>
                 ) : (
                     // JSX for screens above 768px
@@ -111,4 +112,4 @@ const OTP = () => {
     )
 }
 
-export default OTP
+export default ResetTransactionPin

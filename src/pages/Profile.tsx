@@ -4,13 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
-import { LeftArrowIcon } from '../assets/svg'
+import { ArrowRight, CustomerSupport2, LeftArrowIcon, TransactionPin } from '../assets/svg'
+import ProfileIcon from '../assets/images/profile.png'
 
-const OTP = () => {
+const Profile = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
-    const [otp, setOtp] = useState('');
-    const [otpError, setOtpError] = useState('');
+
+
     useEffect(() => {
 
         const handleResize = () => {
@@ -30,62 +31,60 @@ const OTP = () => {
 
 
 
+
     const handleBack = () => {
         navigate(-1);
     };
 
-    const handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void = (e) => {
-        const value = e.target.value;
-        setOtp(value);
 
-        if (!otp) {
-            setOtpError('Please enter a valid email address.');
-        }
-    };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!otp) {
-            setOtpError('');
-            navigate('/otp');
-        } else {
-            setOtpError('Please enter a valid email address.');
-        }
-    };
+
     return (
         <div>
             {
                 isMobileView ? (
                     // JSX for screens below 768px
                     <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
+
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
-
+                            <p className='text-white font-[400] text-base font-poppins'>Profile</p>
                             <div>       </div>
                         </div>
-                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Enter OTP</div>
-                        <form className='mt-20 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
-                            <div>
-                                <p className='text-white font-[500] text-base font-poppins mb-5'>OTP Code</p>
-                                <input
-                                    type='number'
-                                    value={otp}
-                                    onChange={handleInputChange}
-                                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                    placeholder='6-digits'
-                                />
-                                {otpError && <p className='text-[#D45A0E] text-sm text-center'>{otpError}</p>}
+                        <div className="bg-[#1E1E1E] h-[35%] mt-3 px-5 pb-8 pt-4 rounded-[15px] flex flex-col justify-center items-center">
+                            <img src={ProfileIcon} className='w-15 h-15 rounded-xl' />
+                            <p className="text-white font-[500] text-xl font-poppins mt-3">Nickson jay</p>
+                            <p className="text-white font-[300] text-base font-poppins mt-2">Nicksonjay@gmail.com</p>
+                        </div>
+                        <div className="bg-[#1E1E1E] h-[15%] px-5 py-4 rounded-[15px] mt-3">
+
+                            <div className='flex justify-between items-center'>
+                                <div className='flex justify-start items-center gap-4'>
+                                    <CustomerSupport2 />
+
+                                    <p className='text-[#FFFFFF] font-[400] text-base font-poppins'>Customer care</p>
+
+                                </div>
+                                <ArrowRight />
                             </div>
-                            <button
-                                type="submit"
-                                className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
-                                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Verify</p>
-                            </button>
-                        </form>
+                            <div className='flex justify-between items-center mt-3'>
+                                <div className='flex justify-start items-center gap-4'>
+                                    <TransactionPin />
+
+                                    <p className='text-[#FFFFFF] font-[400] text-base font-poppins'>Transaction PIN</p>
+
+                                </div>
+                                <ArrowRight />
+                            </div>
+                        </div>
+
+                        <p className='text-[#ED1C1C] font-[400] text-sm font-poppins mt-5'>Log Out</p>
+
                     </div>
                 ) : (
                     // JSX for screens above 768px
                     <div className='min-h-screen w-full gap-4 bg-black p-5 flex flex-col justify-between'>
+
                         <div className='text-white font-[500] font-kavoon text-2xl'>Bold data</div>
                         <div className='flex justify-center items-center '>
                             <img src={DesktopImage} className='w-60 h-60 ' />
@@ -107,8 +106,10 @@ const OTP = () => {
                         </div>
                     </div>
                 )}
+
+
         </div>
     )
 }
 
-export default OTP
+export default Profile
