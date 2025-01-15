@@ -5,6 +5,9 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { CancelIcon, LeftArrowIcon } from '../assets/svg'
+import SuccessIcon from '../assets/images/success.png'
+import FailedIcon from '../assets/images/failed.png'
+import BackgroundImage from '../assets/images/background.png'
 
 const Transfer = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -13,7 +16,10 @@ const Transfer = () => {
     const [amountError, setAmountError] = useState('');
     const [email, setEmail] = useState('');
     const [emailError, setEmailError] = useState('');
-    const [showModal, setShowModal] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [transferSuccessfulModal, setTransferSuccessfulModal] = useState(true);
+    const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
+    const [transferFailedModal, setTransferFailedModal] = useState(false);
 
     useEffect(() => {
 
@@ -71,6 +77,9 @@ const Transfer = () => {
         }
         if (amount && email) {
             setShowModal(true);
+            // setTransferSuccessfulModal(true);
+            // setTransferFailedModal(true);
+            // setPaymentSuccessfulModal(true);
             setAmount('')
             setAmountError('');
             setEmail('');
@@ -81,6 +90,9 @@ const Transfer = () => {
 
     const handleCloseModal = () => {
         setShowModal(false);
+        // setTransferFailedModal(false);
+        // setTransferSuccessfulModal(false);
+        // setPaymentSuccessfulModal(false);
         navigate('/otp');
     };
 
@@ -90,7 +102,8 @@ const Transfer = () => {
                 isMobileView ? (
                     // JSX for screens below 768px
                     <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 '>
-                        {showModal && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
+                        {(showModal || transferFailedModal || transferSuccessfulModal || paymentSuccessfulModal) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
+
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
                             <p className='text-white font-[400] text-base font-poppins'>Transfer</p>
@@ -134,7 +147,8 @@ const Transfer = () => {
                 ) : (
                     // JSX for screens above 768px
                     <div className='min-h-screen w-full gap-4 bg-black p-5 flex flex-col justify-between'>
-                        {showModal && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
+                        {(showModal || transferFailedModal || transferSuccessfulModal || paymentSuccessfulModal) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
+
                         <div className='text-white font-[500] font-kavoon text-2xl'>Bold data</div>
                         <div className='flex justify-center items-center '>
                             <img src={DesktopImage} className='w-60 h-60 ' />
@@ -186,6 +200,72 @@ const Transfer = () => {
                         className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
                         <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
                     </button>
+                </div>
+            )}
+            {transferSuccessfulModal && (
+                <div className='fixed  inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'
+                    style={{
+                        backgroundImage: `url(${BackgroundImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                    }}>
+
+                    <div className='flex justify-end items-center' onClick={() => setTransferSuccessfulModal(false)}>
+                        <CancelIcon />
+                    </div>
+                    <div className='flex justify-center items-center'>
+                        <img src={SuccessIcon} />
+                    </div>
+                    <p className='text-white font-[400] font-poppins text-2xl text-center'>Transfer Successful</p>
+                    <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Thank you for patronizing us today.
+                        We value you!</p>
+                    <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p>
+
+
+
+                </div>
+            )}
+            {transferFailedModal && (
+                <div className='fixed  inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'
+                >
+
+                    <div className='flex justify-end items-center' onClick={() => setTransferFailedModal(false)}>
+                        <CancelIcon />
+                    </div>
+                    <div className='flex justify-center items-center'>
+                        <img src={FailedIcon} />
+                    </div>
+                    <p className='text-white font-[400] font-poppins text-2xl text-center'>Transfer Failed</p>
+                    <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Due to insufficient funds.</p>
+                    <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p>
+
+
+
+                </div>
+            )}
+            {paymentSuccessfulModal && (
+                <div className='fixed  inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'
+                    style={{
+                        backgroundImage: `url(${BackgroundImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                    }}>
+
+                    <div className='flex justify-end items-center' onClick={() => setPaymentSuccessfulModal(false)}>
+                        <CancelIcon />
+                    </div>
+                    <div className='flex justify-center items-center'>
+                        <img src={SuccessIcon} />
+                    </div>
+                    <p className='text-white font-[400] font-poppins text-2xl text-center'>Payment Successful</p>
+                    <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Thank you for patronizing us today.
+                        We value you!</p>
+                    <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p>
+
+
+
                 </div>
             )}
         </div>

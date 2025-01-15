@@ -10,6 +10,7 @@ import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { FcGoogle } from "react-icons/fc";
 import { MailBoxIcon } from '../assets/svg'
+import BackgroundImage from '../assets/images/background.png'
 
 const SplashScreen = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -41,7 +42,13 @@ const SplashScreen = () => {
             {
                 isMobileView ? (
                     // JSX for screens below 768px
-                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
+                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'
+                    style={{
+                        backgroundImage: `url(${BackgroundImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                    }}>
                         <div className='text-white font-[600] text-lg font-kavoon'>Bold data</div>
                         <div>
                             <div className='flex justify-center items-center gap-4'>

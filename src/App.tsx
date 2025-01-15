@@ -15,6 +15,8 @@ import TransactionHistory from './pages/TransactionHistory';
 import Transfer from './pages/Transfer';
 import ResetTransactionPin from './pages/ResetTransactionPin';
 import Profile from './pages/Profile';
+import CreateTransactionPin from './pages/CreateTransactionPin';
+import ChangeTransactionPin from './pages/ChangeTransactionPin';
 
 function App() {
 
@@ -37,6 +39,8 @@ function App() {
           <Route path="/transfer" element={<Transfer />} />
           <Route path="/reset-pin" element={<ResetTransactionPin />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/create-pin" element={<CreateTransactionPin />} />
+          <Route path="/change-pin" element={<ChangeTransactionPin />} />
         </Routes>
       </Router>
     </>

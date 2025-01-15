@@ -44,14 +44,14 @@ const Profile = () => {
             {
                 isMobileView ? (
                     // JSX for screens below 768px
-                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
+                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-start'>
 
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
                             <p className='text-white font-[400] text-base font-poppins'>Profile</p>
                             <div>       </div>
                         </div>
-                        <div className="bg-[#1E1E1E] h-[35%] mt-3 px-5 pb-8 pt-4 rounded-[15px] flex flex-col justify-center items-center">
+                        <div className="bg-[#1E1E1E] h-[35%] mt-3 px-5 pb-10 pt-8 rounded-[15px] flex flex-col justify-center items-center">
                             <img src={ProfileIcon} className='w-15 h-15 rounded-xl' />
                             <p className="text-white font-[500] text-xl font-poppins mt-3">Nickson jay</p>
                             <p className="text-white font-[300] text-base font-poppins mt-2">Nicksonjay@gmail.com</p>
@@ -78,7 +78,7 @@ const Profile = () => {
                             </div>
                         </div>
 
-                        <p className='text-[#ED1C1C] font-[400] text-sm font-poppins mt-5'>Log Out</p>
+                        <p className='text-[#ED1C1C] text-center font-[400] text-sm font-poppins mt-5'>Log Out</p>
 
                     </div>
                 ) : (

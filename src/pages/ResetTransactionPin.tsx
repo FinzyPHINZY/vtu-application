@@ -57,14 +57,14 @@ const ResetTransactionPin = () => {
             {
                 isMobileView ? (
                     // JSX for screens below 768px
-                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
+                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 '>
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
                             <p className='text-white font-[400] text-base font-poppins'>Reset Transaction pin</p>
                             <div>       </div>
                         </div>
                         <div className='text-white font-[600] text-lg font-poppins mt-10'>Enter OTP</div>
-                        <form className='mt-20 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
+                        <form className='mt-8 flex-grow flex flex-col justify-between pb-10' onSubmit={handleSubmit}>
                             <div>
                                 <p className='text-white font-[500] text-base font-poppins mb-5'>OTP Code</p>
                                 <input
@@ -82,7 +82,7 @@ const ResetTransactionPin = () => {
                                 <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Verify</p>
                             </button>
                         </form>
-                        <p className='text-[#FF3D00] font-[400] text-sm font-poppins mt-5'>Resend OTP</p>
+                        <p className='text-[#FF3D00] font-[400] text-sm font-poppins text-center'>Resend OTP</p>
                     </div>
                 ) : (
                     // JSX for screens above 768px
