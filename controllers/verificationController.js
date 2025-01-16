@@ -1,3 +1,5 @@
+import apiClient from '../utils/apiClient.js';
+
 // Initiate Verification
 export const initiateVerification = async (req, res) => {
   try {
