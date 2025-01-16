@@ -1,13 +1,14 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
-import helment from 'helmet';
+import helmet from 'helmet';
 import cors from 'cors';
 import userRouter from './routes/userRouter.js';
 import { limiter, requestLogger } from './utils/middleware.js';
 import connectDB from './Config/Database.js';
 import vasRouter from './routes/vasRouter.js';
 import authRoutes from './routes/authRoutes.js';
+import verificationRoutes from './routes/verificationRoutes.js';
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ connectDB();
 // Middleware
 app.use(express.json());
 app.use(morgan('dev'));
-app.use(helment());
+app.use(helmet());
 app.use(cors());
 app.use(limiter);
 app.use(requestLogger);
@@ -46,6 +47,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRouter);
 app.use('/api/vas', vasRouter);
+app.use('/api/verification', verificationRoutes);
 
 // Start the server and log a message to the console upon successful start
 app.listen(PORT, () => {
