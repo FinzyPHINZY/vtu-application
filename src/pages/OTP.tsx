@@ -5,12 +5,18 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
 const OTP = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [otp, setOtp] = useState('');
     const [otpError, setOtpError] = useState('');
+
+    const storedOtp = useSelector((state: RootState) => state.user.otp);
+
+    console.log(storedOtp, 44)
     useEffect(() => {
 
         const handleResize = () => {

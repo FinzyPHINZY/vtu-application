@@ -17,6 +17,7 @@ import ResetTransactionPin from './pages/ResetTransactionPin';
 import Profile from './pages/Profile';
 import CreateTransactionPin from './pages/CreateTransactionPin';
 import ChangeTransactionPin from './pages/ChangeTransactionPin';
+import swDev from './swDev';
 
 function App() {
 
@@ -45,6 +46,13 @@ function App() {
       </Router>
     </>
   )
+}
+// swDev();
+
+try {
+  swDev();
+} catch (error) {
+  console.error("Service worker registration failed:", error);
 }
 
 export default App

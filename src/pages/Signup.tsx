@@ -5,12 +5,23 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
+import { useRequestOtpMutation } from '../services/apiService'; // Add this import
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { setOtp } from '../store/slices/userSlices';
+import { Circles } from 'react-loader-spinner';
+
 
 const Signup = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [emailError, setEmailError] = useState('');
+    const [requestOtp] = useRequestOtpMutation();
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
 
         const handleResize = () => {
@@ -51,12 +62,22 @@ const Signup = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (validateEmail(email)) {
             setEmailError('');
-            navigate('/otp');
+            try {
+                setLoading(true)
+                const response = await requestOtp(email).unwrap();
+                toast.success(response.message);
+                dispatch(setOtp(response.otp));
+                navigate('/otp');
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to send OTP. Please try again.');
+            }
         } else {
+            setLoading(false)
             setEmailError('Please enter a valid email address.');
         }
     };
@@ -81,13 +102,16 @@ const Signup = () => {
                                 className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
                                 placeholder='example@gmail.com'
                             />
-                             {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
+                            {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
                             <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5'>Already a user? <span className='text-[#0D7CFF]'>login</span></p>
 
                             <button
                                 type="submit"
                                 className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
-                                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Next</p>
+                                {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                                    :
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Next</p>}
+
                             </button>
                         </form>
                     </div>
