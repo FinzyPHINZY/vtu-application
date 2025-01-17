@@ -35,7 +35,7 @@ export const getTokens = async (grantType, refreshToken = null) => {
     refreshToken = response.data.refresh_token;
     tokenExpiry = Date.now() + response.data.expires_in * 1000;
 
-    console.log('Tokens obtained successfully:', { accessToken, refreshToken });
+    console.log('Tokens obtained successfully:');
 
     // Schedule automatic refresh
     scheduleTokenRefresh(response.data.expires_in);
