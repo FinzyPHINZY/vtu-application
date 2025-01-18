@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 // Initiate Verification
 export const initiateVerification = async (req, res) => {
   try {
@@ -14,7 +16,7 @@ export const initiateVerification = async (req, res) => {
       }
     );
 
-    const { data } = response;
+    const { data } = response.data;
 
     res.status(200).json({
       success: true,
@@ -54,7 +56,7 @@ export const validateVerification = async (req, res) => {
       }
     );
 
-    const { data } = response;
+    const { data } = response.data;
 
     res.status(200).json({
       statusCode: 200,

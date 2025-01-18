@@ -3,6 +3,9 @@ import User from '../models/User.js';
 import rateLimit from 'express-rate-limit';
 import { AllowedIPs } from './constants.js';
 import { validationResult } from 'express-validator';
+import dotenv from 'dotenv';
+
+dotenv.config({});
 
 export const requestLogger = (req, res, next) => {
   console.log('Method: ', req.method);
@@ -106,19 +109,32 @@ export const validateHeaders = (req, res, next) => {
   // Check Authorization header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new Error('Missing or invalid Authorization header');
+    return res.status(400).json({
+      success: false,
+      message: 'Missing or invalid Authorization header',
+    });
+    // throw new Error('Missing or invalid Authorization header');
   }
 
   // Check Content-Type header
   const contentType = req.headers['content-type'];
   if (!contentType || !contentType.includes('application/json')) {
-    throw new Error('Content-Type must be application/json');
+    return res.status(400).json({
+      success: false,
+      message: 'Content-Type must be application/json',
+    });
+    // throw new Error('Content-Type must be application/json');
   }
 
   // Check ClientID header
-  const clientId = req.headers.ClientID;
-  if (!clientId || clientId !== process.env.CLIENT_ID) {
-    throw new Error('Invalid ClientID header');
+  const clientId = req.headers.clientid;
+  console.log(clientId, process.env.SAFE_HAVEN_CLIENT_IBS_ID);
+  if (!clientId || clientId !== process.env.SAFE_HAVEN_CLIENT_IBS_ID) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid ClientID header',
+    });
+    // throw new Error('Invalid ClientID header');
   }
 
   next();
