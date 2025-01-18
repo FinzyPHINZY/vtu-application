@@ -221,7 +221,6 @@ export const login = async (req, res) => {
 export const getToken = async (req, res, next) => {
   try {
     const cachedToken = tokenCache.get('access_token');
-    console.log('cachedtoken ====>>>', cachedToken);
     if (cachedToken) {
       return res.json(cachedToken);
     }
