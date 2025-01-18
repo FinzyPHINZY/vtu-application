@@ -3,6 +3,10 @@ import bcrypt from 'bcrypt';
 import { isValidEmail } from '../utils/helpers.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
+import TokenCache from '../services/tokenCache.js';
+
+const tokenCache = new TokenCache();
 
 export const requestOtp = async (req, res) => {
   try {
@@ -214,5 +218,39 @@ export const login = async (req, res) => {
       success: false,
       message: 'Internal Server error',
     });
+  }
+};
+
+export const getToken = async (req, res, next) => {
+  try {
+    const cachedToken = tokenCache.get('access_token');
+    console.log('cachedtoken ====>>>', cachedToken);
+    if (cachedToken) {
+      return res.json(cachedToken);
+    }
+
+    const response = await axios.post(
+      'https://api.sandbox.safehavenmfb.com/oauth2/token',
+      req.body
+    );
+
+    const tokenData = response.data;
+    console.log('tokenData', tokenData);
+    tokenCache.set('access_token', tokenData, tokenData.expires_in);
+
+    console.log('New access token generated');
+    res.json(tokenData);
+  } catch (error) {
+    console.error('Token generation failed:', error);
+
+    if (error.response) {
+      return res
+        .status(400)
+        .json({ success: false, message: error.response.data.message });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Internal server error' });
+    }
   }
 };

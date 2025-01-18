@@ -88,20 +88,20 @@ const makeApiRequest = async (url, method, data = {}) => {
   }
 };
 
-export const getAccessToken = async () => {
-  if (!accessToken || Date.now() >= tokenExpiry) {
-    console.log('Access token expired or unavailable, fetching new token...');
-    await fetchTokens();
-  }
-  return accessToken;
-};
+// export const getAccessToken = async () => {
+//   if (!accessToken || Date.now() >= tokenExpiry) {
+//     console.log('Access token expired or unavailable, fetching new token...');
+//     await fetchTokens();
+//   }
+//   return accessToken;
+// };
 
-// Start the authentication process
-(async () => {
-  console.log('Obtaining initial tokens...');
-  await getTokens('client_credentials');
+// // Start the authentication process
+// (async () => {
+//   console.log('Obtaining initial tokens...');
+//   await getTokens('client_credentials');
 
-  // Example: Make an API request
-  //   const apiUrl = 'https://api.sandbox.safehavenmfb.com/some-endpoint';
-  //   await makeApiRequest(apiUrl, 'GET');
-})();
+// Example: Make an API request
+//   const apiUrl = 'https://api.sandbox.safehavenmfb.com/some-endpoint';
+//   await makeApiRequest(apiUrl, 'GET');
+// })();

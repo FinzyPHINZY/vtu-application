@@ -1,27 +1,33 @@
-import apiClient from '../utils/apiClient.js';
-
 // Initiate Verification
 export const initiateVerification = async (req, res) => {
   try {
-    const { type, number, debitAccountNumber } = req.body;
+    const response = await axios.post(
+      'https://api.sandbox.safehavenmfb.com/identity/v2',
+      req.body,
+      {
+        headers: {
+          Authorization: req.headers.authorization,
+          'Content-Type': 'application/json',
+          ClientID: req.headers.clientid,
+        },
+        timeout: 30000,
+      }
+    );
 
-    if (!type || !number || !debitAccountNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: type, number, or debitAccountNumber',
-      });
-    }
+    const { data } = response;
 
-    const response = await safeHavenService.initiateVerification({
-      type,
-      number,
-      debitAccountNumber,
-    });
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: 'Verification initiated successfully',
-      data: response,
+      data: {
+        _id: data._id,
+        clientId: data.clientId,
+        type: data.type,
+        amount: data.amount,
+        status: data.status,
+        debitAccountNumber: data.debitAccountNumber,
+        providerResponse: data.providerResponse,
+      },
     });
   } catch (error) {
     console.error('Error initiating verification:', error);

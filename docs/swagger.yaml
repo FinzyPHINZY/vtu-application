@@ -1,0 +1,165 @@
+openapi: 3.0.0
+info:
+  title: Authentication API
+  version: 1.0.0
+  description: API for handling authentication with external service
+
+servers:
+  - url: /api
+    description: API server
+
+paths:
+  /auth/token:
+    post:
+      summary: Generate access token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - grant_type
+                - client_id
+                - client_assertion
+                - client_assertion_type
+              properties:
+                grant_type:
+                  type: string
+                  enum: [client_credentials]
+                client_id:
+                  type: string
+                client_assertion:
+                  type: string
+                client_assertion_type:
+                  type: string
+                  enum: [urn:ietf:params:oauth:client-assertion-type:jwt-bearer]
+      responses:
+        '200':
+          description: Token generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  client_id:
+                    type: string
+                  token_type:
+                    type: string
+                  expires_in:
+                    type: number
+                  refresh_token:
+                    type: string
+                  ibs_client_id:
+                    type: string
+                  ibs_user_id:
+                    type: string
+        '400':
+          description: Invalid request parameters
+        '429':
+          description: Too many requests
+        '500':
+          description: Internal server error
+
+  /verification/initiate:
+    post:
+      summary: Initiate BVN verification
+      tags:
+        - Verification
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: ClientID
+          required: true
+          schema:
+            type: string
+          description: Client ID for API access
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - async
+                - number
+                - debitAccountNumber
+              properties:
+                type:
+                  type: string
+                  enum: [BVN]
+                async:
+                  type: boolean
+                number:
+                  type: string
+                  pattern: '^\d{11}$'
+                  description: BVN number (11 digits)
+                debitAccountNumber:
+                  type: string
+      responses:
+        '200':
+          description: Verification initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      clientId:
+                        type: string
+                      type:
+                        type: string
+                      amount:
+                        type: number
+                      status:
+                        type: string
+                      debitAccountNumber:
+                        type: string
+                      providerResponse:
+                        type: object
+                        properties:
+                          bvn:
+                            type: string
+                          fullName:
+                            type: string
+                          firstName:
+                            type: string
+                          lastName:
+                            type: string
+                          dateOfBirth:
+                            type: string
+                          phoneNumber1:
+                            type: string
+                          gender:
+                            type: string
+                  message:
+                    type: string
+        '400':
+          description: Invalid request parameters
+        '401':
+          description: Unauthorized - Invalid token or ClientID
+        '429':
+          description: Too many requests
+        '500':
+          description: Internal server error
+        '504':
+          description: Gateway timeout
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer

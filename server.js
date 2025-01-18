@@ -9,6 +9,7 @@ import connectDB from './Config/Database.js';
 import vasRouter from './routes/vasRouter.js';
 import authRoutes from './routes/authRoutes.js';
 import verificationRoutes from './routes/verificationRoutes.js';
+import setupSwagger from './Config/swagger.cjs';
 
 dotenv.config();
 
@@ -48,6 +49,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRouter);
 app.use('/api/vas', vasRouter);
 app.use('/api/verification', verificationRoutes);
+
+// swagger documentation
+setupSwagger(app);
 
 // Start the server and log a message to the console upon successful start
 app.listen(PORT, () => {
