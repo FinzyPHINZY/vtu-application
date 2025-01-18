@@ -158,6 +158,112 @@ paths:
         '504':
           description: Gateway timeout
 
+  /verification/validate:
+    post:
+      summary: Validate identity verification
+      tags:
+        - Verification
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: ClientID
+          required: true
+          schema:
+            type: string
+          description: Client ID for API access
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identityId
+                - type
+                - otp
+              properties:
+                identityId:
+                  type: string
+                  description: ID of the verification to validate
+                type:
+                  type: string
+                  enum: [BVN]
+                  description: Type of verification
+                otp:
+                  type: string
+                  description: OTP code for validation
+      responses:
+        '200':
+          description: Verification validated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      clientId:
+                        type: string
+                      type:
+                        type: string
+                      amount:
+                        type: number
+                      status:
+                        type: string
+                      debitAccountNumber:
+                        type: string
+                      providerResponse:
+                        type: object
+                        properties:
+                          bvn:
+                            type: string
+                          fullName:
+                            type: string
+                          firstName:
+                            type: string
+                          lastName:
+                            type: string
+                          dateOfBirth:
+                            type: string
+                          phoneNumber1:
+                            type: string
+                          gender:
+                            type: string
+                      transaction:
+                        type: object
+                        properties:
+                          debitAmount:
+                            type: number
+                          debitAccountNumber:
+                            type: string
+                          transactionReference:
+                            type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  message:
+                    type: string
+        '400':
+          description: Invalid request parameters
+        '401':
+          description: Unauthorized - Invalid token or ClientID
+        '429':
+          description: Too many requests
+        '500':
+          description: Internal server error
+        '504':
+          description: Gateway timeout
+
 components:
   securitySchemes:
     BearerAuth:
