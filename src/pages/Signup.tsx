@@ -9,14 +9,14 @@ import { useRequestOtpMutation } from '../services/apiService'; // Add this impo
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useDispatch } from 'react-redux';
-import { setOtp } from '../store/slices/userSlices';
+import { setOtp, setEmail } from '../store/slices/userSlices';
 import { Circles } from 'react-loader-spinner';
 
 
 const Signup = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
+    const [email, setEmailState] = useState('');
     const [emailError, setEmailError] = useState('');
     const [requestOtp] = useRequestOtpMutation();
     const dispatch = useDispatch();
@@ -53,7 +53,7 @@ const Signup = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        setEmail(value);
+        setEmailState(value);
 
         if (validateEmail(value)) {
             setEmailError('');
@@ -71,6 +71,7 @@ const Signup = () => {
                 const response = await requestOtp(email).unwrap();
                 toast.success(response.message);
                 dispatch(setOtp(response.otp));
+                dispatch(setEmail(response.email));
                 navigate('/otp');
             } catch (err) {
                 console.error(err);
@@ -103,7 +104,7 @@ const Signup = () => {
                                 placeholder='example@gmail.com'
                             />
                             {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
-                            <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5'>Already a user? <span className='text-[#0D7CFF]'>login</span></p>
+                            <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5'>Already a user? <span className='text-[#0D7CFF]' onClick={() => navigate("/login")}>login</span></p>
 
                             <button
                                 type="submit"

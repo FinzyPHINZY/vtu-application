@@ -11,8 +11,30 @@ export const apiService = createApi({
         body: { email },
       }),
     }),
+    verifyOtp: builder.mutation({
+      query: ({ email, otp }) => ({
+        url: 'verify-otp',
+        method: 'POST',
+        body: { email, otp },
+      }),
+    }),
+    completeSignup: builder.mutation({
+      query: ({ name, email, phoneNumber }) => ({
+        url: 'complete-signup',
+        method: 'POST',
+        body: { name, email, phoneNumber },
+      }),
+    }),
+    login: builder.mutation({
+      query: ({ email, otp }) => ({
+        url: 'login',
+        method: 'POST',
+        body: { email, otp },
+      }),
+    }),
     // Add other endpoints here as needed
   }),
 });
 
-export const { useRequestOtpMutation } = apiService;
+export const { useRequestOtpMutation, useVerifyOtpMutation, useCompleteSignupMutation, useLoginMutation } = apiService;
+

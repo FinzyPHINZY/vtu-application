@@ -10,6 +10,7 @@ interface UserState {
   idToken: string;
   user: User;
   otp: string;
+  email: string
 }
 
 const initialState: UserState = {
@@ -18,6 +19,7 @@ const initialState: UserState = {
     id: '',
   },
   otp: '', 
+  email: '',
 };
 
 const userSlice = createSlice({
@@ -30,9 +32,12 @@ const userSlice = createSlice({
     setOtp: (state, action: PayloadAction<string>) => { 
       state.otp = action.payload;
     },
+    setEmail: (state, action: PayloadAction<string>) => { 
+      state.email = action.payload;
+    },
     clearUserInfo: () => initialState,
   },
 });
 
-export const { setUserInfo, setOtp, clearUserInfo } = userSlice.actions; // Export setOtp
+export const { setUserInfo, setOtp, clearUserInfo, setEmail } = userSlice.actions; // Export setOtp
 export default userSlice.reducer;

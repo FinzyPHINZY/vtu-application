@@ -72,7 +72,7 @@ const SplashScreen = () => {
                                 <MailBoxIcon />
                                 <p className='text-white font-[300]  font-poppins text-base'>Continue with email</p>
                             </div>
-                            <p className='text-white font-[200] font-poppins text-sm text-center'>Login</p>
+                            <p className='text-white font-[200] font-poppins text-sm text-center'  onClick={() => navigate("/login")}>Login</p>
                         </div>
                     </div>
                 ) : (

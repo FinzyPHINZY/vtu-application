@@ -7,14 +7,20 @@ import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import { useVerifyOtpMutation } from '../services/apiService';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Circles } from 'react-loader-spinner';
 
 const OTP = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [otp, setOtp] = useState('');
     const [otpError, setOtpError] = useState('');
-
+    const [loading, setLoading] = useState(false);
     const storedOtp = useSelector((state: RootState) => state.user.otp);
+    const storedEmail = useSelector((state: RootState) => state.user.email);
+    const [verifyOtp] = useVerifyOtpMutation();
 
     console.log(storedOtp, 44)
     useEffect(() => {
@@ -49,11 +55,25 @@ const OTP = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!otp) {
+        if (otp) {
             setOtpError('');
-            navigate('/otp');
+            try {
+                setLoading(true);
+                const response = await verifyOtp({ email: storedEmail, otp });
+                if (response.data.success) {
+                    toast.success(response.data.message);
+                    navigate('/login');
+                } else {
+                    setOtpError(response.data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to send OTP. Please try again.');
+            } finally {
+                setLoading(false);
+            }
         } else {
             setOtpError('Please enter a valid email address.');
         }
@@ -85,7 +105,10 @@ const OTP = () => {
                             <button
                                 type="submit"
                                 className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
-                                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Verify</p>
+                                {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                                    :
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Next</p>}
+
                             </button>
                         </form>
                     </div>
