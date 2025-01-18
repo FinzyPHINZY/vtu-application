@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import TokenCache from '../services/tokenCache.js';
+import sendEmail from '../services/emailService.js';
 
 const tokenCache = new TokenCache();
 
@@ -19,6 +20,13 @@ export const requestOtp = async (req, res) => {
       });
     }
 
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.isVerified) {
+      return res
+        .status(409)
+        .json({ success: false, message: 'Email already registered' });
+    }
+
     // generate a four digit otp
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
@@ -31,16 +39,13 @@ export const requestOtp = async (req, res) => {
       { codeHash: hashedOtp, createdAt: new Date(), verified: false },
       { upsert: true }
     );
-    // todo: integrate an sms service here
-    // const message = await client.messages.create({
-    //   body: `Your OTP is: ${otp}`,
-    //   from: '+1234567890',
-    //   messagingServiceSid: 'MGXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-    //   to: phoneNumber,
-    // });
-    // await smsService.send(phoneNumber, `Your OTP is: ${otp}`);
 
-    console.log('OTP generated and saved:', otp);
+    // Send OTP email
+    // await sendEmail(email, 'Registration OTP', `Your OTP is: ${otp}`);
+
+    if (!existingUser) {
+      await User.create({ email });
+    }
 
     return res.status(200).json({
       success: true,
@@ -77,7 +82,17 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
     otpRecord.verified = true;
+    user.isVerified = true;
+    await user.save();
     await otpRecord.save();
 
     await OTP.deleteOne({ email });
@@ -99,7 +114,7 @@ export const verifyOtp = async (req, res) => {
 
 export const completeSignUp = async (req, res) => {
   try {
-    const { name, email, phoneNumber } = req.body;
+    const { name, email, phoneNumber, password } = req.body;
 
     if (name.length < 3) {
       return res.status(400).json({
@@ -109,20 +124,18 @@ export const completeSignUp = async (req, res) => {
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
+    if (!existingUser) {
+      return res.status(404).json({
         success: false,
-        message: 'Email already exists',
+        message: 'User not found',
       });
     }
 
-    const user = new User({
-      name,
-      email,
-      phoneNumber,
-    });
+    existingUser.name = name;
+    existingUser.phoneNumber = phoneNumber;
+    existingUser.password = await bcrypt.hash(password, 10);
 
-    const savedUser = await user.save();
+    const savedUser = await existingUser.save();
 
     const userForToken = {
       id: savedUser._id,
@@ -151,48 +164,32 @@ export const completeSignUp = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  // take in an email,
-  // send otp
-  // create token
   try {
-    const { email, otp } = req.body;
+    const { email, password } = req.body;
 
-    if (!email) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields',
       });
     }
 
-    const otpRecord = await OTP.findOne({ email });
-
-    if (!otpRecord) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Invalid Request - Not Found' });
-    }
-
-    const isOtpCorrect = await bcrypt.compare(otp, otpRecord.codeHash);
-
-    if (!isOtpCorrect) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid OTP',
-      });
-    }
-
-    otpRecord.verified = true;
-    await otpRecord.save();
-
-    await OTP.deleteOne({ email });
-
     const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+    if (!user || !user.isVerified) {
+      return res
+        .status(401)
+        .json({ success: false, message: 'Invalid Credentials' });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      user.failedLoginAttempts += 1;
+      user.lastLoginAttempt = new Date();
+      await user.save();
+      return res
+        .status(401)
+        .json({ success: false, message: 'Invalid Credentials' });
     }
 
     const userForToken = {

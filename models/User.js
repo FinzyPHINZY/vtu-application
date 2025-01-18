@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
       minlength: 3,
       maxlength: 50,
     },
@@ -13,10 +13,16 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      trim: true,
+      lowercase: true,
+    },
+    password: {
+      type: String,
+      required: false,
     },
     phoneNumber: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
       match: /^\+?\d{1,15}$/,
     },
@@ -44,7 +50,6 @@ const userSchema = new mongoose.Schema(
       },
     ],
     isVerified: {
-      // Involves user settting up a transaction pin to secure the account
       type: Boolean,
       default: false,
     },
@@ -64,6 +69,13 @@ const userSchema = new mongoose.Schema(
     isGoogleUser: {
       type: Boolean,
       default: false,
+    },
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lastLoginAttempt: {
+      type: Date,
     },
   },
   { timestamps: true }
