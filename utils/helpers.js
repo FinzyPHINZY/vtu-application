@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 export const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,4 +47,13 @@ export const paymentValidation = [
     .optional()
     .isInt({ min: 0 })
     .withMessage('Transaction charge must be a positive number'),
+];
+
+export const paymentVerificationValidation = [
+  param('reference')
+    .isString()
+    .notEmpty()
+    .withMessage('Transaction reference is required')
+    .matches(/^[a-zA-Z0-9_-]+$/)
+    .withMessage('Invalid transaction reference format'),
 ];

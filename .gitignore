@@ -2,5 +2,6 @@ node_modules
 .env
 api_documentation
 api_safehavenmfb
+api_paystack
 privatekey.pem
 publickey.cer
