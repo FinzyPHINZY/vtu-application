@@ -59,9 +59,9 @@ const BuyData = () => {
             setPackageError('Please select an email address.');
         }
         if (!number || number.length !== 11) {
-            setNumberError('Please enter a valid phone number with 11 digits.');
+            setNumberError('Please enter a valid phone number.');
         }
-        if (selectedPackage && number && number.length === 11) {
+        if (selectedPackage && number && number.length >= 10) {
             setPackageError('');
             setSelectedPackage('')
             setNumber('')

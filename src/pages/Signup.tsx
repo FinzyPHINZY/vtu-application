@@ -68,17 +68,21 @@ const Signup = () => {
             setEmailError('');
             try {
                 setLoading(true)
+                dispatch(setEmail(email));
                 const response = await requestOtp(email).unwrap();
                 toast.success(response.message);
                 dispatch(setOtp(response.otp));
-                dispatch(setEmail(response.email));
+                // dispatch(setEmail(response.email));
                 navigate('/otp');
             } catch (err) {
                 console.error(err);
                 toast.error('Failed to send OTP. Please try again.');
+            } finally {
+                setLoading(false)
+                setEmailState("")
             }
         } else {
-            setLoading(false)
+            
             setEmailError('Please enter a valid email address.');
         }
     };

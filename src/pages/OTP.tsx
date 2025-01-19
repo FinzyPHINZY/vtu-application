@@ -22,7 +22,7 @@ const OTP = () => {
     const storedEmail = useSelector((state: RootState) => state.user.email);
     const [verifyOtp] = useVerifyOtpMutation();
 
-    console.log(storedOtp, 44)
+    console.log(storedEmail, 44)
     useEffect(() => {
 
         const handleResize = () => {
@@ -50,9 +50,7 @@ const OTP = () => {
         const value = e.target.value;
         setOtp(value);
 
-        if (!otp) {
-            setOtpError('Please enter a valid email address.');
-        }
+     
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,21 +58,29 @@ const OTP = () => {
         if (otp) {
             setOtpError('');
             try {
+                console.log(1)
                 setLoading(true);
-                const response = await verifyOtp({ email: storedEmail, otp });
+                const response = await verifyOtp({ email: storedEmail, otp: storedOtp });
+                console.log(2)
                 if (response.data.success) {
+                    console.log(3)
                     toast.success(response.data.message);
                     navigate('/login');
+                    console.log(4)
                 } else {
-                    setOtpError(response.data.message);
+                    console.log(5)
+                    toast.error(response.data.message);
                 }
             } catch (err) {
+                console.log(6)
                 console.error(err);
                 toast.error('Failed to send OTP. Please try again.');
             } finally {
+                console.log(7)
                 setLoading(false);
             }
         } else {
+            console.log(8)
             setOtpError('Please enter a valid email address.');
         }
     };

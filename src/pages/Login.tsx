@@ -115,13 +115,15 @@ const Login = () => {
                     toast.success(response.data.message);
                     navigate('/home');
                 } else {
-                    setEmailError(response.data.message);
+                    toast.error(response.data.message);
                 }
             } catch (err) {
                 console.error(err);
                 toast.error('Failed to login. Please try again.');
             } finally {
                 setLoading(false);
+                setEmail("")
+                setPassword("")
             }
         } else {
             setEmailError('Please enter a valid email address.');

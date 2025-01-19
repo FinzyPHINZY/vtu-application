@@ -19,17 +19,17 @@ export const apiService = createApi({
       }),
     }),
     completeSignup: builder.mutation({
-      query: ({ name, email, phoneNumber }) => ({
+      query: ({ name, email, phoneNumber, password }) => ({
         url: 'complete-signup',
         method: 'POST',
-        body: { name, email, phoneNumber },
+        body: { name, email, phoneNumber, password },
       }),
     }),
     login: builder.mutation({
-      query: ({ email, otp }) => ({
+      query: ({ email, password }) => ({
         url: 'login',
         method: 'POST',
-        body: { email, otp },
+        body: { email, password },
       }),
     }),
     // Add other endpoints here as needed

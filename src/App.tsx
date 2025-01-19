@@ -18,7 +18,7 @@ import Profile from './pages/Profile';
 import CreateTransactionPin from './pages/CreateTransactionPin';
 import ChangeTransactionPin from './pages/ChangeTransactionPin';
 import swDev from './swDev';
-import CreatePassword from './pages/CreatePassword';
+import CompleteSignup from './pages/CompleteSignup';
 
 function App() {
 
@@ -43,7 +43,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/create-pin" element={<CreateTransactionPin />} />
           <Route path="/change-pin" element={<ChangeTransactionPin />} />
-          <Route path="/create-password" element={<CreatePassword />} />
+          <Route path="/complete-signup" element={<CompleteSignup />} />
         </Routes>
       </Router>
     </>

@@ -8,8 +8,11 @@ import { LeftArrowIcon } from '../assets/svg'
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Circles } from 'react-loader-spinner';
+import { useCompleteSignupMutation } from '../services/apiService';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
-const CreatePassword = () => {
+const CompleteSignup = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [password, setPassword] = useState('');
@@ -17,7 +20,13 @@ const CreatePassword = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [confirmPasswordError, setConfirmPasswordError] = useState('');
     const [loading, setLoading] = useState(false);
-
+    const [number, setNumber] = useState('');
+    const [numberError, setNumberError] = useState('');
+    const [name, setName] = useState('');
+    const [nameError, setNameError] = useState('');
+    const [completeSignup] = useCompleteSignupMutation();
+    const storedEmail = useSelector((state: RootState) => state.user.email);
+    console.log(storedEmail)
     useEffect(() => {
 
         const handleResize = () => {
@@ -86,33 +95,55 @@ const CreatePassword = () => {
             setConfirmPasswordError('');
         }
     };
+    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setNumber(value);
 
+
+
+    };
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setName(value);
+
+
+
+    };
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (password && confirmPassword && validatePassword(password) && password === confirmPassword) {
+        if (password && confirmPassword && validatePassword(password) && password === confirmPassword
+            && number && number.length >= 10) {
             setPasswordError('');
+            setNumberError("")
+            setNameError("")
             setConfirmPasswordError('');
             setLoading(true);
-            navigate('/login');
+            // navigate('/login');
             try {
                 setLoading(true);
-                // const response = await verifyOtp({ email: storedEmail, otp });
-                // if (response.data.success) {
-                //     toast.success(response.data.message);
-                //     navigate('/login');
-                // } else {
-                //     setOtpError(response.data.message);
-                // }
+                const response = await completeSignup({ name, email: storedEmail, phoneNumber: number, password, });
+                if (response.data.success) {
+                    toast.success(response.data.message);
+                    navigate('/login');
+                } else {
+                    toast.error(response.data.message);
+                }
             } catch (err) {
                 console.error(err);
                 toast.error('Password creation failed. Please try again.');
             } finally {
                 setLoading(false);
+                setPassword("")
+                setConfirmPassword("")
+                setNumber("")
+                setName("")
             }
         } else {
             setPasswordError('Please enter a valid email address.');
             setConfirmPasswordError('Passwords do not match.');
+            setNumberError('Please enter a valid phone number.');
+            setNameError('Please provide your name.');
         }
     };
     return (
@@ -129,7 +160,31 @@ const CreatePassword = () => {
 
                         <form className='mt-20 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
                             <div>
-                                <div>
+                                <div >
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Name</p>
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={handleNameChange}
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                        placeholder='Name'
+                                    />
+                                    {nameError && <p className='text-[#D45A0E] text-sm text-center'>{nameError}</p>}
+
+                                </div>
+                                <div className='mt-8'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Phone number</p>
+                                    <input
+                                        type="number"
+                                        value={number}
+                                        onChange={handleNumberChange}
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                        placeholder='+2345678909'
+                                    />
+                                    {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
+
+                                </div>
+                                <div className='mt-8'>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Password</p>
                                     <input
                                         type='password'
@@ -151,6 +206,7 @@ const CreatePassword = () => {
                                     />
                                     {confirmPasswordError && <p className='text-[#D45A0E] text-sm text-center'>{confirmPasswordError}</p>}
                                 </div>
+
                             </div>
                             <button
                                 type="submit"
@@ -190,4 +246,4 @@ const CreatePassword = () => {
     )
 }
 
-export default CreatePassword
+export default CompleteSignup
