@@ -22,9 +22,9 @@ const userSchema = new mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      required: false,
       unique: true,
       sparse: true,
+      required: false,
       match: /^\+?\d{1,15}$/,
     },
     role: {
@@ -44,12 +44,11 @@ const userSchema = new mongoose.Schema(
       minlength: 4,
       maxlength: 4,
     },
-    transactions: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Transaction',
-      },
-    ],
+    transactions: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'Transaction',
+      default: [],
+    },
     isVerified: {
       type: Boolean,
       default: false,
