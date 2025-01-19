@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const transactionSchema = new mongoose.Schema(
   {
-    transactionId: {
+    reference: {
       type: String,
       required: true,
       unique: true,
@@ -25,10 +25,21 @@ const transactionSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    currency: {
+      type: String,
+      default: 'NGN',
+    },
     status: {
       type: String,
-      enum: ['pending', 'completed', 'failed'],
+      enum: ['pending', 'success', 'failed'],
       default: 'pending',
+    },
+    metadata: {
+      type: Object,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
   },
   { timestamps: true },

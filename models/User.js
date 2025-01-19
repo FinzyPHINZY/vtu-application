@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: false,
       unique: true,
+      sparse: true,
       match: /^\+?\d{1,15}$/,
     },
     role: {

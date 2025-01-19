@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "paystack-api",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
