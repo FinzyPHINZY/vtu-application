@@ -65,7 +65,7 @@ const OTP = () => {
                 if (response.data.success) {
                     console.log(3)
                     toast.success(response.data.message);
-                    navigate('/login');
+                    navigate('/complete-signup');
                     console.log(4)
                 } else {
                     console.log(5)
@@ -104,7 +104,7 @@ const OTP = () => {
                                     value={otp}
                                     onChange={handleInputChange}
                                     className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                    placeholder='6-digits'
+                                    placeholder='4-digits'
                                 />
                                 {otpError && <p className='text-[#D45A0E] text-sm text-center'>{otpError}</p>}
                             </div>

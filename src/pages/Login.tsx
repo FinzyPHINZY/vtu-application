@@ -163,7 +163,7 @@ const Login = () => {
                                         value={password}
                                         onChange={handlePasswordChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='8-Characters'
+                                        placeholder='Enter your password'
                                     />
                                     {passwordError && <p className='text-[#D45A0E] text-sm text-center'>{passwordError}</p>}
                                     <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5' onClick={() => navigate("/forgot-password")}>forgot password?</p>
