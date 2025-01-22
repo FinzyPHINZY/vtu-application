@@ -57,3 +57,47 @@ export const paymentVerificationValidation = [
     .matches(/^[a-zA-Z0-9_-]+$/)
     .withMessage('Invalid transaction reference format'),
 ];
+
+export const subAccountValidation = [
+  body('phoneNumber')
+    .matches(/^\+[1-9]\d{1,14}$/)
+    .withMessage('Invalid phone number format. Must include country code'),
+  body('emailAddress')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Invalid email address'),
+  body('externalReference')
+    .isString()
+    .notEmpty()
+    .withMessage('External reference is required'),
+  body('identityType')
+    .isString()
+    .default('BVN')
+    .isIn(['BVN'])
+    .withMessage('Invalid identity type'),
+  body('identityNumber')
+    .matches(/^\d{11}$/)
+    .withMessage('Identity number must be 11 digits'),
+  body('identityId')
+    .isString()
+    .notEmpty()
+    .withMessage('Identity ID is required'),
+  body('otp').isString().notEmpty().withMessage('OTP is required'),
+  body('autoSweep')
+    .isBoolean()
+    .default(false)
+    .withMessage('autoSweep must be a boolean'),
+  body('autoSweepDetails')
+    .isObject()
+    .default({ schedule: 'Instant' })
+    .withMessage('Invalid autoSweepDetails format'),
+];
+
+export const accountIdValidation = [
+  param('id')
+    .isString()
+    .notEmpty()
+    .withMessage('Account ID is required')
+    .matches(/^[a-zA-Z0-9-]+$/)
+    .withMessage('Invalid account ID format'),
+];

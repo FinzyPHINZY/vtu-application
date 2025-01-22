@@ -4,7 +4,7 @@ import axios from 'axios';
 export const initiateVerification = async (req, res) => {
   try {
     const response = await axios.post(
-      'https://api.sandbox.safehavenmfb.com/identity/v2',
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/identity/v2`,
       req.body,
       {
         headers: {
@@ -44,7 +44,7 @@ export const initiateVerification = async (req, res) => {
 export const validateVerification = async (req, res) => {
   try {
     const response = await axios.post(
-      'https://api.sandbox.safehavenmfb.com/identity/v2/validate',
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/identity/v2/validate`,
       req.body,
       {
         headers: {

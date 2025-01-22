@@ -10,6 +10,7 @@ import vasRouter from './routes/vasRouter.js';
 import authRoutes from './routes/auth.js';
 import verificationRoutes from './routes/verificationRoutes.js';
 import paymentRoutes from './routes/payment.js';
+import accountRoutes from './routes/account.js';
 import setupSwagger from './Config/swagger.cjs';
 
 dotenv.config();
@@ -51,6 +52,7 @@ app.use('/api/user', userRouter);
 app.use('/api/vas', vasRouter);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/account', accountRoutes);
 
 // swagger documentation
 setupSwagger(app);

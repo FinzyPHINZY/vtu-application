@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 
+const accountDetailsSchema = new mongoose.Schema({
+  bankName: String,
+  accountName: String,
+  accountType: String,
+  status: String,
+});
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -37,6 +44,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    accountNumber: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    accountDetails: accountDetailsSchema,
     transactionPinHash: {
       type: String,
       required: false,

@@ -226,7 +226,7 @@ export const getToken = async (req, res, next) => {
     }
 
     const response = await axios.post(
-      'https://api.sandbox.safehavenmfb.com/oauth2/token',
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
       req.body
     );
 
