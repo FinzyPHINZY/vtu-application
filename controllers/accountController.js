@@ -1,6 +1,9 @@
+import axios from 'axios';
 import User from '../models/User.js';
 
 export const createSubAccount = async (req, res) => {
+  const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
   try {
     const {
       phoneNumber,
@@ -14,7 +17,7 @@ export const createSubAccount = async (req, res) => {
       autoSweepDetails = { schedule: 'Instant' },
     } = req.body;
 
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res
         .status(404)
@@ -45,9 +48,9 @@ export const createSubAccount = async (req, res) => {
       payload,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
       }
     );
@@ -90,15 +93,17 @@ export const createSubAccount = async (req, res) => {
 
 export const getAccountDetails = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const { id } = req.params;
 
     const response = await axios.get(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/accounts/${id}`,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000,
       }

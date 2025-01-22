@@ -23,9 +23,9 @@ router.post('/login', authController.login);
 
 router.post(
   '/token',
-  tokenValidation,
-  validateRequest,
-  authController.getToken
+  // tokenValidation,
+  // validateRequest,
+  authController.fetchAccessToken
 );
 
 export default router;
