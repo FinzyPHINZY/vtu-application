@@ -1,13 +1,20 @@
 import express from 'express';
-import { auth, validateHeaders, validateRequest } from '../utils/middleware.js';
+import {
+  auth,
+  tokenExtractor,
+  userExtractor,
+  validateHeaders,
+  validateRequest,
+} from '../utils/middleware.js';
 import { accountIdValidation, subAccountValidation } from '../utils/helpers.js';
 import * as accountController from '../controllers/accountController.js';
 const router = express.Router();
 
+router.use(tokenExtractor);
+router.use(userExtractor);
+
 router.post(
   '/subaccount',
-  auth,
-  validateHeaders,
   subAccountValidation,
   validateRequest,
   accountController.createSubAccount
@@ -15,8 +22,6 @@ router.post(
 
 router.get(
   '/:id',
-  auth,
-  validateHeaders,
   accountIdValidation,
   validateRequest,
   accountController.getAccountDetails

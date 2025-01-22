@@ -9,10 +9,16 @@ const accountDetailsSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    firstName: {
       type: String,
       required: false,
-      minlength: 3,
+      minlength: 2,
+      maxlength: 50,
+    },
+    lastName: {
+      type: String,
+      required: false,
+      minlength: 2,
       maxlength: 50,
     },
     email: {

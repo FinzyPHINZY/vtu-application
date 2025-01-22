@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { AllowedIPs } from './constants.js';
 import { validationResult } from 'express-validator';
 import dotenv from 'dotenv';
+import axios from 'axios';
 
 dotenv.config({});
 
@@ -34,7 +35,7 @@ export const auth = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      req.userId = decoded.id;
+      req.user = decoded;
       next();
     } catch (error) {
       return res.status(401).json({ success: false, message: 'Invalid token' });
@@ -66,12 +67,52 @@ export const userExtractor = async (req, res, next) => {
   const user = await User.findById({ _id: decodedToken.id });
 
   if (user) {
-    req.user = user;
+    req.user = { user, ...decodedToken };
   } else {
     req.user = null;
   }
 
   next();
+};
+
+export const fetchAccessToken = async (req, res, next) => {
+  try {
+    const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
+    const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
+
+    const body = {
+      grant_type: 'client_credentials',
+      client_id: CLIENT_ID,
+      client_assertion: CLIENT_ASSERTION,
+      client_assertion_type:
+        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+    };
+
+    console.log('Fetching Safe Haven Access Token...');
+    const response = await axios.post(
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+      body
+    );
+
+    const { access_token, expires_in, ibs_client_id } = response.data;
+
+    console.log('Access Token fetched:', access_token);
+
+    // Attach the token and related details to the req object
+    req.accessToken = {
+      access_token,
+      expires_in,
+      ibs_client_id,
+    };
+
+    next(); // Pass control to the next middleware or route handler
+  } catch (error) {
+    console.error(
+      'Error fetching access token:',
+      error.response?.data || error.message
+    );
+    return res.status(500).json;
+  }
 };
 
 export const authorizeRoles = (...allowedRoles) => {
@@ -143,27 +184,6 @@ export const validateHeaders = (req, res, next) => {
       message: 'Missing or invalid Authorization header',
     });
     // throw new Error('Missing or invalid Authorization header');
-  }
-
-  // Check Content-Type header
-  const contentType = req.headers['content-type'];
-  if (!contentType || !contentType.includes('application/json')) {
-    return res.status(400).json({
-      success: false,
-      message: 'Content-Type must be application/json',
-    });
-    // throw new Error('Content-Type must be application/json');
-  }
-
-  // Check ClientID header
-  const clientId = req.headers.clientid;
-  console.log(clientId, process.env.SAFE_HAVEN_CLIENT_IBS_ID);
-  if (!clientId || clientId !== process.env.SAFE_HAVEN_CLIENT_IBS_ID) {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid ClientID header',
-    });
-    // throw new Error('Invalid ClientID header');
   }
 
   next();

@@ -2,15 +2,16 @@ import axios from 'axios';
 
 // Initiate Verification
 export const initiateVerification = async (req, res) => {
+  const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
   try {
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/identity/v2`,
       req.body,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: req.headers.clientid,
+          ClientID: ibs_client_id,
         },
         timeout: 30000,
       }
@@ -32,7 +33,7 @@ export const initiateVerification = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error initiating verification:', error);
+    console.error('Error initiating verification:', error.data);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -43,14 +44,16 @@ export const initiateVerification = async (req, res) => {
 // Validate Verification
 export const validateVerification = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/identity/v2/validate`,
       req.body,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: req.headers.clientid,
+          ClientID: ibs_client_id,
         },
         timeout: 30000, // 30 second timeout
       }
@@ -75,7 +78,7 @@ export const validateVerification = async (req, res) => {
       message: data.message || 'Verification validated successfully',
     });
   } catch (error) {
-    console.error('Error validating verification:', error);
+    console.error('Error validating verification:', error.data);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

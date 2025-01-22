@@ -4,7 +4,12 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import userRouter from './routes/userRouter.js';
-import { limiter, requestLogger } from './utils/middleware.js';
+import {
+  limiter,
+  requestLogger,
+  tokenExtractor,
+  userExtractor,
+} from './utils/middleware.js';
 import connectDB from './Config/Database.js';
 import servicesRoutes from './routes/services.js';
 import authRoutes from './routes/auth.js';
@@ -30,7 +35,7 @@ app.use(limiter);
 app.use(requestLogger);
 
 // Endpoints
-app.get('/', (req, res) => {
+app.get('/', tokenExtractor, userExtractor, (req, res) => {
   res
     .status(200)
     .send(
