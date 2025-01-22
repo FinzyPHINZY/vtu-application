@@ -101,3 +101,121 @@ export const accountIdValidation = [
     .matches(/^[a-zA-Z0-9-]+$/)
     .withMessage('Invalid account ID format'),
 ];
+
+export const serviceIdValidation = [
+  param('id')
+    .isString()
+    .notEmpty()
+    .withMessage('Service ID is required')
+    .matches(/^[a-zA-Z0-9-_]+$/)
+    .withMessage('Invalid service ID format'),
+];
+
+export const verifyEntityValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required')
+    .matches(/^[a-zA-Z0-9-_]+$/)
+    .withMessage('Invalid service category ID format'),
+  body('entityNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Entity number is required'),
+];
+
+export const airtimeValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required'),
+  body('amount')
+    .isInt({ min: 1 })
+    .withMessage('Amount must be a positive number'),
+  body('channel').optional().isString().default('WEB'),
+  body('debitAccountNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Debit account number is required'),
+  body('phoneNumber')
+    .isString()
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage('Invalid phone number format'),
+  body('statusUrl').isURL().withMessage('Valid status URL is required'),
+];
+
+export const dataValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required'),
+  body('bundleCode')
+    .isString()
+    .notEmpty()
+    .withMessage('Bundle code is required'),
+  body('amount')
+    .isInt({ min: 1 })
+    .withMessage('Amount must be a positive number'),
+  body('channel').isString().notEmpty().withMessage('Channel is required'),
+  body('debitAccountNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Debit account number is required'),
+  body('phoneNumber')
+    .isString()
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage('Invalid phone number format'),
+  body('statusUrl').isURL().withMessage('Valid status URL is required'),
+];
+
+export const cableTVValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required'),
+  body('bundleCode')
+    .isString()
+    .notEmpty()
+    .withMessage('Bundle code is required'),
+  body('amount')
+    .isInt({ min: 1 })
+    .withMessage('Amount must be a positive number'),
+  body('channel').isString().notEmpty().withMessage('Channel is required'),
+  body('debitAccountNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Debit account number is required'),
+  body('cardNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Card number is required'),
+];
+
+export const utilityValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required'),
+  body('meterNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Meter number is required'),
+  body('amount')
+    .isInt({ min: 1 })
+    .withMessage('Amount must be a positive number'),
+  body('channel').isString().notEmpty().withMessage('Channel is required'),
+  body('debitAccountNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Debit account number is required'),
+  body('vendType').isString().notEmpty().withMessage('Vend type is required'),
+];
+
+export const transactionIdValidation = [
+  param('id')
+    .isString()
+    .notEmpty()
+    .withMessage('Transaction ID is required')
+    .matches(/^[a-zA-Z0-9-_]+$/)
+    .withMessage('Invalid transaction ID format'),
+];

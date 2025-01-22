@@ -6,7 +6,7 @@ import cors from 'cors';
 import userRouter from './routes/userRouter.js';
 import { limiter, requestLogger } from './utils/middleware.js';
 import connectDB from './Config/Database.js';
-import vasRouter from './routes/vasRouter.js';
+import servicesRoutes from './routes/services.js';
 import authRoutes from './routes/auth.js';
 import verificationRoutes from './routes/verificationRoutes.js';
 import paymentRoutes from './routes/payment.js';
@@ -49,10 +49,10 @@ app.get('/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRouter);
-app.use('/api/vas', vasRouter);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/account', accountRoutes);
+app.use('/api/services', servicesRoutes);
 
 // swagger documentation
 setupSwagger(app);
