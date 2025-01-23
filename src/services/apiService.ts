@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const apiService = createApi({
   reducerPath: 'apiService',
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://bolddata-bills-payment.onrender.com/api/auth' }),
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://bolddata-bills-payment-1.onrender.com/api/auth' }),
   endpoints: (builder) => ({
     requestOtp: builder.mutation({
       query: (email) => ({
@@ -19,10 +19,10 @@ export const apiService = createApi({
       }),
     }),
     completeSignup: builder.mutation({
-      query: ({ name, email, phoneNumber, password }) => ({
+      query: ({ firstName, lastName, email, phoneNumber, password }) => ({
         url: 'complete-signup',
         method: 'POST',
-        body: { name, email, phoneNumber, password },
+        body: { firstName, lastName, email, phoneNumber, password },
       }),
     }),
     login: builder.mutation({

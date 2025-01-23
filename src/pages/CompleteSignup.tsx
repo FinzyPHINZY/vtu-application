@@ -22,8 +22,10 @@ const CompleteSignup = () => {
     const [loading, setLoading] = useState(false);
     const [number, setNumber] = useState('');
     const [numberError, setNumberError] = useState('');
-    const [name, setName] = useState('');
-    const [nameError, setNameError] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [firstNameError, setFirstNameError] = useState('');
+    const [lastNameError, setLastNameError] = useState('');
     const [completeSignup] = useCompleteSignupMutation();
     const storedEmail = useSelector((state: RootState) => state.user.email);
     console.log(storedEmail)
@@ -102,9 +104,16 @@ const CompleteSignup = () => {
 
 
     };
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        setName(value);
+        setFirstName(value);
+
+
+
+    };
+    const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setLastName(value);
 
 
 
@@ -112,17 +121,18 @@ const CompleteSignup = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (password && confirmPassword && validatePassword(password) && password === confirmPassword
+        if (password && firstName && lastName && confirmPassword && validatePassword(password) && password === confirmPassword
             && number && number.length >= 10) {
             setPasswordError('');
             setNumberError("")
-            setNameError("")
+            setFirstNameError("")
+            setLastNameError("")
             setConfirmPasswordError('');
             setLoading(true);
             // navigate('/login');
             try {
                 setLoading(true);
-                const response = await completeSignup({ name, email: storedEmail, phoneNumber: number, password, });
+                const response = await completeSignup({ firstName, lastName, email: storedEmail, phoneNumber: number, password, });
                 if (response.data.success) {
                     toast.success(response.data.message);
                     navigate('/login');
@@ -137,13 +147,15 @@ const CompleteSignup = () => {
                 setPassword("")
                 setConfirmPassword("")
                 setNumber("")
-                setName("")
+                setLastName("")
+                setFirstName("")
             }
         } else {
             setPasswordError('Please enter a valid email address.');
             setConfirmPasswordError('Passwords do not match.');
             setNumberError('Please enter a valid phone number.');
-            setNameError('Please provide your name.');
+            setFirstNameError('Please provide your first name.');
+            setLastNameError('Please provide your last name.');
         }
     };
     return (
@@ -161,15 +173,27 @@ const CompleteSignup = () => {
                         <form className='mt-20 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
                             <div>
                                 <div >
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Name</p>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'> First Name</p>
                                     <input
                                         type="text"
-                                        value={name}
-                                        onChange={handleNameChange}
+                                        value={firstName}
+                                        onChange={handleFirstNameChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
                                         placeholder='Name'
                                     />
-                                    {nameError && <p className='text-[#D45A0E] text-sm text-center'>{nameError}</p>}
+                                    {firstNameError && <p className='text-[#D45A0E] text-sm text-center'>{firstNameError}</p>}
+
+                                </div>
+                                <div className='mt-8'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Last Name</p>
+                                    <input
+                                        type="text"
+                                        value={lastName}
+                                        onChange={handleLastNameChange}
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                        placeholder='Name'
+                                    />
+                                    {lastNameError && <p className='text-[#D45A0E] text-sm text-center'>{lastNameError}</p>}
 
                                 </div>
                                 <div className='mt-8'>
