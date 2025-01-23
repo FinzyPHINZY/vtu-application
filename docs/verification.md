@@ -6,162 +6,139 @@ This document describes the verification endpoints used to integrate Safe Haven 
 
 ---
 
-## Base URL
+### **Base URL**
 
 `/api/verification`
 
 ---
 
-## Endpoints
+### **Initiate Verification**
 
-### 1. **Initiate Verification**
+**Endpoint:**  
+`POST /api/verification/initiate`
 
-- **Endpoint:** `/initiate`
-- **Method:** `POST`
-- **Middleware:**
-  - `validateHeaders`
-  - `verificationValidation`
-  - `validateRequest`
-- **Description:** Initiates the verification process for a customer.
-- **Request Headers:**
-  - `Authorization`: Bearer token
-- **Request Body:**
+**Description:**  
+Initiates a BVN verification process by sending the BVN and debit account number for validation.
+
+**Headers:**
+
+- `Authorization` (required): Bearer token generated upon login.
+- `Content-Type`: `application/json`
+
+**Request Body:**
+
+```json
+{
+  "type": "BVN",
+  "async": true,
+  "number": "12345678901",
+  "debitAccountNumber": "1234567890"
+}
+```
+
+**Validation Rules:**
+
+- `type`: Must be "BVN".
+- `async`: Boolean, specifies whether the request is asynchronous.
+- `number`: Must be a string containing exactly 11 digits.
+- `debitAccountNumber`: Required string, cannot be empty.
+
+**Response:**
+
+- **Success (200):**
   ```json
   {
-    "type": "BVN",
-    "async": false,
-    "number": "{bvn number}",
-    "debitAccountNumber": "{safe haven account number}" // 0119017579
+    "success": true,
+    "message": "Verification initiated successfully",
+    "data": {
+      "_id": "unique-verification-id",
+      "clientId": "client-id",
+      "type": "BVN",
+      "amount": "amount-deducted",
+      "status": "pending",
+      "debitAccountNumber": "1234567890",
+      "providerResponse": "provider-specific-message"
+    }
   }
   ```
-- **Response:**
-  - **200:**
-    ```json
-    {
-      "success": true,
-      "message": "Verification initiated successfully",
-      "data": {
-        "_id": "verificationId",
-        "clientId": "clientId",
-        "type": "BVN",
-        "amount": 50.0,
-        "status": "Pending",
-        "debitAccountNumber": "{safe haven account number}",
-        "providerResponse": "Provider-specific details"
-      }
-    }
-    ```
-  - **400:**
-    ```json
-    {
-      "success": false,
-      "message": "Missing or invalid request parameters"
-    }
-    ```
-  - **500:**
-    ```json
-    {
-      "success": false,
-      "message": "Internal server error"
-    }
-    ```
+- **Error (500):**
+  ```json
+  {
+    "success": false,
+    "message": "Internal server error"
+  }
+  ```
 
 ---
 
-### 2. **Validate Verification**
+### **Validate Verification**
 
-- **Endpoint:** `/validate`
-- **Method:** `POST`
-- **Middleware:**
-  - `validateHeaders`
-  - `validationValidation`
-  - `validateRequest`
-- **Description:** Validates a previously initiated verification request.
-- **Request Headers:**
+**Endpoint:**  
+`POST /api/verification/validate`
 
-  - `Authorization`: Bearer token
+**Description:**  
+Validates an ongoing BVN verification process using the OTP provided by the user.
 
-- **Request Body:**
+**Headers:**
+
+- `Authorization` (required): Bearer token generated upon login.
+- `Content-Type`: `application/json`
+
+**Request Body:**
+
+```json
+{
+  "identityId": "verification-id",
+  "type": "BVN",
+  "otp": "123456"
+}
+```
+
+**Validation Rules:**
+
+- `identityId`: Must be a string, required.
+- `type`: Must be "BVN".
+- `otp`: Required string, cannot be empty.
+
+**Response:**
+
+- **Success (200):**
   ```json
   {
-    "identityId": "verificationId", // _id received from the /initiate endpoint response
-    "type": "BVN",
-    "otp": "123456" // use any random 6 digit string.
-  }
-  ```
-- **Response:**
-  - **200:**
-    ```json
-    {
-      "statusCode": 200,
-      "data": {
-        "_id": "verificationId",
-        "clientId": "clientId",
-        "type": "BVN",
-        "amount": 50.0,
-        "status": "Verified",
-        "debitAccountNumber": "1234567890", // 0119017579
-        "providerResponse": "Provider-specific details",
-        "transaction": "transactionDetails",
-        "createdAt": "2025-01-08T12:00:00.000Z",
-        "updatedAt": "2025-01-08T12:05:00.000Z"
+    "statusCode": 200,
+    "data": {
+      "_id": "verification-id",
+      "clientId": "client-id",
+      "type": "BVN",
+      "amount": "amount-deducted",
+      "status": "validated",
+      "debitAccountNumber": "1234567890",
+      "providerResponse": "provider-specific-response",
+      "transaction": {
+        "transactionId": "transaction-id",
+        "status": "success"
       },
-      "message": "Verification validated successfully"
-    }
-    ```
-  - **400:**
-    ```json
-    {
-      "success": false,
-      "message": "Missing or invalid OTP"
-    }
-    ```
-  - **500:**
-    ```json
-    {
-      "success": false,
-      "message": "Internal server error"
-    }
-    ```
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    },
+    "message": "Verification validated successfully"
+  }
+  ```
+- **Error (500):**
+  ```json
+  {
+    "success": false,
+    "message": "Internal server error"
+  }
+  ```
 
 ---
 
-## Middleware Used
+### **Middleware Overview**
 
-### 1. `validateHeaders`
-
-- Ensures that:
-  - The `Authorization` header contains a valid Bearer token.
-  - The `Content-Type` header is `application/json`.
-
-### 2. `validateRequest`
-
-- Validates request body parameters against predefined rules.
-
----
-
-## Request Validations
-
-### 1. `verificationValidation`
-
-- **Rules:**
-  - `type`: Must be `BVN`.
-  - `async`: Must be a boolean value.
-  - `number`: Must be an 11-digit BVN.
-  - `debitAccountNumber`: Must not be empty.
-
-### 2. `validationValidation`
-
-- **Rules:**
-  - `identityId`: Must be a non-empty string.
-  - `type`: Must be `BVN`.
-  - `otp`: Must be a non-empty string.
-
----
-
-## Error Handling
-
-- Logs errors to the console for debugging.
-- Returns meaningful error messages to clients with appropriate HTTP status codes.
+1. **`tokenExtractor`:** Extracts the bearer token from the `Authorization` header.
+2. **`userExtractor`:** Verifies the token and retrieves the associated user.
+3. **`validateHeaders`:** Ensures the presence of a valid `Authorization` header.
+4. **`validateRequest`:** Validates the request body based on predefined rules (`verificationValidation` or `validationValidation`).
 
 ---

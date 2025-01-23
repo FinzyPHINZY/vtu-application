@@ -1,7 +1,6 @@
 import express from 'express';
 import * as servicesController from '../controllers/servicesController.js';
 import {
-  auth,
   tokenExtractor,
   userExtractor,
   validateHeaders,

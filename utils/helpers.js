@@ -237,3 +237,84 @@ export const accountsQueryValidation = [
     .toBoolean()
     .withMessage('isSubAccount must be a boolean'),
 ];
+
+export const airtimeTransactionValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required'),
+  body('amount')
+    .isInt({ min: 1 })
+    .withMessage('Amount must be a positive number'),
+  body('phoneNumber')
+    .isString()
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage('Invalid phone number format'),
+  body('debitAccountNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Debit account number is required'),
+];
+
+export const dataTransactionValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required'),
+  body('bundleCode')
+    .isString()
+    .notEmpty()
+    .withMessage('Bundle code is required'),
+  body('amount')
+    .isInt({ min: 1 })
+    .withMessage('Amount must be a positive number'),
+  body('phoneNumber')
+    .isString()
+    .matches(/^\+?[1-9]\d{1,14}$/)
+    .withMessage('Invalid phone number format'),
+  body('debitAccountNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Debit account number is required'),
+];
+
+export const cableTVTransactionValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required'),
+  body('bundleCode')
+    .isString()
+    .notEmpty()
+    .withMessage('Bundle code is required'),
+  body('amount')
+    .isInt({ min: 1 })
+    .withMessage('Amount must be a positive number'),
+  body('cardNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Card number is required'),
+  body('debitAccountNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Debit account number is required'),
+];
+
+export const utilityTransactionValidation = [
+  body('serviceCategoryId')
+    .isString()
+    .notEmpty()
+    .withMessage('Service category ID is required'),
+  body('meterNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Meter number is required'),
+  body('amount')
+    .isInt({ min: 1 })
+    .withMessage('Amount must be a positive number'),
+  body('vendType').isString().notEmpty().withMessage('Vend type is required'),
+  body('debitAccountNumber')
+    .isString()
+    .notEmpty()
+    .withMessage('Debit account number is required'),
+];

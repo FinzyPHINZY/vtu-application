@@ -10,7 +10,7 @@ import servicesRoutes from './routes/services.js';
 import authRoutes from './routes/auth.js';
 import verificationRoutes from './routes/verification.js';
 import accountRoutes from './routes/account.js';
-import setupSwagger from './Config/swagger.cjs';
+import transactionRoutes from './routes/transactions.js';
 
 dotenv.config();
 
@@ -51,9 +51,7 @@ app.use('/api/user', userRouter);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/account', accountRoutes);
 app.use('/api/services', servicesRoutes);
-
-// swagger documentation
-setupSwagger(app);
+app.use('/api/transactions', transactionRoutes);
 
 // Start the server and log a message to the console upon successful start
 app.listen(PORT, () => {

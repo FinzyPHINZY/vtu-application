@@ -4,166 +4,201 @@
 
 This documentation provides details on the Account Management API, which includes endpoints for creating sub-accounts and retrieving account details.
 
-## Base URL
+### Base URL
 
-`/api/account`
+```
+/api/account
+```
 
-## Endpoints
+---
 
-### 1. **Create Sub-Account**
+### Middleware
 
-- **Endpoint:** `/subaccount`
-- **Method:** `POST`
-- **Description:** Creates a new sub-account for an authenticated user.
-- **Headers:**
-  - `Authorization: Bearer {token}`
-  - `ClientID: {SAFE_HAVEN_CLIENT_IBS_ID}`
-- **Request Body:**
-  ```json
-  {
-    "phoneNumber": "+12345678901",
-    "emailAddress": "user@example.com",
-    "externalReference": "unique_reference",
-    "identityType": "BVN",
-    "identityNumber": "12345678901",
-    "identityId": "identity_document_id",
-    "otp": "123456",
-    "autoSweep": false,
-    "autoSweepDetails": {
-      "schedule": "Instant"
-    }
-  }
-  ```
-- **Response:**
-  - **201 Created:**
-    ```json
-    {
-      "success": true,
-      "message": "Sub-account created successfully",
-      "data": {
-        "accountNumber": "1234567890",
-        "bankName": "Safe Haven Bank",
-        "accountName": "John Doe",
-        "accountType": "Savings",
-        "currency": "NGN",
-        "status": "Active",
-        "createdAt": "2025-01-22T05:24:43.511Z"
-      }
-    }
-    ```
-  - **400 Bad Request:**
-    ```json
-    {
-      "success": false,
-      "message": "Validation error: Invalid phone number format. Must include country code"
-    }
-    ```
-  - **401 Unauthorized:**
-    ```json
-    {
-      "success": false,
-      "message": "Authentication required"
-    }
-    ```
-  - **409 Conflict:**
-    ```json
-    {
-      "success": false,
-      "message": "User already has a sub-account"
-    }
-    ```
-  - **500 Internal Server Error:**
-    ```json
-    {
-      "success": false,
-      "message": "Internal Server Error"
-    }
-    ```
+All routes under `/api/account` use the following middleware:
 
-### 2. **Get Account Details**
+1. `tokenExtractor`: Extracts the user’s token from the request.
+2. `userExtractor`: Extracts the authenticated user's details.
+3. `validateHeaders`: Validates the headers for required fields.
+4. `validateRequest`: Validates the request body, query, or params based on the specified rules.
 
-- **Endpoint:** `/:id`
-- **Method:** `GET`
-- **Description:** Retrieves details of a specific account by its ID.
-- **Headers:**
-  - `Authorization: Bearer {token}`
-  - `ClientID: {SAFE_HAVEN_CLIENT_IBS_ID}`
-- **Parameters:**
-  - `id` (string): The unique identifier of the account.
-- **Response:**
-  - **200 OK:**
-    ```json
-    {
-      "success": true,
-      "message": "Account details retrieved successfully",
-      "data": {
-        "accountNumber": "1234567890",
-        "bankName": "Safe Haven Bank",
-        "accountName": "John Doe",
-        "accountType": "Savings",
-        "currency": "NGN",
-        "status": "Active",
-        "createdAt": "2025-01-22T05:24:43.511Z"
-      }
-    }
-    ```
-  - **400 Bad Request:**
-    ```json
-    {
-      "success": false,
-      "message": "Validation error: Invalid account ID format"
-    }
-    ```
-  - **401 Unauthorized:**
-    ```json
-    {
-      "success": false,
-      "message": "Authentication required"
-    }
-    ```
-  - **404 Not Found:**
-    ```json
-    {
-      "success": false,
-      "message": "Account not found"
-    }
-    ```
-  - **500 Internal Server Error:**
-    ```json
-    {
-      "success": false,
-      "message": "Internal Server Error"
-    }
-    ```
+---
 
-## Middleware
+### Endpoints
 
-### 1. **Authentication (`auth`)**
+#### 1. Create Sub-Account
 
-Ensures that the request is authenticated by verifying the provided token.
+**URL:** `/subaccount`
 
-### 2. **Header Validation (`validateHeaders`)**
+**Method:** `POST`
 
-Validates the presence and correctness of required headers, including `Authorization` and `ClientID`.
+**Description:** Creates a sub-account for the authenticated user.
 
-### 3. **Request Validation (`validateRequest`)**
+**Request Headers:**
 
-Validates the request body and parameters against predefined schemas to ensure data integrity.
+- `Authorization`: Bearer token
+- `Content-Type`: application/json
 
-## Validation Schemas
+**Request Body:**
 
-### 1. **Sub-Account Creation (`subAccountValidation`)**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "emailAddress": "user@example.com",
+  "externalReference": "reference123",
+  "identityType": "BVN",
+  "identityNumber": "12345678901",
+  "identityId": "identity123",
+  "otp": "123456",
+  "autoSweep": true,
+  "autoSweepDetails": { "schedule": "Daily" }
+}
+```
 
-- `phoneNumber`: Must be a valid E.164 format (e.g., `+12345678901`).
+**Validation Rules:**
+
+- `phoneNumber`: Must be a valid phone number including the country code.
 - `emailAddress`: Must be a valid email address.
-- `externalReference`: Must be a non-empty string.
-- `identityType`: Must be `'BVN'`.
-- `identityNumber`: Must be an 11-digit number.
-- `identityId`: Must be a non-empty string.
-- `otp`: Must be a non-empty string.
-- `autoSweep`: Must be a boolean (default: `false`).
-- `autoSweepDetails`: Must be an object (default: `{ schedule: 'Instant' }`).
+- `externalReference`: Required string field.
+- `identityType`: Must be `BVN`.
+- `identityNumber`: Must be 11 digits.
+- `identityId`: Required string field.
+- `otp`: Required string field.
+- `autoSweep`: Optional boolean.
+- `autoSweepDetails`: Optional object with a `schedule` field.
 
-### 2. **Account ID Validation (`accountIdValidation`)**
+**Response:**
 
-- `id`: Must be a non-empty string containing only alphanumeric characters and hyphens.
+- **201 Created**
+
+```json
+{
+  "success": true,
+  "message": "Sub-account created successfully",
+  "data": {
+    "accountNumber": "1234567890",
+    "bankName": "Safe Haven Bank",
+    "accountName": "John Doe",
+    "accountType": "Savings",
+    "status": "Active",
+    "createdAt": "2025-01-23T12:00:00Z"
+  }
+}
+```
+
+- **404 Not Found** (If user is not found)
+- **409 Conflict** (If user already has a sub-account)
+- **500 Internal Server Error**
+
+---
+
+#### 2. Get Account Details
+
+**URL:** `/:id`
+
+**Method:** `GET`
+
+**Description:** Retrieves the details of a specific account using its ID.
+
+**Request Headers:**
+
+- `Authorization`: Bearer token
+
+**URL Parameters:**
+
+- `id`: The account ID (string, required).
+
+**Validation Rules:**
+
+- `id`: Must be a valid alphanumeric string with optional hyphens.
+
+**Response:**
+
+- **200 OK**
+
+```json
+{
+  "success": true,
+  "message": "Account details retrieved successfully",
+  "data": {
+    "accountNumber": "1234567890",
+    "bankName": "Safe Haven Bank",
+    "accountName": "John Doe",
+    "accountType": "Savings",
+    "status": "Active",
+    "balance": 10000.0
+  }
+}
+```
+
+- **500 Internal Server Error**
+
+---
+
+#### 3. Get All Accounts
+
+**URL:** `/`
+
+**Method:** `GET`
+
+**Description:** Retrieves all accounts for the authenticated user, with optional query parameters for pagination and filtering.
+
+**Request Headers:**
+
+- `Authorization`: Bearer token
+
+**Query Parameters:**
+
+- `page` (optional): The page number (non-negative integer, default: 0).
+- `limit` (optional): Number of records per page (1-100, default: 100).
+- `isSubAccount` (optional): Filter by sub-accounts (boolean, default: false).
+
+**Validation Rules:**
+
+- `page`: Optional non-negative integer.
+- `limit`: Optional integer between 1 and 100.
+- `isSubAccount`: Optional boolean.
+
+**Response:**
+
+- **200 OK**
+
+```json
+{
+  "success": true,
+  "message": "Accounts retrieved successfully",
+  "data": [
+    {
+      "accountNumber": "1234567890",
+      "bankName": "Safe Haven Bank",
+      "accountName": "John Doe",
+      "accountType": "Savings",
+      "status": "Active",
+      "balance": 10000.0
+    },
+    {
+      "accountNumber": "9876543210",
+      "bankName": "Safe Haven Bank",
+      "accountName": "Jane Doe",
+      "accountType": "Current",
+      "status": "Inactive",
+      "balance": 0.0
+    }
+  ],
+  "pagination": {
+    "currentPage": 0,
+    "pageSize": 100,
+    "totalCount": 2,
+    "totalPages": 1
+  }
+}
+```
+
+- **500 Internal Server Error**
+
+---
+
+### Notes
+
+- Ensure all requests include valid tokens and required headers.
+- Pagination and filtering are optional for `GET /`.
+- All dates in responses are in ISO 8601 format.
