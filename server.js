@@ -4,17 +4,11 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import userRouter from './routes/userRouter.js';
-import {
-  limiter,
-  requestLogger,
-  tokenExtractor,
-  userExtractor,
-} from './utils/middleware.js';
+import { limiter, requestLogger } from './utils/middleware.js';
 import connectDB from './Config/Database.js';
 import servicesRoutes from './routes/services.js';
 import authRoutes from './routes/auth.js';
-import verificationRoutes from './routes/verificationRoutes.js';
-import paymentRoutes from './routes/payment.js';
+import verificationRoutes from './routes/verification.js';
 import accountRoutes from './routes/account.js';
 import setupSwagger from './Config/swagger.cjs';
 
@@ -35,7 +29,7 @@ app.use(limiter);
 app.use(requestLogger);
 
 // Endpoints
-app.get('/', tokenExtractor, userExtractor, (req, res) => {
+app.get('/', (req, res) => {
   res
     .status(200)
     .send(
@@ -55,7 +49,6 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRouter);
 app.use('/api/verification', verificationRoutes);
-app.use('/api/payment', paymentRoutes);
 app.use('/api/account', accountRoutes);
 app.use('/api/services', servicesRoutes);
 

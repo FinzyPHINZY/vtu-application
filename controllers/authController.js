@@ -115,7 +115,7 @@ export const completeSignUp = async (req, res) => {
     if (!firstName.length || !lastName.length) {
       return res.status(400).json({
         success: false,
-        message: 'First name and Last name must be at least 1 character long',
+        message: 'First name and Last name must be provided',
       });
     }
 
@@ -132,13 +132,21 @@ export const completeSignUp = async (req, res) => {
     existingUser.phoneNumber = phoneNumber;
     existingUser.password = await bcrypt.hash(password, 10);
 
-    await existingUser.save();
+    existingUser.accountBalance = 0;
+    existingUser.accountDetails = {
+      bankName: '',
+      accountName: `${firstName} ${lastName}`,
+      accountType: 'Current',
+      accountBalance: '0',
+      status: 'Pending',
+    };
+
+    const savedUser = await existingUser.save();
 
     return res.status(201).json({
       success: true,
       message: 'Signed up successfully',
       data: savedUser,
-      token,
     });
   } catch (error) {
     console.error('Error during Signup: ', error);
@@ -148,61 +156,6 @@ export const completeSignUp = async (req, res) => {
     });
   }
 };
-
-// export const login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     if (!email || !password) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Missing required fields',
-//       });
-//     }
-
-//     const user = await User.findOne({ email });
-
-//     if (!user || !user.isVerified) {
-//       return res
-//         .status(401)
-//         .json({ success: false, message: 'Invalid Credentials' });
-//     }
-
-//     const isValidPassword = await bcrypt.compare(password, user.password);
-//     if (!isValidPassword) {
-//       user.failedLoginAttempts += 1;
-//       user.lastLoginAttempt = new Date();
-//       await user.save();
-//       return res
-//         .status(401)
-//         .json({ success: false, message: 'Invalid Credentials' });
-//     }
-
-//     const userForToken = {
-//       id: user._id,
-//       name: user.name,
-//       email: user.email,
-//       phoneNumber: user.phoneNumber,
-//     };
-
-//     const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
-//       expiresIn: '1d',
-//     });
-
-//     res.status(200).json({
-//       success: true,
-//       message: 'Signed in successfully',
-//       data: user,
-//       token,
-//     });
-//   } catch (error) {
-//     console.error('Error during login', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Internal Server error',
-//     });
-//   }
-// };
 
 export const login = async (req, res) => {
   try {
@@ -283,84 +236,5 @@ export const login = async (req, res) => {
       success: false,
       message: 'Internal Server error',
     });
-  }
-};
-
-export const fetchAccessToken = async (req, res, next) => {
-  try {
-    const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
-    const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
-
-    const body = {
-      grant_type: 'client_credentials',
-      client_id: CLIENT_ID,
-      client_assertion: CLIENT_ASSERTION,
-      client_assertion_type:
-        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-    };
-
-    console.log('Fetching Safe Haven Access Token...');
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-      body
-    );
-
-    const { access_token, expires_in, ibs_client_id } = response.data;
-
-    console.log('Access Token fetched:', access_token);
-
-    // Attach the token and related details to the req object
-    return res.status(200).json({
-      success: true,
-      message: 'Fetched Token Successfully',
-      data: { access_token, expires_in, ibs_client_id },
-    });
-  } catch (error) {
-    console.error(
-      'Error fetching access token:',
-      error.response?.data || error.message
-    );
-    return res.status(500).json({
-      success: false,
-      message: 'Unable to fetch Safe Haven access token',
-    });
-  }
-};
-
-export const getToken = async (req, res, next) => {
-  try {
-    const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
-    const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
-
-    const body = {
-      grant_type: 'client_credentials',
-      client_id: CLIENT_ID,
-      client_assertion: CLIENT_ASSERTION,
-      client_assertion_type:
-        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-    };
-
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-      body
-    );
-
-    const { access_token, expires_in, ibs_client_id } = response.data;
-    console.log('tokenData', access_token, expires_in, ibs_client_id);
-
-    console.log('New access token generated');
-    res.json({ access_token, expires_in, ibs_client_id });
-  } catch (error) {
-    console.error('Token generation failed:', error);
-
-    if (error.response) {
-      return res
-        .status(400)
-        .json({ success: false, message: error.response.data.message });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Internal server error' });
-    }
   }
 };

@@ -25,15 +25,13 @@ This document describes the verification endpoints used to integrate Safe Haven 
 - **Description:** Initiates the verification process for a customer.
 - **Request Headers:**
   - `Authorization`: Bearer token
-  - `Content-Type`: application/json
-  - `ClientID`: Unique identifier for the client
 - **Request Body:**
   ```json
   {
     "type": "BVN",
     "async": false,
     "number": "{bvn number}",
-    "debitAccountNumber": "{safe haven account number}"
+    "debitAccountNumber": "{safe haven account number}" // 0119017579
   }
   ```
 - **Response:**
@@ -80,9 +78,9 @@ This document describes the verification endpoints used to integrate Safe Haven 
   - `validateRequest`
 - **Description:** Validates a previously initiated verification request.
 - **Request Headers:**
+
   - `Authorization`: Bearer token
-  - `Content-Type`: application/json
-  - `ClientID`: Unique identifier for the client
+
 - **Request Body:**
   ```json
   {
@@ -102,7 +100,7 @@ This document describes the verification endpoints used to integrate Safe Haven 
         "type": "BVN",
         "amount": 50.0,
         "status": "Verified",
-        "debitAccountNumber": "1234567890",
+        "debitAccountNumber": "1234567890", // 0119017579
         "providerResponse": "Provider-specific details",
         "transaction": "transactionDetails",
         "createdAt": "2025-01-08T12:00:00.000Z",
@@ -158,15 +156,6 @@ This document describes the verification endpoints used to integrate Safe Haven 
   - `identityId`: Must be a non-empty string.
   - `type`: Must be `BVN`.
   - `otp`: Must be a non-empty string.
-
----
-
-## External Service Integration
-
-- **Safe Haven Identity API:**
-  - **Initiate Verification URL:** `https://api.sandbox.safehavenmfb.com/identity/v2`
-  - **Validate Verification URL:** `https://api.sandbox.safehavenmfb.com/identity/v2/validate`
-  - **Timeout:** 30 seconds
 
 ---
 

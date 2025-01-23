@@ -1,4 +1,4 @@
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 export const isValidEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -218,4 +218,22 @@ export const transactionIdValidation = [
     .withMessage('Transaction ID is required')
     .matches(/^[a-zA-Z0-9-_]+$/)
     .withMessage('Invalid transaction ID format'),
+];
+
+export const accountsQueryValidation = [
+  query('page')
+    .optional()
+    .isInt({ min: 0 })
+    .toInt()
+    .withMessage('Page must be a non-negative integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .toInt()
+    .withMessage('Limit must be between 1 and 100'),
+  query('isSubAccount')
+    .optional()
+    .isBoolean()
+    .toBoolean()
+    .withMessage('isSubAccount must be a boolean'),
 ];

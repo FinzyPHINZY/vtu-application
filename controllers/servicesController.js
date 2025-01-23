@@ -1,12 +1,14 @@
 export const getServices = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const response = await axios.get(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/services`,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000, // 30 second timeout
       }
@@ -32,15 +34,17 @@ export const getServices = async (req, res) => {
 
 export const getServicesById = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const { id } = req.params;
 
     const response = await axios.get(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/service/${id}`,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000, // 30 second timeout
       }
@@ -66,15 +70,17 @@ export const getServicesById = async (req, res) => {
 
 export const getServiceCategories = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const { id } = req.params;
 
     const response = await axios.get(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/service/${id}/service-categories`,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000, // 30 second timeout
       }
@@ -101,15 +107,17 @@ export const getServiceCategories = async (req, res) => {
 
 export const getCategoryProducts = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const { categoryId } = req.params;
 
     const response = await axios.get(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/service-category/${categoryId}/products`,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000, // 30 second timeout
       }
@@ -136,6 +144,8 @@ export const getCategoryProducts = async (req, res) => {
 
 export const verifyPowerOrTvData = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const { serviceCategoryId, entityNumber } = req.body;
 
     const response = await axios.post(
@@ -146,9 +156,9 @@ export const verifyPowerOrTvData = async (req, res) => {
       },
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000, // 30 second timeout
       }
@@ -176,6 +186,8 @@ export const verifyPowerOrTvData = async (req, res) => {
 
 export const purchaseAirtime = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const {
       serviceCategoryId,
       amount,
@@ -197,9 +209,9 @@ export const purchaseAirtime = async (req, res) => {
       },
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000,
       }
@@ -224,6 +236,8 @@ export const purchaseAirtime = async (req, res) => {
 
 export const purchaseData = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const {
       serviceCategoryId,
       bundleCode,
@@ -247,9 +261,9 @@ export const purchaseData = async (req, res) => {
       },
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000,
       }
@@ -274,6 +288,8 @@ export const purchaseData = async (req, res) => {
 
 export const purchaseCableTV = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const {
       serviceCategoryId,
       bundleCode,
@@ -295,9 +311,9 @@ export const purchaseCableTV = async (req, res) => {
       },
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000,
       }
@@ -322,6 +338,8 @@ export const purchaseCableTV = async (req, res) => {
 
 export const payUtilityBill = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const {
       serviceCategoryId,
       meterNumber,
@@ -343,9 +361,9 @@ export const payUtilityBill = async (req, res) => {
       },
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000,
       }
@@ -370,13 +388,15 @@ export const payUtilityBill = async (req, res) => {
 
 export const getTransactions = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const response = await axios.get(
       'https://api.sandbox.safehavenmfb.com/vas/transactions',
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000,
       }
@@ -401,15 +421,17 @@ export const getTransactions = async (req, res) => {
 
 export const getTransactionById = async (req, res) => {
   try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
     const { id } = req.params;
 
     const response = await axios.get(
       `https://api.sandbox.safehavenmfb.com/vas/transaction/${id}`,
       {
         headers: {
-          Authorization: req.headers.authorization,
+          Authorization: `Bearer ${access_token}`,
           'Content-Type': 'application/json',
-          ClientID: process.env.SAFE_HAVEN_CLIENT_IBS_ID,
+          ClientID: ibs_client_id,
         },
         timeout: 30000,
       }
