@@ -62,6 +62,7 @@ export const createSubAccount = async (req, res) => {
       bankName: data.bankName,
       accountName: data.accountName,
       accountType: data.accountType,
+      accountBalance: data.accountBalance,
       status: data.status,
     };
 
@@ -77,7 +78,7 @@ export const createSubAccount = async (req, res) => {
         bankName: data.bankName,
         accountName: data.accountName,
         accountType: data.accountType,
-        currency: data.currency,
+        accountNumber: data.accountNumber,
         status: data.status,
         createdAt: data.createdAt,
       },
@@ -117,6 +118,58 @@ export const getAccountDetails = async (req, res) => {
       success: true,
       message: 'Account details retrieved successfully',
       data,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res
+      .status(500)
+      .json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+export const getAccounts = async (req, res) => {
+  try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
+    const { page = 0, limit = 100, isSubAccount = false } = req.query;
+
+    const response = await axios.get(
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/accounts`,
+      {
+        params: {
+          page,
+          limit,
+          isSubAccount,
+        },
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+          ClientID: ibs_client_id,
+        },
+        timeout: 30000, // 30 second timeout
+      }
+    );
+
+    const { data } = response;
+
+    console.log('Accounts retrieved successfully', {
+      page,
+      limit,
+      isSubAccount,
+      count: data.data?.length || 0,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Accounts retrieved successfully',
+      data: data.data,
+      pagination: {
+        currentPage: page,
+        pageSize: limit,
+        totalCount: data.totalCount,
+        totalPages: Math.ceil(data.totalCount / limit),
+      },
     });
   } catch (error) {
     console.error(error);

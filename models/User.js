@@ -4,6 +4,7 @@ const accountDetailsSchema = new mongoose.Schema({
   bankName: String,
   accountName: String,
   accountType: String,
+  accountBalance: String,
   status: String,
 });
 

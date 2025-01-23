@@ -21,7 +21,6 @@ const router = express.Router();
 // Middlewares
 router.use(tokenExtractor);
 router.use(userExtractor);
-router.use(auth);
 
 // get services
 router.get('/', validateHeaders, servicesController.getServices);

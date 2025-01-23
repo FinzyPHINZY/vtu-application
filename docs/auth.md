@@ -116,16 +116,16 @@ This document outlines the endpoints and flow for user signup and login function
         "_id": "userId",
         "name": "John Doe",
         "email": "user@example.com",
-        "phoneNumber": "1234567890"
+        "phoneNumber": "1234567890",
+        ...
       },
-      "token": "jwtToken"
     }
     ```
   - **400:**
     ```json
     {
       "success": false,
-      "message": "Name must be at least 3 characters long"
+      "message": "Name must be at least 2 characters long"
     }
     ```
   - **500:**
@@ -140,84 +140,142 @@ This document outlines the endpoints and flow for user signup and login function
 
 ### 4. **Login**
 
-- **Endpoint:** `/login`
-- **Method:** `POST`
-- **Description:** Authenticates the user and provides a JWT token.
-- **Request Body:**
-  ```json
-  {
-    "email": "user@example.com",
-    "password": "securePassword123"
-  }
-  ```
-- **Response:**
-  - **200:**
-    ```json
-    {
-      "success": true,
-      "message": "Signed in successfully",
-      "data": {
-        "_id": "userId",
-        "name": "John Doe",
-        "email": "user@example.com",
-        "phoneNumber": "1234567890"
-      },
-      "token": "jwtToken"
-    }
-    ```
-  - **401:**
-    ```json
-    {
-      "success": false,
-      "message": "Invalid Credentials"
-    }
-    ```
-  - **500:**
-    ```json
-    {
-      "success": false,
-      "message": "Internal Server error"
-    }
-    ```
+#### **POST /api/auth/login**
+
+Logs in a user, verifies their credentials, and generates an access token for interacting with the Safe Haven API.
 
 ---
 
-### 5. **Get Token**
+### Request
 
-- **Endpoint:** `/token`
-- **Method:** `POST`
-- **Description:** Retrieves an access token for client credentials.
-- **Request Body:**
-  ```json
-  {
-    "grant_type": "client_credentials",
-    "client_id": "clientId",
-    "client_assertion": "jwtToken",
-    "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-  }
-  ```
-- **Response:**
-  - **200:**
-    ```json
-    {
-      "access_token": "token",
-      "expires_in": 3600
-    }
-    ```
-  - **400:**
-    ```json
-    {
-      "success": false,
-      "message": "Error message from API"
-    }
-    ```
-  - **500:**
-    ```json
-    {
-      "success": false,
-      "message": "Internal server error"
-    }
-    ```
+#### **Headers**
+
+- `Content-Type: application/json`
+
+#### **Body**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "securePassword123"
+}
+```
+
+---
+
+### Response
+
+#### **Success (200)**
+
+Returns a success message, user data, and a JSON Web Token (JWT) containing the Safe Haven access token.
+
+##### **Example Response**
+
+```json
+{
+  "success": true,
+  "message": "Signed in successfully",
+  "data": {
+    "_id": "63d9f0f0e4e7e20a7c123abc",
+    "email": "user@example.com",
+    "isVerified": true,
+    "firstName": "John",
+    "lastName": "Doe",
+    "phoneNumber": "+123456789"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### **Error (400)**
+
+Occurs if required fields are missing.
+
+```json
+{
+  "success": false,
+  "message": "Missing required fields"
+}
+```
+
+#### **Error (401)**
+
+Occurs if the user credentials are invalid or the user is not verified.
+
+```json
+{
+  "success": false,
+  "message": "Invalid Credentials"
+}
+```
+
+#### **Error (500)**
+
+Occurs if there is an internal server error during login or when generating the Safe Haven access token.
+
+```json
+{
+  "success": false,
+  "message": "Internal Server error"
+}
+```
+
+---
+
+### Description
+
+1. **Input Validation**:
+
+   - Verifies that the email and password fields are provided.
+   - Ensures the email exists in the database and that the user is verified.
+
+2. **Password Verification**:
+
+   - Compares the input password with the stored, hashed password.
+
+3. **Safe Haven Access Token Generation**:
+
+   - A request is made to the Safe Haven OAuth2 token endpoint using the app's client credentials.
+   - The access token, its expiration time, and the IBS Client ID are extracted from the response.
+
+4. **JWT Creation**:
+
+   - Combines user information and the Safe Haven access token into a JWT for secure reuse across the application.
+
+5. **Response**:
+   - Returns the generated JWT and the user data to the client.
+
+---
+
+### Safe Haven Token Details in JWT
+
+The JWT generated on login contains the following payload structure:
+
+```json
+{
+  "id": "63d9f0f0e4e7e20a7c123abc",
+  "safeHavenAccessToken": {
+    "access_token": "eyJhbGciOiJIUzI1Ni...",
+    "expires_in": 3600,
+    "ibs_client_id": "SH12345678"
+  },
+  "iat": 1674674377,
+  "exp": 1674760777
+}
+```
+
+- **`access_token`**: The access token provided by the Safe Haven API for authenticated requests.
+- **`expires_in`**: Token validity period in seconds (e.g., 3600 = 1 hour).
+- **`ibs_client_id`**: The client identifier associated with the Safe Haven account.
+
+---
+
+### Notes
+
+- Ensure environment variables for Safe Haven credentials (`SAFE_HAVEN_CLIENT_ID`, `SAFE_HAVEN_CLIENT_ASSERTION`, and `SAFE_HAVEN_API_BASE_URL`) are properly configured.
+- The Safe Haven access token is securely embedded in the JWT for use across API endpoints that interact with Safe Haven services.
+
+---
 
 ---
 
