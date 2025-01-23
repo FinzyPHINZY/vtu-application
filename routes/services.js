@@ -43,6 +43,7 @@ router.get(
   servicesController.getServiceCategories
 );
 
+// verify tv data information
 router.post(
   '/verify',
   validateHeaders,

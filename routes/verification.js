@@ -1,7 +1,6 @@
 import express from 'express';
 import * as verificationController from '../controllers/verificationController.js';
 import {
-  fetchAccessToken,
   tokenExtractor,
   userExtractor,
   validateHeaders,

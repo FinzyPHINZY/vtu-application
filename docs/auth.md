@@ -100,7 +100,8 @@ This document outlines the endpoints and flow for user signup and login function
 - **Request Body:**
   ```json
   {
-    "name": "John Doe",
+    "firstName": "John",
+    "lastName": "Doe",
     "email": "user@example.com",
     "phoneNumber": "1234567890",
     "password": "securePassword123"
@@ -114,7 +115,8 @@ This document outlines the endpoints and flow for user signup and login function
       "message": "Signed up successfully",
       "data": {
         "_id": "userId",
-        "name": "John Doe",
+        "firstName": "John",
+        "lastName": "Doe"
         "email": "user@example.com",
         "phoneNumber": "1234567890",
         ...

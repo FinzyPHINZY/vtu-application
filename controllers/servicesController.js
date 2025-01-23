@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export const getServices = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
@@ -21,7 +23,7 @@ export const getServices = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Services fetched successfully',
-      data: data.data,
+      data,
     });
   } catch (error) {
     console.error('Failed to fetch services', error);
