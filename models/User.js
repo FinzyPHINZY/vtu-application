@@ -69,6 +69,24 @@ const userSchema = new mongoose.Schema(
       ref: 'Transaction',
       default: [],
     },
+    transactionPin: {
+      type: String,
+      required: false,
+    },
+    hasSetTransactionPin: {
+      type: Boolean,
+      default: false,
+    },
+    failedPinAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lastPinAttempt: {
+      type: Date,
+    },
+    pinLockedUntil: {
+      type: Date,
+    },
     isVerified: {
       type: Boolean,
       default: false,

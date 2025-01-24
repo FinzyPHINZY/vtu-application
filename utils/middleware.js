@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import rateLimit from 'express-rate-limit';
-import { AllowedIPs } from './constants.js';
+// import { AllowedIPs } from './constants.js';
 import { validationResult } from 'express-validator';
 import dotenv from 'dotenv';
 import axios from 'axios';
@@ -151,18 +151,18 @@ export const otpRateLimiter = rateLimit({
   },
 });
 
-export const ipWhitelistMiddleware = (req, res, next) => {
-  const clientIP = req.ip || req.connection.remoteAddress;
+// export const ipWhitelistMiddleware = (req, res, next) => {
+//   const clientIP = req.ip || req.connection.remoteAddress;
 
-  if (AllowedIPs.includes(clientIP)) {
-    return next();
-  }
+//   if (AllowedIPs.includes(clientIP)) {
+//     return next();
+//   }
 
-  return res.status(403).json({
-    statusCode: 403,
-    message: 'Forbidden: Your IP is not allowed to access this resource.',
-  });
-};
+//   return res.status(403).json({
+//     statusCode: 403,
+//     message: 'Forbidden: Your IP is not allowed to access this resource.',
+//   });
+// };
 
 export const validateRequest = (req, res, next) => {
   const errors = validationResult(req);
@@ -188,3 +188,12 @@ export const validateHeaders = (req, res, next) => {
 
   next();
 };
+
+export const pinAttemptLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per window per IP
+  message: {
+    success: false,
+    message: 'Too many PIN attempts, please try again later',
+  },
+});

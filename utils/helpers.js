@@ -318,3 +318,11 @@ export const utilityTransactionValidation = [
     .notEmpty()
     .withMessage('Debit account number is required'),
 ];
+
+export const transactionPinValidation = [
+  body('pin')
+    .isString()
+    .isLength({ min: 4, max: 4 })
+    .matches(/^\d{4}$/)
+    .withMessage('PIN must be exactly 4 digits'),
+];
