@@ -326,3 +326,10 @@ export const transactionPinValidation = [
     .matches(/^\d{4}$/)
     .withMessage('PIN must be exactly 4 digits'),
 ];
+
+export const googleLoginValidation = [
+  body('idToken')
+    .isString()
+    .notEmpty()
+    .withMessage('Google ID token is required'),
+];
