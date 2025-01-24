@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
-import userRouter from './routes/userRouter.js';
+import userRouter from './routes/user.js';
 import { limiter, requestLogger } from './utils/middleware.js';
 import connectDB from './Config/Database.js';
 import servicesRoutes from './routes/services.js';

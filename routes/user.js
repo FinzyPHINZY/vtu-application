@@ -7,7 +7,11 @@ import {
   userExtractor,
   validateRequest,
 } from '../utils/middleware.js';
-import { transactionPinValidation } from '../utils/helpers.js';
+import {
+  passwordValidation,
+  registrationValidation,
+  transactionPinValidation,
+} from '../utils/helpers.js';
 const router = express.Router();
 
 router.use(tokenExtractor);
@@ -36,6 +40,20 @@ router.put(
   userExtractor,
   authorizeRoles('admin'),
   UserController.updateUserRole
+);
+
+router.post(
+  '/reset-password-request',
+  registrationValidation,
+  validateRequest,
+  UserController.requestPasswordReset
+);
+
+router.post(
+  '/reset-password',
+  passwordValidation,
+  validateRequest,
+  UserController.resetPassword
 );
 
 router.post(

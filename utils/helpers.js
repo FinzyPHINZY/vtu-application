@@ -333,3 +333,18 @@ export const googleLoginValidation = [
     .notEmpty()
     .withMessage('Google ID token is required'),
 ];
+
+export const registrationValidation = [
+  body('email').isEmail().normalizeEmail().withMessage('Invalid email format'),
+];
+
+export const passwordValidation = [
+  body('email').isEmail().normalizeEmail(),
+  body('password')
+    .isString()
+    .isLength({ min: 8 })
+    .matches(/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/)
+    .withMessage(
+      'Password must be at least 8 characters long and contain at least one uppercase letter, one number, and one special character'
+    ),
+];
