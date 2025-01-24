@@ -1,13 +1,17 @@
 import express from 'express';
-import * as UserController from '../controllers/UserController.js';
+import * as UserController from '../controllers/userController.js';
 import {
   authorizeRoles,
+  pinAttemptLimiter,
   tokenExtractor,
   userExtractor,
+  validateRequest,
 } from '../utils/middleware.js';
+import { transactionPinValidation } from '../utils/helpers.js';
 const router = express.Router();
 
 router.use(tokenExtractor);
+router.use(userExtractor);
 
 // Route        GET /api/user/:id
 // Description  Fetch details of a specific user by ID
@@ -32,6 +36,14 @@ router.put(
   userExtractor,
   authorizeRoles('admin'),
   UserController.updateUserRole
+);
+
+router.post(
+  '/set-transaction-pin',
+  pinAttemptLimiter,
+  transactionPinValidation,
+  validateRequest,
+  UserController.setTransactionPin
 );
 
 export default router;

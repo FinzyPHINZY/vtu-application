@@ -9,9 +9,14 @@ import {
   airtimeTransactionValidation,
   cableTVTransactionValidation,
   dataTransactionValidation,
+  transactionPinValidation,
   utilityTransactionValidation,
 } from '../utils/helpers.js';
 import * as TransactionController from '../controllers/transactionController.js';
+import {
+  requireTransactionPin,
+  validateTransactionPin,
+} from '../utils/transactionPin.js';
 const router = express.Router();
 
 router.use(tokenExtractor);
@@ -20,31 +25,38 @@ router.use(userExtractor);
 router.post(
   '/airtime',
   validateHeaders,
-  airtimeTransactionValidation,
+  requireTransactionPin,
+  [...airtimeTransactionValidation, transactionPinValidation],
   validateRequest,
+  validateTransactionPin,
   TransactionController.purchaseAirtime
 );
 
 router.post(
   '/data',
   validateHeaders,
-  dataTransactionValidation,
+  requireTransactionPin,
+  [...dataTransactionValidation, transactionPinValidation],
   validateRequest,
+  validateTransactionPin,
   TransactionController.purchaseData
 );
 
 router.post(
   '/cable-tv',
   validateHeaders,
-  cableTVTransactionValidation,
+  requireTransactionPin,
+  [...cableTVTransactionValidation, transactionPinValidation],
   validateRequest,
+  validateTransactionPin,
   TransactionController.payCableTV
 );
 
 router.post(
   '/utility',
   validateHeaders,
-  utilityTransactionValidation,
+  requireTransactionPin,
+  [...utilityTransactionValidation, transactionPinValidation],
   TransactionController.payUtilityBill
 );
 
