@@ -57,6 +57,8 @@ export const createSubAccount = async (req, res) => {
 
     const { data } = response.data;
 
+    console.log(data);
+
     user.accountNumber = data.accountNumber;
     user.accountDetails = {
       bankName: data.bankName,
