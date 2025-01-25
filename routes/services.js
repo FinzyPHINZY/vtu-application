@@ -42,7 +42,7 @@ router.get(
   servicesController.getServiceCategories
 );
 
-// verify tv data information
+// verify information
 router.post(
   '/verify',
   validateHeaders,

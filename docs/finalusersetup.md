@@ -155,7 +155,3 @@ This endpoint automatically creates a virtual account for users. For seamless in
   ```
 
 - **500 Internal Server Error:** An error occurred while creating a sub-account.
-
-# Notes for Frontend Developer
-
-- Use the `callbackUrl` parameter in account creation to redirect users after successful operations.

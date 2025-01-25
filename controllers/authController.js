@@ -207,10 +207,7 @@ export const login = async (req, res) => {
       body
     );
 
-    console.log(
-      'successfully generated safe haven token',
-      response.data.ibs_client_id
-    );
+    console.log('successfully generated safe haven token');
 
     const { access_token, expires_in, ibs_client_id } = response.data;
 
@@ -234,7 +231,7 @@ export const login = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error('Error during login', error.response.data);
+    console.error('Error during login', error.response);
     return res.status(500).json({
       success: false,
       message: 'Internal Server error',
