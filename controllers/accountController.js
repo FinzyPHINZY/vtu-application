@@ -18,6 +18,7 @@ export const createSubAccount = async (req, res) => {
     } = req.body;
 
     const user = await User.findById(req.user.id);
+    console.log('user ---- ', user);
     if (!user) {
       return res
         .status(404)
@@ -57,8 +58,6 @@ export const createSubAccount = async (req, res) => {
 
     const { data } = response.data;
 
-    console.log(data);
-
     user.accountNumber = data.accountNumber;
     user.accountDetails = {
       bankName: data.bankName,
@@ -91,7 +90,11 @@ export const createSubAccount = async (req, res) => {
 
     return res
       .status(500)
-      .json({ success: false, message: 'Internal Server Error' });
+      .json({
+        success: false,
+        message: 'Internal Server Error',
+        error: error.response.data,
+      });
   }
 };
 

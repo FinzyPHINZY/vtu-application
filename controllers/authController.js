@@ -144,12 +144,11 @@ export const completeSignUp = async (req, res) => {
       status: 'Pending',
     };
 
-    const savedUser = await existingUser.save();
+    await existingUser.save();
 
     return res.status(201).json({
       success: true,
       message: 'Signed up successfully',
-      data: savedUser,
     });
   } catch (error) {
     console.error('Error during Signup: ', error);
@@ -227,7 +226,21 @@ export const login = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Signed in successfully',
-      data: user,
+      data: {
+        _id: user._id,
+        email: user.email,
+        role: user.role,
+        accountBalance: user.accountBalance,
+        transactions: user.transactions,
+        hasSetTransactionPin: user.hasSetTransactionPin,
+        isVerified: user.isVerified,
+        status: user.status,
+        isGoogleUser: false,
+        accountDetails: user.accountDetails,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
+      },
       token,
     });
   } catch (error) {

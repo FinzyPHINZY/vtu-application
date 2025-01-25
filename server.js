@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.js';
 import verificationRoutes from './routes/verification.js';
 import accountRoutes from './routes/account.js';
 import transactionRoutes from './routes/transactions.js';
+import transferRoutes from './routes/transfers.js';
 
 dotenv.config();
 
@@ -52,6 +53,7 @@ app.use('/api/verification', verificationRoutes);
 app.use('/api/account', accountRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/transfers', transferRoutes);
 
 // Start the server and log a message to the console upon successful start
 app.listen(PORT, () => {
