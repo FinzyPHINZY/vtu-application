@@ -73,7 +73,7 @@
   - Provide user account details (safe haven)
   - Implement endpoint to check the status of the transaction
   ```
-  here
+  - Get User Account details: [`api/auth/login`, `api/account/:id`]. Both would work. The user account data would contain the account information. You could also make a request with the accountDetails.accountId in the user data from login to the latter endpoint.
   ```
 - Transfer
   - Takes in amount, account number and bank name

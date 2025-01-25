@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const accountDetailsSchema = new mongoose.Schema({
   bankName: String,
+  accountId: String,
   accountName: String,
   accountType: String,
   accountBalance: String,
