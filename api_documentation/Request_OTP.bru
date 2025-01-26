@@ -1,0 +1,17 @@
+meta {
+  name: Request_OTP
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:7000/api/auth/request-otp
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "finzyphinzyy@gmail.com"
+  }
+}

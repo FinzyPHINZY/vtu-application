@@ -1,0 +1,29 @@
+meta {
+  name: create virtual account
+  type: http
+  seq: 16
+}
+
+post {
+  url: https://api.sandbox.safehavenmfb.com/virtual-accounts
+  body: json
+  auth: none
+}
+
+headers {
+  ClientID: 678085a297f3ae0024f38627
+  Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FwaS5zYW5kYm94LnNhZmVoYXZlbm1mYi5jb20iLCJzdWIiOiI5ZDk4MmVlMGU1MjIwYjVlMjRmZTBiMzYzMzBiZThlZiIsImF1ZCI6Imh0dHBzOi8vYm9sZGRhdGEuY29tIiwianRpIjoiNDI4MTAxZWQ3NDA3ZWVjZDZhYTRhZGVkZDNmMzlkZTYiLCJncmFudF90eXBlIjoiYWNjZXNzX3Rva2VuIiwic2NvcGVzIjpbIlJFQUQiXSwiaWJzX2NsaWVudF9pZCI6IjY3ODA4NWEyOTdmM2FlMDAyNGYzODYyNyIsImlic191c2VyX2lkIjoiNjc4MDg0ZGU5N2YzYWUwMDI0ZjM4NjBmIiwiaWF0IjoxNzM3MzQ0ODQ5LCJleHAiOjE3MzczNDcyNDl9.TkRlPNjXodwR2h5ARSp1xr1PVvywSy7XPh-ayLXmfKAkCSiIEfapTg0JM6f80w_m-lFAT-FH-fmC2B9hxTlWqXYlfMnE0JMHfIiICV2xy5_zr8ZdPAyzBsUgP1QALDXA0rdfwcskE6XwJ2YYIXye4JaVD8lm7vThTmDF0RDJFlU
+}
+
+body:json {
+  {
+    "validFor": 900,
+    "callbackUrl": "https://finzyphinzy.vercel.app",
+    "externalReference": "radrop",
+    "amountControl": "Fixed",
+    "amount": 100000,
+    "settlementAccount": {
+      "bankCode": "000002"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+meta {
+  name: Validate Verification
+  type: http
+  seq: 9
+}
+
+post {
+  url: https://api.sandbox.safehavenmfb.com/identity/v2/validate
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FwaS5zYW5kYm94LnNhZmVoYXZlbm1mYi5jb20iLCJzdWIiOiJkN2FmODI1OGRkN2FhNzA5YWIzNmZiOWM0MjE2M2YyMiIsImF1ZCI6Imh0dHBzOi8vYm9sZGRhdGEuY29tIiwianRpIjoiMjU3OWNmYzllOTZiZjc1NjJkNDJjNTE0NzdmOWYwZjciLCJncmFudF90eXBlIjoiYWNjZXNzX3Rva2VuIiwic2NvcGVzIjpbIlJFQUQiLCJXUklURSIsIlBBWSJdLCJpYnNfY2xpZW50X2lkIjoiNjc4MDg1YTI5N2YzYWUwMDI0ZjM4NjI3IiwiaWJzX3VzZXJfaWQiOiI2NzgwODRkZTk3ZjNhZTAwMjRmMzg2MGYiLCJpYXQiOjE3Mzc1NDAxMTAsImV4cCI6MTczNzU0MjUxMH0.1lyxlW6igyd1DRvY_sksUwjAMo4UtOvenf-J0qlrDwj94UirA2jeMUbHnPkfMTX_IY4gCvq_RBiPE2SLVuY-E1prPQD44wc3nv18oxgIvsNCRMZXO7cR2Lkflerk1G6WS06l-clBviDky4gcSOV9X525WuQF9wE5wvFPiDx8wlU
+  Content-Type: application/json
+  ClientID: 678085a297f3ae0024f38627
+}
+
+body:json {
+  {
+    "identityId": "6790c260f2fa86eaa2a61d3e",
+    "type": "BVN",
+    "otp": "234532"
+  }
+}

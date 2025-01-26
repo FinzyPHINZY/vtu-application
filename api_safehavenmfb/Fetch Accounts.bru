@@ -1,0 +1,33 @@
+meta {
+  name: Fetch Accounts
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.safehavenmfb.com/accounts/?page=0&limit=25&isSubAccount=false
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 0
+  limit: 25
+  isSubAccount: false
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FwaS5zYWZlaGF2ZW5tZmIuY29tIiwic3ViIjoiYjEzMjFlZTliM2UzMDU1NWE2OTY5OTI5ODE1ZGM1ZWUiLCJhdWQiOiJodHRwczovL2JvbGRkYXRhLmNvbSIsImp0aSI6ImY3ZmE3ODQ3OTdhNzA2MDMyNjQ1ZTJlMTk1NzNmODFiIiwiZ3JhbnRfdHlwZSI6ImFjY2Vzc190b2tlbiIsInNjb3BlcyI6WyJSRUFEIl0sImlic19jbGllbnRfaWQiOiI2Nzc2OWNiYjI3OWIwOTAwMjQ5Y2FmNzgiLCJpYnNfdXNlcl9pZCI6IjY3NzY5Nzc2NDcxOWYxMDAyNDNiMTlmNSIsImlhdCI6MTczNjMwNzI1NiwiZXhwIjoxNzM2MzA5NjU2fQ.WUkJQl4mVt5FyCtXlCIr6zGecnzZ6ZXmSaDEhITzWXAV3thrrMdKcNuFqf0Zj1wMUCgAFzYj3P6bj82Un1cKHBhnqV3ZwlIWJZwAxMsLTNJ4YtBr5vU5xqVuhJblnFubO1YEYnU2EeBf9dxU18G80WNRsApiby1IV8vb0AYLS7I
+  Content-Type: application/json
+  ClientID: b1321ee9b3e30555a6969929815dc5ee
+}
+
+body:json {
+  {
+    "accountType": "Savings",
+    "suffix": "House Rent",
+    "metadata": {
+      "ClientID": "00faca4609c1c753447936c099982080"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Name Enquiry
+  type: http
+  seq: 9
+}
+
+post {
+  url: https://api.safehavenmfb.com/transfers/name-enquiry
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FwaS5zYWZlaGF2ZW5tZmIuY29tIiwic3ViIjoiMDBmYWNhNDYwOWMxYzc1MzQ0NzkzNmMwOTk5ODIwODAiLCJhdWQiOiJodHRwczovL2JvbGRkYXRhLmNvbSIsImp0aSI6IjRkNDBlOTg4YTJjY2E5YTA4MTFjZDg5NjA1NzJiNGFlIiwiZ3JhbnRfdHlwZSI6ImFjY2Vzc190b2tlbiIsInNjb3BlcyI6WyJSRUFEIl0sImlic19jbGllbnRfaWQiOiI2Nzc2OWNiYjI3OWIwOTAwMjQ5Y2FmNzgiLCJpYnNfdXNlcl9pZCI6IjY3NzY5Nzc2NDcxOWYxMDAyNDNiMTlmNSIsImlhdCI6MTczNTk2Mzc2NiwiZXhwIjoxNzM1OTY2MTY2fQ.sBEAXl_0TvNXDIUHw4z5dUfO94_ciFAtAmQhfXUFdrXmZRbjBNKBWkk4zIUycObeW6x3TNZKnn4NjxPBwtssrOfJbPgikfjtEqRKj82ICfvRpuEfPHkdISEKbJiHPr1b1ahKvWoEllZ1EqPh5-hvVkM5R-QTNzJmYP-YjbFi8f0
+  Content-Type: application/json
+  ClientID: 67769cbb279b0900249caf78
+}
+
+body:json {
+  {
+    "bankCode": "000017",
+    "accountNumber": "0245108088"
+  }
+}

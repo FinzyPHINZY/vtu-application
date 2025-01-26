@@ -1,0 +1,26 @@
+meta {
+  name: initiate-verification
+  type: http
+  seq: 14
+}
+
+post {
+  url: http://localhost:7000/api/verification/initiate
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FwaS5zYW5kYm94LnNhZmVoYXZlbm1mYi5jb20iLCJzdWIiOiI5ZDk4MmVlMGU1MjIwYjVlMjRmZTBiMzYzMzBiZThlZiIsImF1ZCI6Imh0dHBzOi8vYm9sZGRhdGEuY29tIiwianRpIjoiNWZhMDc0NTNmNTI1MGRlMmMyYjJiMjhiMzRiOWY5OWYiLCJncmFudF90eXBlIjoiYWNjZXNzX3Rva2VuIiwic2NvcGVzIjpbIlJFQUQiXSwiaWJzX2NsaWVudF9pZCI6IjY3ODA4NWEyOTdmM2FlMDAyNGYzODYyNyIsImlic191c2VyX2lkIjoiNjc4MDg0ZGU5N2YzYWUwMDI0ZjM4NjBmIiwiaWF0IjoxNzM3MjE2Nzg2LCJleHAiOjE3MzcyMTkxODZ9.KYPbBmoIMml3nFXlYbnWAuw9moseQ1as656O5x6hpSiEDV8DWyXB00cXSWYmofcW_YLfq_K5EJAR5RhbUm4KO3U-yh5u1WrpdapXvJKB_9X6gwBF7n8jMazDR-TPVJ1EtpCjcGlMDXrCnsxdcqHjkFyjGkw-Ja0wFtoVwmwinLk
+  ClientID: 678085a297f3ae0024f38627
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "type": "BVN",
+    "async": false,
+    "debitAccountNumber": "0119017579",
+    "number": "22474927531"
+  }
+}

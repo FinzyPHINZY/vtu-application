@@ -1,0 +1,25 @@
+meta {
+  name: Initiate Verification
+  type: http
+  seq: 7
+}
+
+post {
+  url: https://api.safehavenmfb.com/identity/v2
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FwaS5zYWZlaGF2ZW5tZmIuY29tIiwic3ViIjoiYjEzMjFlZTliM2UzMDU1NWE2OTY5OTI5ODE1ZGM1ZWUiLCJhdWQiOiJodHRwczovL2JvbGRkYXRhLmNvbSIsImp0aSI6IjcwYmZhYWI0OTQzMzBhOGY5MzJmNDUwNjZhMmM1N2NhIiwiZ3JhbnRfdHlwZSI6ImFjY2Vzc190b2tlbiIsInNjb3BlcyI6WyJSRUFEIl0sImlic19jbGllbnRfaWQiOiI2Nzc2OWNiYjI3OWIwOTAwMjQ5Y2FmNzgiLCJpYnNfdXNlcl9pZCI6IjY3NzY5Nzc2NDcxOWYxMDAyNDNiMTlmNSIsImlhdCI6MTczNjMwNzM1NCwiZXhwIjoxNzM2MzA5NzU0fQ.jGe0kFbd1GbBMZAispJTxdWnfniHbuTOxqVcBBM-NFIlC-FT_AbZdJGgYhSwYofuRnPMLeubRI09ua-DrRlAMQXm-QKksceHRwzJpedcxLpGT_eRUzrKw1WyaeNMJiauPSfhom8WtUCfVxT6-QWsRgq4hTX2qC-vbhm_wbJcquk
+  Content-Type: application/json
+  ClientID: b1321ee9b3e30555a6969929815dc5ee
+}
+
+body:json {
+  {
+    "type": "BVN",
+    "number": "22597530917",
+    "debitAccountNumber": "2381921187"
+  }
+}

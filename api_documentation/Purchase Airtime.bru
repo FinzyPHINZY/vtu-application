@@ -1,0 +1,27 @@
+meta {
+  name: Purchase Airtime
+  type: http
+  seq: 20
+}
+
+post {
+  url: https://api.sandbox.safehavenmfb.com/vas/pay/airtime
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2FwaS5zYW5kYm94LnNhZmVoYXZlbm1mYi5jb20iLCJzdWIiOiI5ZDk4MmVlMGU1MjIwYjVlMjRmZTBiMzYzMzBiZThlZiIsImF1ZCI6Imh0dHBzOi8vYm9sZGRhdGEuY29tIiwianRpIjoiOGFlODE2MjJmNGUwY2YzNzZkYTE1NTBjYTdjNDFiMzgiLCJncmFudF90eXBlIjoiYWNjZXNzX3Rva2VuIiwic2NvcGVzIjpbIlJFQUQiXSwiaWJzX2NsaWVudF9pZCI6IjY3ODA4NWEyOTdmM2FlMDAyNGYzODYyNyIsImlic191c2VyX2lkIjoiNjc4MDg0ZGU5N2YzYWUwMDI0ZjM4NjBmIiwiaWF0IjoxNzM3MzgzOTM5LCJleHAiOjE3MzczODYzMzl9.q3HcGh1XKUrwxRqun71xl_XCZGh6vLRywImP8FWmy4JH9Z4Lcc0-HS-lHOVDZD2jBf4cQfW7gsjq_TsPxgCwnbcz36y3k6Bp1wIo1PJgwN9jEPmE4it9Gb2l5Jf3lDqtQAC5xYUumAjdX-jNVYQcafwtSfJxsrfiIErKKqkb2w4
+  ClientID: 678085a297f3ae0024f38627
+}
+
+body:json {
+  {
+    "serviceCategoryId": "61e985180e69308aa37a7a94",
+    "amount": 1000000,
+    "channel": "WEB",
+    "debitAccountNumber": "0119017579",
+    "phoneNumber": "+2348167817217",
+    "statusUrl": "https://finzyphinzy.vercel.app"
+  }
+}
