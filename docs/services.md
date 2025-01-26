@@ -397,6 +397,9 @@ All requests require the following headers:
       "transactionId": "txn_123456",
       "type": "AIRTIME",
       "status": "SUCCESS",
-      "amount":
+      "amount": ...
+    }
+  ]
+}
 
 ```

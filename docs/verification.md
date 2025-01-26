@@ -30,7 +30,7 @@ Initiates a BVN verification process by sending the BVN and debit account number
 ```json
 {
   "type": "BVN",
-  "async": true,
+  "async": false,
   "number": "12345678901",
   "debitAccountNumber": "1234567890"
 }

@@ -42,27 +42,37 @@ All routes under `/api/account` use the following middleware:
 
 ```json
 {
-  "phoneNumber": "+1234567890",
-  "emailAddress": "user@example.com",
-  "externalReference": "reference123",
+  "firstName": "Darth",
+  "lastName": "Verde",
+  "phoneNumber": "+2348167817217",
+  "emailAddress": "finzyphinzyy@gmail.com",
+  "externalReference": "AC_1235",
+  "bvn": "22474927531",
+  "identityId": "679506daf2fa86eaa2a61fb7",
+  "identityNumber": "22474927531",
   "identityType": "BVN",
-  "identityNumber": "12345678901",
-  "identityId": "identity123",
-  "otp": "123456",
-  "autoSweep": true,
-  "autoSweepDetails": { "schedule": "Daily" }
+  "otp": "234532",
+  "callbackUrl": "https://finzyphinzy.vercel.app",
+  "autoSweep": false,
+  "autoSweepDetails": {
+    "schedule": "Instant"
+  }
 }
 ```
 
 **Validation Rules:**
 
+- `firstName`: Must be a valid non-empty string.
+- `lastName`: Must be a valid non-empty string.
 - `phoneNumber`: Must be a valid phone number including the country code.
 - `emailAddress`: Must be a valid email address.
 - `externalReference`: Required string field.
-- `identityType`: Must be `BVN`.
+- `bvn`: Must be a string of the user bank verification number.
+- `identityType`: Must be `BVN`. `NIN` isn't functioning at the moment.
 - `identityNumber`: Must be 11 digits.
 - `identityId`: Required string field.
 - `otp`: Required string field.
+- `callbackUrl`: Required string field.
 - `autoSweep`: Optional boolean.
 - `autoSweepDetails`: Optional object with a `schedule` field.
 
