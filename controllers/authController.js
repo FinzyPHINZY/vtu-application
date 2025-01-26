@@ -334,19 +334,28 @@ export const googleLogin = async (req, res, next) => {
     delete userResponse.failedLoginAttempts;
     delete userResponse.lastLoginAttempt;
 
-    logger.info(`User logged in with Google successfully: ${email}`);
+    console.log(`User logged in with Google successfully: ${email}`);
+
+    const userForToken = {
+      id: user._id,
+      safeHavenAccessToken: {
+        access_token,
+        expires_in,
+        ibs_client_id,
+      },
+    };
+
+    const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
 
     res.status(200).json({
       success: true,
       message: 'Google login successful',
       data: {
-        user: userResponse,
-        safeHavenAccessToken: {
-          access_token,
-          expires_in,
-          ibs_client_id,
-        },
+        user,
       },
+      token,
     });
   } catch (error) {
     console.error('Google login failed:', error);
