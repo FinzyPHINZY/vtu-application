@@ -46,7 +46,6 @@ All routes under `/api/account` use the following middleware:
   "lastName": "Verde",
   "phoneNumber": "+2348167817217",
   "emailAddress": "finzyphinzyy@gmail.com",
-  "externalReference": "AC_1235",
   "bvn": "22474927531",
   "identityId": "679506daf2fa86eaa2a61fb7",
   "identityNumber": "22474927531",
@@ -66,7 +65,6 @@ All routes under `/api/account` use the following middleware:
 - `lastName`: Must be a valid non-empty string.
 - `phoneNumber`: Must be a valid phone number including the country code.
 - `emailAddress`: Must be a valid email address.
-- `externalReference`: Required string field.
 - `bvn`: Must be a string of the user bank verification number.
 - `identityType`: Must be `BVN`. `NIN` isn't functioning at the moment.
 - `identityNumber`: Must be 11 digits.

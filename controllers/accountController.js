@@ -1,5 +1,6 @@
 import axios from 'axios';
 import User from '../models/User.js';
+import { generateRandomReference } from '../utils/helpers.js';
 
 export const createSubAccount = async (req, res) => {
   const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
@@ -8,7 +9,6 @@ export const createSubAccount = async (req, res) => {
     const {
       phoneNumber,
       emailAddress,
-      externalReference,
       identityType,
       identityNumber,
       identityId,
@@ -17,8 +17,9 @@ export const createSubAccount = async (req, res) => {
       autoSweepDetails = { schedule: 'Instant' },
     } = req.body;
 
+    const externalReference = generateRandomReference();
+
     const user = await User.findById(req.user.id);
-    console.log('user ---- ', user);
     if (!user) {
       return res
         .status(404)
@@ -55,8 +56,6 @@ export const createSubAccount = async (req, res) => {
         },
       }
     );
-
-    console.log(response.data);
 
     const { data } = response.data;
 

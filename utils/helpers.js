@@ -348,3 +348,9 @@ export const passwordValidation = [
       'Password must be at least 8 characters long and contain at least one uppercase letter, one number, and one special character'
     ),
 ];
+
+export const generateRandomReference = () => {
+  const prefix = 'AC_';
+  const randomValue = Math.floor(1000000 + Math.random() * 9000000); // Random 7-digit number
+  return `${prefix}${randomValue}`;
+};
