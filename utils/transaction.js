@@ -6,6 +6,10 @@ export const isValidPhoneNumber = (phoneNumber) => {
   return /^\+?[1-9]\d{1,14}$/.test(phoneNumber);
 };
 
+export const isValidAccountNumber = (accountNumber) => {
+  return /^\d{10}$/.test(accountNumber);
+};
+
 // Utility function to validate account balance
 export const validateBalance = async (userId, amount) => {
   const user = await User.findById(userId);

@@ -354,3 +354,9 @@ export const generateRandomReference = () => {
   const randomValue = Math.floor(1000000 + Math.random() * 9000000); // Random 7-digit number
   return `${prefix}${randomValue}`;
 };
+
+export const generateTransferReference = () => {
+  const prefix = 'TF_';
+  const randomValue = Math.floor(1000000 + Math.random() * 9000000); // Random 7-digit number
+  return `${prefix}${randomValue}`;
+};

@@ -60,4 +60,12 @@ router.post(
   TransactionController.payUtilityBill
 );
 
+router.post(
+  '/transfer',
+  validateHeaders,
+  requireTransactionPin,
+  transactionPinValidation,
+  TransactionController.transferFunds
+);
+
 export default router;
