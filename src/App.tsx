@@ -13,13 +13,15 @@ import BuyElectricity from './pages/BuyElectricity';
 import BuyCable from './pages/BuyCable';
 import TransactionHistory from './pages/TransactionHistory';
 import Transfer from './pages/Transfer';
-import ResetTransactionPin from './pages/ResetTransactionPin';
 import Profile from './pages/Profile';
 import CreateTransactionPin from './pages/CreateTransactionPin';
-import ChangeTransactionPin from './pages/ChangeTransactionPin';
 import swDev from './swDev';
 import CompleteSignup from './pages/CompleteSignup';
 import { ToastContainer } from 'react-toastify';
+import ResetPassword from './pages/ResetPassword';
+import CompleteSignup2 from './pages/CompleteSignup2';
+import ResetPasswordOTP from './pages/ResetPasswordOTP';
+import CompleteSignup3 from './pages/CompleteSignup3';
 
 function App() {
 
@@ -33,6 +35,7 @@ function App() {
           <Route path="/otp" element={<OTP />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/buy-data" element={<BuyData />} />
           <Route path="/buy-airtime" element={<BuyAirtime />} />
           <Route path="/home" element={<Home />} />
@@ -40,11 +43,12 @@ function App() {
           <Route path="/buy-cable" element={<BuyCable />} />
           <Route path="/all-transactions" element={<TransactionHistory />} />
           <Route path="/transfer" element={<Transfer />} />
-          <Route path="/reset-pin" element={<ResetTransactionPin />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/create-pin" element={<CreateTransactionPin />} />
-          <Route path="/change-pin" element={<ChangeTransactionPin />} />
           <Route path="/complete-signup" element={<CompleteSignup />} />
+          <Route path="/complete-verification" element={<CompleteSignup2 />} />
+          <Route path="/validate-verification" element={<CompleteSignup3 />} />
+          <Route path="/reset-otp" element={<ResetPasswordOTP />} />
         </Routes>
       </Router>
       <ToastContainer />

@@ -253,9 +253,12 @@ export const apiService = createApi({
       }),
     }),
     requestPasswordReset: builder.mutation({
-      query: ({ email }) => ({
+      query: ({ email, token }) => ({
         url: 'user/request-password-reset',
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: { email },
       }),
     }),

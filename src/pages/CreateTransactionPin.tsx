@@ -5,12 +5,19 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg';
+import { useSetTransactionPinMutation } from '../services/apiService';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { Circles } from 'react-loader-spinner';
+import { toast } from 'react-toastify';
 
 const CreateTransactionPin = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
+    const storedToken = useSelector((state: RootState) => state.auth.token);
     const [pin, setPin] = useState(['', '', '', '']);
-
+    const [setTransactionPin] = useSetTransactionPinMutation();
+    const [loading, setLoading] = useState(false);
     useEffect(() => {
         const handleResize = () => {
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -46,11 +53,36 @@ const CreateTransactionPin = () => {
         navigate(-1);
     };
 
-    const handleCloseModal = () => {
-        setPin(['', '', '', '']);
-        navigate('/otp');
-    };
+    // const handleCloseModal = () => {
+    //     setPin(['', '', '', '']);
+    //     navigate('/otp');
+    // };
 
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (pin.filter(num => num !== '').length === 4) {
+
+            setLoading(true);
+            try {
+                const response = await setTransactionPin({ token: storedToken, pin: pin.join('') });
+                if (response.data.success) {
+                    toast.success(response.data.message);
+
+                    navigate('/home');
+                } else {
+                    toast.error(response.data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to set transaction pin. Please try again.');
+            } finally {
+                setLoading(false);
+                setPin(['', '', '', '']);
+            }
+        } else {
+            toast.error('Please input a four digit pin');
+        }
+    };
     return (
         <div>
             {isMobileView ? (
@@ -82,9 +114,12 @@ const CreateTransactionPin = () => {
                         ))}
                     </div>
                     <button
-                        onClick={handleCloseModal}
+                        onClick={handleSubmit}
                         className='bg-[#D45A0E] h-16 w-full rounded-[35px] flex justify-center items-center'>
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                            :
+                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>}
+
                     </button>
                 </div>
             ) : (

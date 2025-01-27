@@ -13,15 +13,29 @@ import { MailBoxIcon } from '../assets/svg'
 import BackgroundImage from '../assets/images/background.png'
 import { GoogleLogin, googleLogout, useGoogleLogin } from '@react-oauth/google';
 // import { jwtDecode } from 'jwt-decode';
-
+import { useGoogleLoginMutation } from '../services/apiService';
+import { toast } from 'react-toastify';
 
 const SplashScreen = () => {
     const [isMobileView, setIsMobileView] = useState(false);
+    const [googleLoginMutation] = useGoogleLoginMutation();
     const navigate = useNavigate();
-    const login = useGoogleLogin({
-        onSuccess: token => {
+    const login =  useGoogleLogin({
+        onSuccess: async token => {
             console.log(token)
-            navigate("/home")
+            try {
+                const response = await googleLoginMutation({ idToken: token });
+                if (response.data.success) {
+                    toast.success(response.data.message);
+                    navigate('/home');
+                } else {
+                    toast.error("Something went wrong. Please try again.");
+                }
+            } catch (err) {
+                console.error(err);
+                toast.error('Google Signup Failed. Please try again.');
+            }
+
         },
         onError: error => {
             console.log(error)

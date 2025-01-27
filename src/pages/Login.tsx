@@ -7,7 +7,6 @@ import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { useLoginMutation } from '../services/apiService';
 import { useDispatch } from 'react-redux';
 import { setUserInfo } from '../store/slices/userSlices';
@@ -122,7 +121,7 @@ const Login = () => {
                     dispatch(loginUser(response.data.token));
                     navigate('/home');
                 } else {
-                    toast.error(response.data.message);
+                    toast.error("Something went wrong. Please try again.");
                 }
             } catch (err) {
                 console.error(err);

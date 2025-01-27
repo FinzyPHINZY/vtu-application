@@ -103,7 +103,9 @@ const Home = () => {
                                                 <p className='text-[#FFFFFFBF] font-[200] text-sm font-poppins'>You need to set transaction pin to perform a transaction</p>
                                             </div>
                                         </div>
-                                        <ArrowRight />
+                                        <div onClick={() => navigate("/create-pin")}>
+                                            <ArrowRight />
+                                        </div>
                                     </div>
                                 }
                                 {storedUser.accountDetails.status == "Pending" &&
@@ -116,7 +118,9 @@ const Home = () => {
                                                 <p className='text-[#FFFFFFBF] font-[200] text-sm font-poppins'>You need to complete your registration to perform a transaction</p>
                                             </div>
                                         </div>
-                                        <ArrowRight />
+                                        <div onClick={() => navigate("/complete-verification")}>
+                                            <ArrowRight />
+                                        </div>
                                     </div>
                                 }
 
@@ -129,8 +133,29 @@ const Home = () => {
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Quick service</p>
                             </div>
                             <div className='flex justify-between items-center py-3 mt-5 '>
-                                {servicesData.data.map((servicedata, index: number) => (
-                                    <div className=' flex flex-col justify-center items-center gap-2' key={index}>
+                                {servicesData && servicesData.data.map((servicedata, index: number) => (
+                                    <div className=' flex flex-col justify-center items-center gap-2'
+                                        key={index}
+                                        onClick={() => {
+                                            switch (servicedata.identifier) {
+                                                case 'DATA':
+                                                    navigate('/buy-data');
+                                                    break;
+                                                case 'AIRTIME':
+                                                    navigate('/buy-airtime');
+                                                    break;
+                                                case 'UTILITY':
+                                                    navigate('/buy-electricity');
+                                                    break;
+                                                case 'CABLETV':
+                                                    navigate('/buy-cable');
+                                                    break;
+                                                default:
+                                                    navigate('/');
+                                                    break;
+                                            }
+                                        }}
+                                    >
                                         {servicedata.identifier === 'DATA' && <DataIcon />}
                                         {servicedata.identifier === 'AIRTIME' && <PhoneIcon />}
                                         {servicedata.identifier === 'CABLETV' && <CableIcon />}

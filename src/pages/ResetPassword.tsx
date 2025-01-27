@@ -7,6 +7,10 @@ import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
+import { useResetPasswordMutation } from '../services/apiService';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+
 
 const ResetPassword = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -18,6 +22,9 @@ const ResetPassword = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [confirmPasswordError, setConfirmPasswordError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [resetPassword] = useResetPasswordMutation();
+    const storedToken = useSelector((state: RootState) => state.auth.token);
+
     useEffect(() => {
 
         const handleResize = () => {
@@ -103,7 +110,7 @@ const ResetPassword = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (validateEmail(email) && validatePassword(password) && password === confirmPassword) {
 
@@ -112,10 +119,12 @@ const ResetPassword = () => {
             setConfirmPasswordError('');
             setLoading(true);
             try {
+                const response = await resetPassword({ email, password, token: storedToken  });
+                toast.success(response.data.message);
                 navigate('/login');
             } catch (err) {
                 console.error(err);
-                toast.error('Password creation failed. Please try again.');
+                toast.error('Password Reset failed. Please try again.');
             }
             finally {
                 setEmail('');
@@ -141,7 +150,7 @@ const ResetPassword = () => {
 
                             <div>       </div>
                         </div>
-                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Forgot Password ?</div>
+                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Reset Password </div>
                         <form className='mt-20' onSubmit={handleSubmit}>
                             <div>
                                 <p className='text-white font-[500] text-base font-poppins mb-5'>Email</p>
@@ -182,7 +191,7 @@ const ResetPassword = () => {
                                 className='bg-[#D45A0E] h-16 mt-16 w-full rounded-[35px] flex justify-center items-center '>
                                 {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
                                     :
-                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Send Reset Link</p>}
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>}
 
                             </button>
                         </form>

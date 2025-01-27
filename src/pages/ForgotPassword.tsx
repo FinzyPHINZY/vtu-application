@@ -5,12 +5,24 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
+import { Circles } from 'react-loader-spinner';
+import { useRequestPasswordResetMutation } from '../services/apiService';
+import { toast } from 'react-toastify';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { useDispatch } from 'react-redux';
+import { setEmail as setEmailSetter } from '../store/slices/userSlices';
 
 const ForgotPassword = () => {
+    const dispatch = useDispatch();
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [emailError, setEmailError] = useState('');
+    const [requestPasswordReset] = useRequestPasswordResetMutation()
+    const storedToken = useSelector((state: RootState) => state.auth.token);
+
     useEffect(() => {
 
         const handleResize = () => {
@@ -51,13 +63,32 @@ const ForgotPassword = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (validateEmail(email)) {
             setEmailError('');
-            navigate('/otp');
+   
+            setLoading(true);
+            try {
+                const response = await requestPasswordReset({ email, token: storedToken });
+                if (response.data.success) {
+                    toast.success(response.data.message);
+                    dispatch(setEmailSetter(email));
+                    navigate('/reset-otp');
+                } else {
+                    toast.error(response.data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to login. Please try again.');
+            } finally {
+                setLoading(false);
+                setEmail("")
+              
+            }
         } else {
             setEmailError('Please enter a valid email address.');
+           
         }
     };
     return (
@@ -87,7 +118,11 @@ const ForgotPassword = () => {
                             <button
                                 type="submit"
                                 className='bg-[#D45A0E] h-16 mt-16 w-full rounded-[35px] flex justify-center items-center '>
-                                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Send Reset Link</p>
+
+                                {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                                    :
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>OTP Sent</p>}
+
                             </button>
                         </form>
                     </div>

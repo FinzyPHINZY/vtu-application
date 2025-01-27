@@ -5,12 +5,25 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { useVerifyOtpMutation } from '../services/apiService';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Circles } from 'react-loader-spinner';
+import { useRequestOtpMutation } from '../services/apiService';
 
-const ResetTransactionPin = () => {
+const ResetPasswordOTP = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [otp, setOtp] = useState('');
     const [otpError, setOtpError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const storedEmail = useSelector((state: RootState) => state.user.email);
+    const [verifyOtp] = useVerifyOtpMutation();
+    const [requestOtp] = useRequestOtpMutation();
+
+    console.log(storedEmail, 44)
     useEffect(() => {
 
         const handleResize = () => {
@@ -28,7 +41,21 @@ const ResetTransactionPin = () => {
     }, []);
 
 
-
+const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
+        e.preventDefault();
+      
+            try {
+              
+                const response = await requestOtp(storedEmail).unwrap();
+                toast.success(response.message);
+            
+             
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to send OTP. Please try again.');
+            } 
+      
+    };
 
     const handleBack = () => {
         navigate(-1);
@@ -38,17 +65,37 @@ const ResetTransactionPin = () => {
         const value = e.target.value;
         setOtp(value);
 
-        if (!otp) {
-            setOtpError('Please enter a valid email address.');
-        }
+
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!otp) {
+        if (otp) {
             setOtpError('');
-            navigate('/otp');
+            try {
+                console.log(1)
+                setLoading(true);
+                const response = await verifyOtp({ email: storedEmail, otp });
+                console.log(2)
+                if (response.data.success) {
+                    console.log(3)
+                    toast.success(response.data.message);
+                    navigate('/reset-password');
+                    console.log(4)
+                } else {
+                    console.log(5)
+                    toast.error(response.data.message);
+                }
+            } catch (err) {
+                console.log(6)
+                console.error(err);
+                toast.error('Failed to send OTP. Please try again.');
+            } finally {
+                console.log(7)
+                setLoading(false);
+            }
         } else {
+            console.log(8)
             setOtpError('Please enter a valid email address.');
         }
     };
@@ -57,14 +104,14 @@ const ResetTransactionPin = () => {
             {
                 isMobileView ? (
                     // JSX for screens below 768px
-                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 '>
+                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
-                            <p className='text-white font-[400] text-base font-poppins'>Reset Transaction pin</p>
+
                             <div>       </div>
                         </div>
                         <div className='text-white font-[600] text-lg font-poppins mt-10'>Enter OTP</div>
-                        <form className='mt-8 flex-grow flex flex-col justify-between pb-10' onSubmit={handleSubmit}>
+                        <form className='mt-20 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
                             <div>
                                 <p className='text-white font-[500] text-base font-poppins mb-5'>OTP Code</p>
                                 <input
@@ -72,17 +119,22 @@ const ResetTransactionPin = () => {
                                     value={otp}
                                     onChange={handleInputChange}
                                     className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                    placeholder='6-digits'
+                                    placeholder='4-digits'
                                 />
                                 {otpError && <p className='text-[#D45A0E] text-sm text-center'>{otpError}</p>}
                             </div>
-                            <button
-                                type="submit"
-                                className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
-                                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Verify</p>
-                            </button>
+                            <div>
+                                <button
+                                    type="submit"
+                                    className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
+                                    {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                                        :
+                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Next</p>}
+
+                                </button>
+                                <p className='text-[#FFFFFF6B] font-[400] text-sm text-center font-poppins mt-5' onClick={ResendOTP}> Resend OTP</p>
+                            </div>
                         </form>
-                        <p className='text-[#FF3D00] font-[400] text-sm font-poppins text-center'>Resend OTP</p>
                     </div>
                 ) : (
                     // JSX for screens above 768px
@@ -112,4 +164,4 @@ const ResetTransactionPin = () => {
     )
 }
 
-export default ResetTransactionPin
+export default ResetPasswordOTP

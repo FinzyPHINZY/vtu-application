@@ -5,32 +5,21 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
-import {
-    useInitiateVerificationMutation,
-    useValidateVerificationMutation,
-    useCreateSubAccountMutation
-} from '../services/apiService';
+import { useInitiateVerificationMutation } from '../services/apiService';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-import { setStatus } from '../store/slices/userSlices';
-import { useDispatch } from 'react-redux';
 
-const CompleteSignup2 = () => {
-    const dispatch = useDispatch();
+
+const CompleteSignup3 = () => {
     const [isMobileView, setIsMobileView] = useState(false);
-    const storedUser = useSelector((state: RootState) => state.user.user);
     const navigate = useNavigate();
     const [bvn, setBvn] = useState('');
     const [bvnError, setBvnError] = useState('');
     const [initiateVerification] = useInitiateVerificationMutation();
-    const [validateVerification] = useValidateVerificationMutation();
-    const [createSubAccount] = useCreateSubAccountMutation();
     const [loading, setLoading] = useState(false);
     const storedToken = useSelector((state: RootState) => state.auth.token);
-    // const debitAccountNumber = process.env.REACT_APP_DEBIT_ACCOUNT_NUMBER;
-    // const otp = process.env.REACT_APP_OTP;
 
     useEffect(() => {
 
@@ -74,56 +63,20 @@ const CompleteSignup2 = () => {
 
                 setLoading(true);
                 const response = await initiateVerification({
-                    type: "BVN",
-                    async: false,
-                    number: bvn,
-                    debitAccountNumber: "0119017579",
+                    type: "BVN", 
+                    async: false, 
+                    number: bvn, 
+                    debitAccountNumber: "0119017579", 
                     token: storedToken
                 });
- 
+
                 if (response.data.success) {
-                    console.log(response.data.data._id, 400);
+
                     toast.success(response.data.message);
-                    const secondResponse = await validateVerification({
-                        type: "BVN",
-                        otp: "456756",
-                        identityId: response.data.data._id,
-                        token: storedToken
-                    });
-                
-                    if (secondResponse.data) {
-                        
-                        toast.success(secondResponse.data.message);
-                        const thirdResponse = await createSubAccount({
-                            firstName: storedUser.firstName,
-                            lastName: storedUser.lastName,
-                            phoneNumber: storedUser.phoneNumber,
-                            emailAddress: storedUser.email,
-                            externalReference: "AC_1240",
-                            bvn,
-                            identityId: response.data.data._id,
-                            identityNumber: bvn,
-                            identityType: "BVN",
-                            otp: "456756",
-                            callbackUrl: "https://finzyphinzy.vercel.app",
-                            autoSweep: false,
-                            autoSweepDetails: {
-                                "schedule": "Instant"
-                            },
-                            token: storedToken
-                        });
-                        dispatch(setStatus(response.data.data.status));
-                        // if (thirdResponse.data.success) {
-                            // toast.success(thirdResponse.data.message);
-                            navigate('/home');
-                    //     } else {
-                    //         toast.error("Sub-account creation failed. Please try again.");
-                    //     }
-                    } else {
-                        toast.error("validation verification failed. Please try again.");
-                    }
+                    navigate('/complete-signup3');
+
                 } else {
-                    toast.error("verification initiation failed. Please try again.");
+                    toast.error("Something went wrong. Please try again.");
                 }
             } catch (err) {
 
@@ -134,7 +87,7 @@ const CompleteSignup2 = () => {
                 setLoading(false);
             }
         } else {
-
+           
             setBvnError('Please enter your BVN.');
         }
     };
@@ -149,7 +102,7 @@ const CompleteSignup2 = () => {
 
                             <div>       </div>
                         </div>
-                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Verify your account</div>
+                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Verify your account555</div>
                         <form className='mt-20' onSubmit={handleSubmit}>
                             <p className='text-white font-[500] text-base font-poppins mb-5'>BVN Number</p>
                             <input
@@ -201,4 +154,4 @@ const CompleteSignup2 = () => {
     )
 }
 
-export default CompleteSignup2
+export default CompleteSignup3
