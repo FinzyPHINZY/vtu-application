@@ -15,16 +15,11 @@ export const validationValidation = [
 ];
 
 export const verificationValidation = [
-  body('type').equals('BVN').withMessage('Verification type must be BVN'),
   body('async').isBoolean().withMessage('async must be a boolean value'),
   body('number')
     .isString()
     .matches(/^\d{11}$/)
     .withMessage('BVN must be 11 digits'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('debitAccountNumber is required'),
 ];
 
 export const paymentValidation = [
@@ -133,10 +128,6 @@ export const airtimeValidation = [
     .isInt({ min: 1 })
     .withMessage('Amount must be a positive number'),
   body('channel').optional().isString().default('WEB'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Debit account number is required'),
   body('phoneNumber')
     .isString()
     .matches(/^\+?[1-9]\d{1,14}$/)
@@ -157,10 +148,6 @@ export const dataValidation = [
     .isInt({ min: 1 })
     .withMessage('Amount must be a positive number'),
   body('channel').isString().notEmpty().withMessage('Channel is required'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Debit account number is required'),
   body('phoneNumber')
     .isString()
     .matches(/^\+?[1-9]\d{1,14}$/)
@@ -181,10 +168,6 @@ export const cableTVValidation = [
     .isInt({ min: 1 })
     .withMessage('Amount must be a positive number'),
   body('channel').isString().notEmpty().withMessage('Channel is required'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Debit account number is required'),
   body('cardNumber')
     .isString()
     .notEmpty()
@@ -204,10 +187,6 @@ export const utilityValidation = [
     .isInt({ min: 1 })
     .withMessage('Amount must be a positive number'),
   body('channel').isString().notEmpty().withMessage('Channel is required'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Debit account number is required'),
   body('vendType').isString().notEmpty().withMessage('Vend type is required'),
 ];
 
@@ -250,10 +229,6 @@ export const airtimeTransactionValidation = [
     .isString()
     .matches(/^\+?[1-9]\d{1,14}$/)
     .withMessage('Invalid phone number format'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Debit account number is required'),
 ];
 
 export const dataTransactionValidation = [
@@ -272,10 +247,6 @@ export const dataTransactionValidation = [
     .isString()
     .matches(/^\+?[1-9]\d{1,14}$/)
     .withMessage('Invalid phone number format'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Debit account number is required'),
 ];
 
 export const cableTVTransactionValidation = [
@@ -294,10 +265,6 @@ export const cableTVTransactionValidation = [
     .isString()
     .notEmpty()
     .withMessage('Card number is required'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Debit account number is required'),
 ];
 
 export const utilityTransactionValidation = [
@@ -313,10 +280,6 @@ export const utilityTransactionValidation = [
     .isInt({ min: 1 })
     .withMessage('Amount must be a positive number'),
   body('vendType').isString().notEmpty().withMessage('Vend type is required'),
-  body('debitAccountNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Debit account number is required'),
 ];
 
 export const transactionPinValidation = [

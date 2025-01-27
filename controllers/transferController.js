@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
+
 export const getBankList = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
@@ -81,7 +83,6 @@ export const transferFunds = async (req, res) => {
 
     const {
       nameEnquiryReference,
-      debitAccountNumber,
       beneficiaryBankCode,
       beneficiaryAccountNumber,
       amount,

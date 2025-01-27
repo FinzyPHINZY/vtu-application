@@ -1,12 +1,21 @@
 import axios from 'axios';
 
+const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
+
 // Initiate Verification
 export const initiateVerification = async (req, res) => {
   const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
   try {
+    const { number, async } = req.body;
+
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/identity/v2`,
-      req.body,
+      {
+        number,
+        async,
+        type: 'BVN',
+        debitAccountNumber,
+      },
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -33,7 +42,7 @@ export const initiateVerification = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error initiating verification:', error.data);
+    console.error('Error initiating verification:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -78,7 +87,7 @@ export const validateVerification = async (req, res) => {
       message: data.message || 'Verification validated successfully',
     });
   } catch (error) {
-    console.error('Error validating verification:', error.data);
+    console.error('Error validating verification:', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

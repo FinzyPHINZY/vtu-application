@@ -26,7 +26,7 @@ router.get('/', validateHeaders, servicesController.getServices);
 
 // get service
 router.get(
-  '/:id',
+  '/:id/service',
   validateHeaders,
   serviceIdValidation,
   validateRequest,
@@ -51,40 +51,41 @@ router.post(
   servicesController.verifyPowerOrTvData
 );
 
-// VAS Payment endpoints
-router.post(
-  '/pay/airtime',
-  validateHeaders,
-  airtimeValidation,
-  validateRequest,
-  servicesController.purchaseAirtime
-);
-router.post(
-  '/pay/data',
-  validateHeaders,
-  dataValidation,
-  validateRequest,
-  servicesController.purchaseData
-);
-router.post(
-  '/pay/cable-tv',
-  validateHeaders,
-  cableTVValidation,
-  validateRequest,
-  servicesController.purchaseCableTV
-);
-router.post(
-  '/pay/utility',
-  validateHeaders,
-  utilityValidation,
-  validateRequest,
-  servicesController.payUtilityBill
-);
+// // VAS Payment endpoints
+// router.post(
+//   '/pay/airtime',
+//   validateHeaders,
+//   airtimeValidation,
+//   validateRequest,
+//   servicesController.purchaseAirtime
+// );
+// router.post(
+//   '/pay/data',
+//   validateHeaders,
+//   dataValidation,
+//   validateRequest,
+//   servicesController.purchaseData
+// );
+// router.post(
+//   '/pay/cable-tv',
+//   validateHeaders,
+//   cableTVValidation,
+//   validateRequest,
+//   servicesController.purchaseCableTV
+// );
+// router.post(
+//   '/pay/utility',
+//   validateHeaders,
+//   utilityValidation,
+//   validateRequest,
+//   servicesController.payUtilityBill
+// );
 
 // VAS Transaction endpoints
 router.get(
   '/transactions',
-  validateHeaders,
+  // validateHeaders,
+  // validateRequest,
   servicesController.getTransactions
 );
 router.get(

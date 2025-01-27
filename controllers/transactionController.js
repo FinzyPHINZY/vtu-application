@@ -7,12 +7,13 @@ import {
   validateBalance,
 } from '../utils/transaction.js';
 
+const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
+
 export const purchaseAirtime = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
-    const { serviceCategoryId, amount, phoneNumber, debitAccountNumber } =
-      req.body;
+    const { serviceCategoryId, amount, phoneNumber } = req.body;
 
     if (!isValidPhoneNumber(phoneNumber)) {
       return res
@@ -91,13 +92,7 @@ export const purchaseData = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
-    const {
-      serviceCategoryId,
-      bundleCode,
-      amount,
-      phoneNumber,
-      debitAccountNumber,
-    } = req.body;
+    const { serviceCategoryId, bundleCode, amount, phoneNumber } = req.body;
 
     // validate phone number
     if (!isValidPhoneNumber(phoneNumber)) {
@@ -183,13 +178,7 @@ export const payCableTV = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
-    const {
-      serviceCategoryId,
-      bundleCode,
-      amount,
-      cardNumber,
-      debitAccountNumber,
-    } = req.body;
+    const { serviceCategoryId, bundleCode, amount, cardNumber } = req.body;
 
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
@@ -267,13 +256,7 @@ export const payUtilityBill = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
-    const {
-      serviceCategoryId,
-      meterNumber,
-      amount,
-      vendType,
-      debitAccountNumber,
-    } = req.body;
+    const { serviceCategoryId, meterNumber, amount, vendType } = req.body;
 
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
@@ -349,7 +332,6 @@ export const transferFunds = async (req, res) => {
 
     const {
       nameEnquiryReference,
-      debitAccountNumber,
       beneficiaryBankCode,
       beneficiaryAccountNumber,
       amount,

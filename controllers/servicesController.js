@@ -1,6 +1,9 @@
 import axios from 'axios';
 
+const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
+
 export const getServices = async (req, res) => {
+  console.log('get services is the one running');
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
@@ -35,6 +38,7 @@ export const getServices = async (req, res) => {
 };
 
 export const getServicesById = async (req, res) => {
+  console.log('get services by id is the one running');
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
@@ -59,7 +63,7 @@ export const getServicesById = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Service fetched successfully',
-      data: data.data,
+      data: data,
     });
   } catch (error) {
     console.error('Failed to fetch service', error);
@@ -194,13 +198,12 @@ export const purchaseAirtime = async (req, res) => {
       serviceCategoryId,
       amount,
       channel = 'WEB',
-      debitAccountNumber,
       phoneNumber,
       statusUrl,
     } = req.body;
 
     const response = await axios.post(
-      'https://api.sandbox.safehavenmfb.com/vas/pay/airtime',
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/airtime`,
       {
         serviceCategoryId,
         amount,
@@ -245,13 +248,12 @@ export const purchaseData = async (req, res) => {
       bundleCode,
       amount,
       channel,
-      debitAccountNumber,
       phoneNumber,
       statusUrl,
     } = req.body;
 
     const response = await axios.post(
-      'https://api.sandbox.safehavenmfb.com/vas/pay/data',
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/data`,
       {
         serviceCategoryId,
         bundleCode,
@@ -292,17 +294,11 @@ export const purchaseCableTV = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
-    const {
-      serviceCategoryId,
-      bundleCode,
-      amount,
-      channel,
-      debitAccountNumber,
-      cardNumber,
-    } = req.body;
+    const { serviceCategoryId, bundleCode, amount, channel, cardNumber } =
+      req.body;
 
     const response = await axios.post(
-      'https://api.sandbox.safehavenmfb.com/vas/pay/cable-tv',
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/cable-tv`,
       {
         serviceCategoryId,
         bundleCode,
@@ -342,17 +338,11 @@ export const payUtilityBill = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
-    const {
-      serviceCategoryId,
-      meterNumber,
-      amount,
-      channel,
-      debitAccountNumber,
-      vendType,
-    } = req.body;
+    const { serviceCategoryId, meterNumber, amount, channel, vendType } =
+      req.body;
 
     const response = await axios.post(
-      'https://api.sandbox.safehavenmfb.com/vas/pay/utility',
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/utility`,
       {
         serviceCategoryId,
         meterNumber,
@@ -389,11 +379,12 @@ export const payUtilityBill = async (req, res) => {
 };
 
 export const getTransactions = async (req, res) => {
+  console.log('get transactions is the one running');
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
     const response = await axios.get(
-      'https://api.sandbox.safehavenmfb.com/vas/transactions',
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/transactions`,
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -411,7 +402,7 @@ export const getTransactions = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Transactions fetched successfully',
-      data: data.data,
+      data: data,
     });
   } catch (error) {
     console.error('Failed to fetch VAS transactions:', error);
@@ -428,7 +419,7 @@ export const getTransactionById = async (req, res) => {
     const { id } = req.params;
 
     const response = await axios.get(
-      `https://api.sandbox.safehavenmfb.com/vas/transaction/${id}`,
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/transaction/${id}`,
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
