@@ -14,9 +14,6 @@ import {
 } from '../utils/helpers.js';
 const router = express.Router();
 
-router.use(tokenExtractor);
-router.use(userExtractor);
-
 // Route        GET /api/user/:id
 // Description  Fetch details of a specific user by ID
 // Access       Private (Admin or the user themselves)
@@ -52,6 +49,8 @@ router.post(
 
 router.post(
   '/set-transaction-pin',
+  tokenExtractor,
+  userExtractor,
   pinAttemptLimiter,
   transactionPinValidation,
   validateRequest,
