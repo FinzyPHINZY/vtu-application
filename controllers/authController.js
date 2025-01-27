@@ -449,12 +449,10 @@ export const googleLogin = async (req, res) => {
         'Failed to get Safe Haven token:',
         error.response?.data || error.message
       );
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: 'Failed to authenticate with Safe Haven',
-        });
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to authenticate with Safe Haven',
+      });
     }
 
     const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;

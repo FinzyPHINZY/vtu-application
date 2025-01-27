@@ -3,7 +3,6 @@ import axios from 'axios';
 const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
 
 export const getServices = async (req, res) => {
-  console.log('get services is the one running');
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
@@ -38,7 +37,6 @@ export const getServices = async (req, res) => {
 };
 
 export const getServicesById = async (req, res) => {
-  console.log('get services by id is the one running');
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
@@ -379,7 +377,6 @@ export const payUtilityBill = async (req, res) => {
 };
 
 export const getTransactions = async (req, res) => {
-  console.log('get transactions is the one running');
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 

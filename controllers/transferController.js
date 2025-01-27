@@ -41,8 +41,6 @@ export const verifyBankAccount = async (req, res) => {
 
     const { bankCode, accountNumber } = req.body;
 
-    console.log(req.body);
-
     const payload = { bankCode, accountNumber };
 
     // post request to safe haven
@@ -60,8 +58,6 @@ export const verifyBankAccount = async (req, res) => {
     );
 
     const { data } = response.data;
-
-    console.log(data);
 
     return res.status(200).json({
       success: true,

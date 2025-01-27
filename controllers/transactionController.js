@@ -151,7 +151,7 @@ export const purchaseData = async (req, res) => {
     // send receipt
     await sendTransactionReceipt(user, transaction);
 
-    console.log(`Data bundle purchase successful for user: ${req.userId}`);
+    console.log(`Data bundle purchase successful for user: ${req.user.id}`);
 
     return res.status(200).json({
       success: true,
@@ -229,7 +229,7 @@ export const payCableTV = async (req, res) => {
     // send transaction receipt
     await sendTransactionReceipt(user, transaction);
 
-    console.log(`Cable TV payment successful for user: ${req.userId}`);
+    console.log(`Cable TV payment successful for user: ${req.user.id}`);
 
     return res.status(200).json({
       success: true,
@@ -303,7 +303,7 @@ export const payUtilityBill = async (req, res) => {
     // Send receipt
     await sendTransactionReceipt(user, transaction);
 
-    console.log(`Utility bill payment successful for user: ${req.userId}`);
+    console.log(`Utility bill payment successful for user: ${req.user.id}`);
 
     res.status(200).json({
       success: true,

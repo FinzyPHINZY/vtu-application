@@ -71,7 +71,7 @@ export const createSubAccount = async (req, res) => {
 
     await user.save();
 
-    console.log(`Sub-account created successfully for user: ${req.userId}`);
+    console.log(`Sub-account created successfully for user: ${req.user.id}`);
 
     res.status(201).json({
       success: true,

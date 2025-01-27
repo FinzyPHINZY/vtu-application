@@ -188,7 +188,7 @@ export const setTransactionPin = async (req, res) => {
 
     return res
       .status(200)
-      .json({ success: true, message: 'Transction PIN set successfully' });
+      .json({ success: true, message: 'Transaction PIN set successfully' });
   } catch (error) {
     console.error('Failed to set transaction pin', error);
     return res

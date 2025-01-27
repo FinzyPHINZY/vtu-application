@@ -38,6 +38,7 @@ app.get('/', async (req, res) => {
     );
 });
 
+// health endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -47,6 +48,7 @@ app.get('/health', (req, res) => {
   });
 });
 
+// middleware endpoints
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRouter);
 app.use('/api/verification', verificationRoutes);
