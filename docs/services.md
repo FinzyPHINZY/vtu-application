@@ -54,7 +54,7 @@ All requests require the following headers:
 
 #### 2. Get Service by ID
 
-**URL:** `/api/services/:id`
+**URL:** `/api/services/:id/service`
 
 **Method:** `GET`
 

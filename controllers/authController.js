@@ -254,7 +254,127 @@ export const login = async (req, res) => {
   }
 };
 
-export const googleLogin = async (req, res, next) => {
+// export const googleLogin = async (req, res, next) => {
+//   try {
+//     const { idToken } = req.body;
+
+//     if (!idToken) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: 'Google ID token is required' });
+//     }
+
+//     // Verify Google token
+//     const ticket = await googleClient.verifyIdToken({
+//       idToken,
+//       audience: process.env.GOOGLE_CLIENT_ID,
+//     });
+
+//     const { sub: googleId, email, email_verified } = ticket.getPayload();
+
+//     if (!email_verified) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Google account email is not verified',
+//       });
+//     }
+
+//     // Find or create user
+//     let user = await User.findOne({
+//       $or: [{ googleId }, { email, authProvider: 'google' }],
+//     });
+
+//     if (!user) {
+//       // Create new user with Google credentials
+//       user = await User.create({
+//         email,
+//         googleId,
+//         googleEmail: email,
+//         authProvider: 'google',
+//         isVerified: true, // Google accounts are pre-verified
+//         isGoogleUser: true,
+//       });
+//     } else {
+//       // Update existing user's Google credentials if needed
+//       user.googleId = googleId;
+//       user.googleEmail = email;
+//       user.authProvider = 'google';
+//       user.isVerified = true;
+//       user.isGoogleUser = true;
+
+//       await user.save();
+//     }
+
+//     // Get SafeHaven token
+//     const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
+//     const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
+
+//     const body = {
+//       grant_type: 'client_credentials',
+//       client_id: CLIENT_ID,
+//       client_assertion: CLIENT_ASSERTION,
+//       client_assertion_type:
+//         'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+//     };
+
+//     console.log('generating safehaven token');
+//     const response = await axios.post(
+//       `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+//       body
+//     );
+
+//     console.log(
+//       'successfully generated safe haven token',
+//       response.data.ibs_client_id
+//     );
+
+//     const { access_token, expires_in, ibs_client_id } = response.data;
+
+//     // Remove sensitive data
+//     const userResponse = user.toObject();
+//     delete userResponse.password;
+//     delete userResponse.failedLoginAttempts;
+//     delete userResponse.lastLoginAttempt;
+
+//     console.log(`User logged in with Google successfully: ${email}`);
+
+//     const userForToken = {
+//       id: user._id,
+//       safeHavenAccessToken: {
+//         access_token,
+//         expires_in,
+//         ibs_client_id,
+//       },
+//     };
+
+//     const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
+//       expiresIn: '1d',
+//     });
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Google login successful',
+//       data: {
+//         user,
+//       },
+//       token,
+//     });
+//   } catch (error) {
+//     console.error('Google login failed:', error);
+
+//     if (error.message.includes('Token used too late')) {
+//       return res
+//         .status(401)
+//         .json({ success: false, message: 'Google token expired' });
+//     } else {
+//       return res
+//         .status(500)
+//         .json({ success: false, message: 'Google login failed' });
+//     }
+//   }
+// };
+
+export const googleLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
 
@@ -265,10 +385,17 @@ export const googleLogin = async (req, res, next) => {
     }
 
     // Verify Google token
-    const ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    let ticket;
+    try {
+      ticket = await googleClient.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+    } catch (error) {
+      return res
+        .status(401)
+        .json({ success: false, message: 'Invalid or expired Google token' });
+    }
 
     const { sub: googleId, email, email_verified } = ticket.getPayload();
 
@@ -285,52 +412,54 @@ export const googleLogin = async (req, res, next) => {
     });
 
     if (!user) {
-      // Create new user with Google credentials
       user = await User.create({
         email,
         googleId,
         googleEmail: email,
         authProvider: 'google',
-        isVerified: true, // Google accounts are pre-verified
+        isVerified: true,
         isGoogleUser: true,
       });
     } else {
-      // Update existing user's Google credentials if needed
       user.googleId = googleId;
       user.googleEmail = email;
       user.authProvider = 'google';
       user.isVerified = true;
       user.isGoogleUser = true;
-
       await user.save();
     }
 
-    // Get SafeHaven token
-    const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
-    const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
-
+    // Get Safe Haven token
     const body = {
       grant_type: 'client_credentials',
-      client_id: CLIENT_ID,
-      client_assertion: CLIENT_ASSERTION,
+      client_id: process.env.SAFE_HAVEN_CLIENT_ID,
+      client_assertion: process.env.SAFE_HAVEN_CLIENT_ASSERTION,
       client_assertion_type:
         'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
     };
 
-    console.log('generating safehaven token');
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-      body
-    );
+    let safeHavenResponse;
+    try {
+      safeHavenResponse = await axios.post(
+        `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+        body
+      );
+    } catch (error) {
+      console.error(
+        'Failed to get Safe Haven token:',
+        error.response?.data || error.message
+      );
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: 'Failed to authenticate with Safe Haven',
+        });
+    }
 
-    console.log(
-      'successfully generated safe haven token',
-      response.data.ibs_client_id
-    );
+    const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
 
-    const { access_token, expires_in, ibs_client_id } = response.data;
-
-    // Remove sensitive data
+    // Remove sensitive data from user object
     const userResponse = user.toObject();
     delete userResponse.password;
     delete userResponse.failedLoginAttempts;
@@ -338,6 +467,7 @@ export const googleLogin = async (req, res, next) => {
 
     console.log(`User logged in with Google successfully: ${email}`);
 
+    // Create JWT token
     const userForToken = {
       id: user._id,
       safeHavenAccessToken: {
@@ -355,21 +485,12 @@ export const googleLogin = async (req, res, next) => {
       success: true,
       message: 'Google login successful',
       data: {
-        user,
+        user: userResponse,
       },
       token,
     });
   } catch (error) {
     console.error('Google login failed:', error);
-
-    if (error.message.includes('Token used too late')) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'Google token expired' });
-    } else {
-      return res
-        .status(500)
-        .json({ success: false, message: 'Google login failed' });
-    }
+    res.status(500).json({ success: false, message: 'Google login failed' });
   }
 };
