@@ -11,11 +11,22 @@ import { RiTwitterXLine } from "react-icons/ri";
 import { FcGoogle } from "react-icons/fc";
 import { MailBoxIcon } from '../assets/svg'
 import BackgroundImage from '../assets/images/background.png'
+import { GoogleLogin, googleLogout, useGoogleLogin } from '@react-oauth/google';
+// import { jwtDecode } from 'jwt-decode';
+
 
 const SplashScreen = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
-
+    const login = useGoogleLogin({
+        onSuccess: token => {
+            console.log(token)
+            navigate("/home")
+        },
+        onError: error => {
+            console.log(error)
+        }
+    })
     useEffect(() => {
         // Function to check screen size
         const handleResize = () => {
@@ -37,18 +48,21 @@ const SplashScreen = () => {
         navigate('/create-account');
     };
 
+    // const handleLogout = () => {
+    //     googleLogout();
+    // }
     return (
         <div>
             {
                 isMobileView ? (
                     // JSX for screens below 768px
                     <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'
-                    style={{
-                        backgroundImage: `url(${BackgroundImage})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat',
-                    }}>
+                        style={{
+                            backgroundImage: `url(${BackgroundImage})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                        }}>
                         <div className='text-white font-[600] text-lg font-kavoon'>Bold data</div>
                         <div>
                             <div className='flex justify-center items-center gap-4'>
@@ -63,7 +77,15 @@ const SplashScreen = () => {
                             <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>Lorem ipsum dolor sit amet consectetur. Nullam vitae neque augue diam pharetra turpis est. Dignissim amet et orci cras eget vitae .</p>
                         </div>
                         <div className='mb-16'>
-                            <div className='bg-white h-16 mb-5 rounded-[35px] flex justify-center items-center gap-8 max-sm:gap-6 '>
+                            <div className='bg-white h-16 mb-5 rounded-[35px] flex justify-center items-center gap-8 max-sm:gap-6 ' onClick={() => login()}>
+                                {/* <GoogleLogin
+                                    onSuccess={(credentialResponse) => {
+                                        console.log(credentialResponse)
+                                        console.log(jwtDecode(credentialResponse.credential))
+                                        navigate("/home")
+                                    }}
+                                    onError={() => console.log("Login Failed")}
+                                    auto_select={true} /> */}
                                 <FcGoogle />
                                 <p className='text-black font-[300] font-poppins text-base'>Continue with Google</p>
                             </div>
@@ -72,7 +94,7 @@ const SplashScreen = () => {
                                 <MailBoxIcon />
                                 <p className='text-white font-[300]  font-poppins text-base'>Continue with email</p>
                             </div>
-                            <p className='text-white font-[200] font-poppins text-sm text-center'  onClick={() => navigate("/login")}>Login</p>
+                            <p className='text-white font-[200] font-poppins text-sm text-center' onClick={() => navigate("/login")}>Login</p>
                         </div>
                     </div>
                 ) : (
@@ -84,7 +106,7 @@ const SplashScreen = () => {
                         </div>
 
                         <div className=''>
-                            <p className='text-white font-[400]  font-poppins text-4xl mb-3 text-center'>Desktop site is currently unavailable</p>
+                            <p className='text-yellow-300 font-[400]  font-poppins text-4xl mb-3 text-center'>Desktop site is currently unavailable</p>
                             <p className='text-white font-[400]  font-poppins text-2xl text-center'>Please use mobile version or resize your browser</p>
                         </div>
 

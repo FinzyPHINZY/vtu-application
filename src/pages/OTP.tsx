@@ -11,6 +11,7 @@ import { useVerifyOtpMutation } from '../services/apiService';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Circles } from 'react-loader-spinner';
+import { useRequestOtpMutation } from '../services/apiService';
 
 const OTP = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -18,9 +19,9 @@ const OTP = () => {
     const [otp, setOtp] = useState('');
     const [otpError, setOtpError] = useState('');
     const [loading, setLoading] = useState(false);
-    const storedOtp = useSelector((state: RootState) => state.user.otp);
     const storedEmail = useSelector((state: RootState) => state.user.email);
     const [verifyOtp] = useVerifyOtpMutation();
+    const [requestOtp] = useRequestOtpMutation();
 
     console.log(storedEmail, 44)
     useEffect(() => {
@@ -40,7 +41,21 @@ const OTP = () => {
     }, []);
 
 
-
+const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
+        e.preventDefault();
+      
+            try {
+              
+                const response = await requestOtp(storedEmail).unwrap();
+                toast.success(response.message);
+            
+             
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to send OTP. Please try again.');
+            } 
+      
+    };
 
     const handleBack = () => {
         navigate(-1);
@@ -50,7 +65,7 @@ const OTP = () => {
         const value = e.target.value;
         setOtp(value);
 
-     
+
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,7 +75,7 @@ const OTP = () => {
             try {
                 console.log(1)
                 setLoading(true);
-                const response = await verifyOtp({ email: storedEmail, otp: storedOtp });
+                const response = await verifyOtp({ email: storedEmail, otp });
                 console.log(2)
                 if (response.data.success) {
                     console.log(3)
@@ -108,14 +123,17 @@ const OTP = () => {
                                 />
                                 {otpError && <p className='text-[#D45A0E] text-sm text-center'>{otpError}</p>}
                             </div>
-                            <button
-                                type="submit"
-                                className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
-                                {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
-                                    :
-                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Next</p>}
+                            <div>
+                                <button
+                                    type="submit"
+                                    className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
+                                    {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                                        :
+                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Next</p>}
 
-                            </button>
+                                </button>
+                                <p className='text-[#FFFFFF6B] font-[400] text-sm text-center font-poppins mt-5' onClick={ResendOTP}> Resend OTP</p>
+                            </div>
                         </form>
                     </div>
                 ) : (

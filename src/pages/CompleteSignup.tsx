@@ -6,13 +6,15 @@ import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { Circles } from 'react-loader-spinner';
 import { useCompleteSignupMutation } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../store/slices/userSlices';
 
 const CompleteSignup = () => {
+    const dispatch = useDispatch();
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [password, setPassword] = useState('');
@@ -135,6 +137,7 @@ const CompleteSignup = () => {
                 const response = await completeSignup({ firstName, lastName, email: storedEmail, phoneNumber: number, password, });
                 if (response.data.success) {
                     toast.success(response.data.message);
+                    dispatch(setUserInfo(response.data.data));
                     navigate('/login');
                 } else {
                     toast.error(response.data.message);

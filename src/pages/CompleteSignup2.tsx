@@ -5,23 +5,12 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
-import { useRequestOtpMutation } from '../services/apiService'; // Add this import
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useDispatch } from 'react-redux';
-import { setEmail } from '../store/slices/userSlices';
-import { Circles } from 'react-loader-spinner';
 
-
-const Signup = () => {
+const CompleteSignup2 = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
-    const [email, setEmailState] = useState('');
-    const [emailError, setEmailError] = useState('');
-    const [requestOtp] = useRequestOtpMutation();
-    const dispatch = useDispatch();
-    const [loading, setLoading] = useState(false);
-
+    const [bvn, setBvn] = useState('');
+    const [bvnError, setBvnError] = useState('');
     useEffect(() => {
 
         const handleResize = () => {
@@ -38,14 +27,7 @@ const Signup = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    interface ValidateEmail {
-        (email: string): boolean;
-    }
 
-    const validateEmail: ValidateEmail = (email) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
 
     const handleBack = () => {
         navigate(-1);
@@ -53,36 +35,22 @@ const Signup = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        setEmailState(value);
+        setBvn(value);
 
-        if (validateEmail(value)) {
-            setEmailError('');
+        if (bvn) {
+            setBvnError('');
         } else {
-            setEmailError('Please enter a valid email address.');
+            setBvnError('Please enter a valid email address.');
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (validateEmail(email)) {
-            setEmailError('');
-            try {
-                setLoading(true)
-                dispatch(setEmail(email));
-                const response = await requestOtp(email).unwrap();
-                toast.success(response.message);
-            
-                navigate('/otp');
-            } catch (err) {
-                console.error(err);
-                toast.error('Failed to send OTP. Please try again.');
-            } finally {
-                setLoading(false)
-                setEmailState("")
-            }
+        if (bvn) {
+            setBvnError('');
+            navigate('/otp');
         } else {
-            
-            setEmailError('Please enter a valid email address.');
+            setBvnError('Please enter a valid email address.');
         }
     };
     return (
@@ -93,29 +61,26 @@ const Signup = () => {
                     <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col '>
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
-                            <p className='text-white font-[600] text-lg font-kavoon'>Bold data</p>
+                      
                             <div>       </div>
                         </div>
-                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Continue with email</div>
+                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Forgot Password ?</div>
                         <form className='mt-20' onSubmit={handleSubmit}>
                             <p className='text-white font-[500] text-base font-poppins mb-5'>Email</p>
                             <input
-                                type='email'
-                                value={email}
+                                type='text'
+                                value={bvn}
                                 onChange={handleInputChange}
                                 className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
                                 placeholder='example@gmail.com'
                             />
-                            {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
-                            <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5'>Already a user? <span className='text-[#0D7CFF]' onClick={() => navigate("/login")}>login</span></p>
+                             {bvnError && <p className='text-[#D45A0E] text-sm text-center'>{bvnError}</p>}
+
 
                             <button
                                 type="submit"
-                                className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
-                                {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
-                                    :
-                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Next</p>}
-
+                                className='bg-[#D45A0E] h-16 mt-16 w-full rounded-[35px] flex justify-center items-center '>
+                                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Send Reset Link</p>
                             </button>
                         </form>
                     </div>
@@ -147,4 +112,4 @@ const Signup = () => {
     )
 }
 
-export default Signup
+export default CompleteSignup2

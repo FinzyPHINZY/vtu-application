@@ -19,6 +19,7 @@ import CreateTransactionPin from './pages/CreateTransactionPin';
 import ChangeTransactionPin from './pages/ChangeTransactionPin';
 import swDev from './swDev';
 import CompleteSignup from './pages/CompleteSignup';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
 
@@ -46,6 +47,7 @@ function App() {
           <Route path="/complete-signup" element={<CompleteSignup />} />
         </Routes>
       </Router>
+      <ToastContainer />
     </>
   )
 }

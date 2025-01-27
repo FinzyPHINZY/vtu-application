@@ -7,24 +7,17 @@ import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { useLoginMutation } from '../services/apiService';
-import { useDispatch } from 'react-redux';
-import { setUserInfo } from '../store/slices/userSlices';
-import { loginUser } from '../store/slices/authSlices';
 
-
-const Login = () => {
-    const dispatch = useDispatch();
+const ResetPassword = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [emailError, setEmailError] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
     const [passwordError, setPasswordError] = useState('');
-    const [login] = useLoginMutation();
-
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [confirmPasswordError, setConfirmPasswordError] = useState('');
+    const [loading, setLoading] = useState(false);
     useEffect(() => {
 
         const handleResize = () => {
@@ -45,49 +38,41 @@ const Login = () => {
         (email: string): boolean;
     }
 
-    interface ValidatePassword {
-        (password: string): boolean;
-    }
     const validateEmail: ValidateEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
 
-    const validatePassword: ValidatePassword = (password) => {
+    const handleBack = () => {
+        navigate(-1);
+    };
+
+    const validatePassword = (password: string) => {
         const minLength = 8;
         const uppercaseRegex = /[A-Z]/;
         const lowercaseRegex = /[a-z]/;
         const digitRegex = /[0-9]/;
         const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
-    
+
         if (password.length < minLength) {
-            setPasswordError("Password must be at least 8 characters long.");
             return false;
         }
         if (!uppercaseRegex.test(password)) {
-            setPasswordError("Password must contain at least one uppercase letter.");
             return false;
         }
         if (!lowercaseRegex.test(password)) {
-            setPasswordError("Password must contain at least one lowercase letter.");
             return false;
         }
         if (!digitRegex.test(password)) {
-            setPasswordError("Password must contain at least one digit.");
             return false;
         }
         if (!specialCharRegex.test(password)) {
-            setPasswordError("Password must contain at least one special character.");
             return false;
         }
-        setPasswordError('');
-        return true; 
-    };
-    const handleBack = () => {
-        navigate(-1);
+        return true;
     };
 
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setEmail(value);
 
@@ -101,40 +86,47 @@ const Login = () => {
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setPassword(value);
-
-        validatePassword(value);
-
+        if (!validatePassword(value)) {
+            setPasswordError('Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one digit, and one special character.');
+        } else {
+            setPasswordError('');
+        }
     };
 
-  
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setConfirmPassword(value);
+        if (value !== password) {
+            setConfirmPasswordError('Passwords do not match.');
+        } else {
+            setConfirmPasswordError('');
+        }
+    };
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (validateEmail(email) && validatePassword(password)) {
+        if (validateEmail(email) && validatePassword(password) && password === confirmPassword) {
+
             setEmailError('');
             setPasswordError('');
+            setConfirmPasswordError('');
             setLoading(true);
             try {
-                const response = await login({ email, password });
-                if (response.data.success) {
-                    toast.success(response.data.message);
-                    dispatch(setUserInfo(response.data.data));
-                    console.log(response.data.data)
-                    dispatch(loginUser(response.data.token));
-                    navigate('/home');
-                } else {
-                    toast.error(response.data.message);
-                }
+                navigate('/login');
             } catch (err) {
                 console.error(err);
-                toast.error('Failed to login. Please try again.');
-            } finally {
+                toast.error('Password creation failed. Please try again.');
+            }
+            finally {
+                setEmail('');
+                setPassword('');
+                setConfirmPassword('');
                 setLoading(false);
-                setEmail("")
-                setPassword("")
             }
         } else {
             setEmailError('Please enter a valid email address.');
-            setPasswordError('Please enter a valid password');
+            setPasswordError('Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one digit, and one special character.');
+            setConfirmPasswordError('Passwords do not match.');
         }
     };
 
@@ -143,45 +135,54 @@ const Login = () => {
             {
                 isMobileView ? (
                     // JSX for screens below 768px
-                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
+                    <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col '>
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
-                            <p className='text-white font-[600] text-lg font-kavoon'>Bold data</p>
+
                             <div>       </div>
                         </div>
-                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Login with your credentials</div>
-                        <form className='mt-12 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
+                        <div className='text-white font-[600] text-lg font-poppins mt-10'>Forgot Password ?</div>
+                        <form className='mt-20' onSubmit={handleSubmit}>
                             <div>
-                                <div>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Email</p>
-                                    <input
-                                        type='email'
-                                        value={email}
-                                        onChange={handleEmailChange}
-                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='example@gmail.com'
-                                    />
-                                    {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
-                                </div>
-                                <div className='mt-12'>
-                                <p className='text-white font-[500] text-base font-poppins mb-5'>Password</p>
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={handlePasswordChange}
-                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='Enter your password'
-                                    />
-                                    {passwordError && <p className='text-[#D45A0E] text-sm text-center'>{passwordError}</p>}
-                                    <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5' onClick={() => navigate("/forgot-password")}>forgot password?</p>
-                                </div>
+                                <p className='text-white font-[500] text-base font-poppins mb-5'>Email</p>
+                                <input
+                                    type='email'
+                                    value={email}
+                                    onChange={handleInputChange}
+                                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                    placeholder='example@gmail.com'
+                                />
+                                {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
                             </div>
+                            <div className='mt-8'>
+                                <p className='text-white font-[500] text-base font-poppins mb-5'>Password</p>
+                                <input
+                                    type='password'
+                                    value={password}
+                                    onChange={handlePasswordChange}
+                                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                    placeholder='Enter your password'
+                                />
+                                {passwordError && <p className='text-[#D45A0E] text-sm text-center'>{passwordError}</p>}
+                            </div>
+                            <div className='mt-8'>
+                                <p className='text-white font-[500] text-base font-poppins mb-5'>Confirm Password</p>
+                                <input
+                                    type='password'
+                                    value={confirmPassword}
+                                    onChange={handleConfirmPasswordChange}
+                                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                    placeholder='Confirm your password'
+                                />
+                                {confirmPasswordError && <p className='text-[#D45A0E] text-sm text-center'>{confirmPasswordError}</p>}
+                            </div>
+
                             <button
                                 type="submit"
-                                className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
+                                className='bg-[#D45A0E] h-16 mt-16 w-full rounded-[35px] flex justify-center items-center '>
                                 {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
                                     :
-                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Next</p>}
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Send Reset Link</p>}
 
                             </button>
                         </form>
@@ -214,4 +215,4 @@ const Login = () => {
     )
 }
 
-export default Login
+export default ResetPassword
