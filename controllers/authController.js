@@ -5,6 +5,8 @@ import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
+import { generateOtpEmailTemplate } from '../utils/email.js';
+import sendEmail from '../services/emailService.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -39,8 +41,9 @@ export const requestOtp = async (req, res) => {
       { upsert: true }
     );
 
+    const html = generateOtpEmailTemplate(otp, email);
     // Send OTP email
-    // await sendEmail(email, 'Registration OTP', `Your OTP is: ${otp}`);
+    await sendEmail(email, 'Registration OTP', html);
 
     if (!existingUser) {
       await User.create({ email });
@@ -49,7 +52,6 @@ export const requestOtp = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'OTP sent successfully',
-      otp: otp,
     });
   } catch (error) {
     return res.status(500).json({

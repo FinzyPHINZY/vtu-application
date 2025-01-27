@@ -1,6 +1,7 @@
 import OTP from '../models/OTP.js';
 import User from '../models/User.js';
 import bcrypt from 'bcrypt';
+import { generatePasswordResetEmailTemplate } from '../utils/email.js';
 
 export const fetchUser = async (req, res) => {
   try {
@@ -110,8 +111,10 @@ export const requestPasswordReset = async (req, res) => {
       { upsert: true }
     );
 
+    const emailHtml = generatePasswordResetEmailTemplate(otp, user.firstName);
+
     // Send OTP email
-    // await sendEmail(email, 'Registration OTP', `Your OTP is: ${otp}`);
+    await sendEmail(email, 'Registration OTP', emailHtml);
     console.log(`Password reset requested for user: ${email}`);
 
     res.status(200).json({

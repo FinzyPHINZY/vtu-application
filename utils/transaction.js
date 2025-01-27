@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import sendEmail from '../services/emailService.js';
+import { generateTransactionReceipt } from './email.js';
 
 // Utility function to validate phone number format
 export const isValidPhoneNumber = (phoneNumber) => {
@@ -56,18 +57,9 @@ export const processTransaction = async (user, amount, transactionDetails) => {
 // Utility function to send transaction receipt
 export const sendTransactionReceipt = async (user, transaction) => {
   try {
-    const receiptText = `
-      Transaction Receipt
-      Type: ${transaction.serviceType}
-      Amount: ${transaction.amount}
-      Status: ${transaction.status}
-      Reference: ${transaction.reference}
-      Date: ${transaction.createdAt}
-      
-      Thank you for using our service!
-    `;
+    const receiptHtml = generateTransactionReceipt(user, transaction);
 
-    await sendEmail(user.email, 'Transaction Receipt', receiptText);
+    await sendEmail(user.email, 'Transaction Receipt', receiptHtml);
   } catch (error) {
     console.error('Failed to send receipt:', error);
     // Not throwing this error as this is not critical

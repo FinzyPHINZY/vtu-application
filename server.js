@@ -30,7 +30,7 @@ app.use(limiter);
 app.use(requestLogger);
 
 // Endpoints
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   res
     .status(200)
     .send(
