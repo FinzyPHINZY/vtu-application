@@ -22,6 +22,7 @@ import ResetPassword from './pages/ResetPassword';
 import CompleteSignup2 from './pages/CompleteSignup2';
 import ResetPasswordOTP from './pages/ResetPasswordOTP';
 import CompleteSignup3 from './pages/CompleteSignup3';
+import UseTransactionPin from './pages/UseTransactionPin';
 
 function App() {
 
@@ -31,24 +32,25 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<SplashScreen />} />
-          <Route path="/create-account" element={<Signup />} />
+          <Route path="/account/create" element={<Signup />} />
           <Route path="/otp" element={<OTP />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/buy-data" element={<BuyData />} />
-          <Route path="/buy-airtime" element={<BuyAirtime />} />
+          <Route path="/password/request-password" element={<ForgotPassword />} />
+          <Route path="/password/reset" element={<ResetPassword />} />
+          <Route path="/data" element={<BuyData />} />
+          <Route path="/airtime" element={<BuyAirtime />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/buy-electricity" element={<BuyElectricity />} />
-          <Route path="/buy-cable" element={<BuyCable />} />
-          <Route path="/all-transactions" element={<TransactionHistory />} />
+          <Route path="/electricity" element={<BuyElectricity />} />
+          <Route path="/cable" element={<BuyCable />} />
+          <Route path="/transactions" element={<TransactionHistory />} />
           <Route path="/transfer" element={<Transfer />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/create-pin" element={<CreateTransactionPin />} />
-          <Route path="/complete-signup" element={<CompleteSignup />} />
-          <Route path="/complete-verification" element={<CompleteSignup2 />} />
-          <Route path="/validate-verification" element={<CompleteSignup3 />} />
-          <Route path="/reset-otp" element={<ResetPasswordOTP />} />
+          <Route path="/pin/create" element={<CreateTransactionPin />} />
+          <Route path="/pin/enter" element={<UseTransactionPin />} />
+          <Route path="/account/complete-registration" element={<CompleteSignup />} />
+          <Route path="/verification/complete" element={<CompleteSignup2 />} />
+          <Route path="/verification/validate" element={<CompleteSignup3 />} />
+          <Route path="/otp/reset" element={<ResetPasswordOTP />} />
         </Routes>
       </Router>
       <ToastContainer />

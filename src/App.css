@@ -1,0 +1,91 @@
+.horizontal-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    padding-right: 20px; /* Adjust this value based on your needs */
+  }
+  
+
+  .card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden; /* Ensure the image does not exceed the boundaries */
+}
+
+.card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+  
+  .gradient-text {
+    background: linear-gradient(90deg, #4D5BCE, #FFFFFF, #B92A5D);
+    /* -webkit-background-clip: text; */
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* Hide horizontal scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    /* Internet Explorer 10+ */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+    /* Safari and Chrome */
+  }
+  
+  .markdown-container {
+    position: relative;
+    z-index: 1;
+    white-space: pre-wrap;
+    /* Preserve white space */
+  }
+  
+  .markdown-container * {
+    position: relative;
+    z-index: 1;
+    color: white;
+    /* Ensure text color contrasts with background */
+    white-space: pre-wrap;
+    /* Preserve white space for all elements */
+  }
+  
+  .markdown-container ul {  
+    /* Unordered lists with squares */  
+    list-style-type: square;  
+    margin-left: 20px;   
+    padding-left: 20px;   
+  }  
+  
+  .markdown-container ol {  
+    /* Ordered lists with lowercase Roman numerals */  
+    list-style-type: decimal;  
+    margin-left: 20px;   
+    padding-left: 20px;   
+  }  
+  
+  .markdown-container pre {
+    background-color: #2d2d2d;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  
+  .markdown-container code {
+    color: #dcdcdc;
+    font-size: 0.9em;
+  }
+  
+  .markdown-container li {  
+    margin-bottom: 8px;   
+  }
+  
+  
+  

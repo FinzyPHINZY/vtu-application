@@ -139,16 +139,16 @@ const Home = () => {
                                         onClick={() => {
                                             switch (servicedata.identifier) {
                                                 case 'DATA':
-                                                    navigate('/buy-data');
+                                                    navigate('/buy-data', { state: { data: servicedata._id } });
                                                     break;
                                                 case 'AIRTIME':
-                                                    navigate('/buy-airtime');
+                                                    navigate('/buy-airtime' , { state: { data: servicedata._id } });
                                                     break;
                                                 case 'UTILITY':
-                                                    navigate('/buy-electricity');
+                                                    navigate('/buy-electricity', { state: { data: servicedata._id } });
                                                     break;
                                                 case 'CABLETV':
-                                                    navigate('/buy-cable');
+                                                    navigate('/buy-cable', { state: { data: servicedata._id } });
                                                     break;
                                                 default:
                                                     navigate('/');

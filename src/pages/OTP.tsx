@@ -9,7 +9,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { useVerifyOtpMutation } from '../services/apiService';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { Circles } from 'react-loader-spinner';
 import { useRequestOtpMutation } from '../services/apiService';
 
@@ -73,29 +72,29 @@ const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
         if (otp) {
             setOtpError('');
             try {
-                console.log(1)
+          
                 setLoading(true);
                 const response = await verifyOtp({ email: storedEmail, otp });
-                console.log(2)
+             
                 if (response.data.success) {
-                    console.log(3)
+                  
                     toast.success(response.data.message);
                     navigate('/complete-signup');
-                    console.log(4)
+             
                 } else {
-                    console.log(5)
+                  
                     toast.error(response.data.message);
                 }
             } catch (err) {
-                console.log(6)
+            
                 console.error(err);
                 toast.error('Failed to send OTP. Please try again.');
             } finally {
-                console.log(7)
+           
                 setLoading(false);
             }
         } else {
-            console.log(8)
+          
             setOtpError('Please enter a valid email address.');
         }
     };

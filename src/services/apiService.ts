@@ -88,7 +88,7 @@ export const apiService = createApi({
     }),
     fetchServiceById: builder.query({
       query: ({id, token}) => ({
-        url: `services/${id}`,
+        url: `services/${id}/service`,
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
