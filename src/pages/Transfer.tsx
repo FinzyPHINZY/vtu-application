@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import DesktopImage from '../assets/images/bold-data.png'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
@@ -8,18 +8,33 @@ import { CancelIcon, LeftArrowIcon } from '../assets/svg'
 import SuccessIcon from '../assets/images/success.png'
 import FailedIcon from '../assets/images/failed.png'
 import BackgroundImage from '../assets/images/background.png'
+import { useGetBankListQuery, useVerifyBankAccountMutation, useTransferFundsMutation } from '../services/apiService';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { Circles } from 'react-loader-spinner';
+import { toast } from 'react-toastify';
 
 const Transfer = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
     const [amount, setAmount] = useState('');
+    const [accountNumber, setAccountNumber] = useState('');
+    const [accountNumberError, setAccountNumberError] = useState('');
     const [amountError, setAmountError] = useState('');
-    const [email, setEmail] = useState('');
-    const [emailError, setEmailError] = useState('');
+    const [verifiedAccountData, setVerifiedAccountData] = useState('');
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    const [transferSuccessfulModal, setTransferSuccessfulModal] = useState(true);
+    const [transferSuccessfulModal, setTransferSuccessfulModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
     const [transferFailedModal, setTransferFailedModal] = useState(false);
+    const [selectedPackage, setSelectedPackage] = useState('');
+    const [packageError, setPackageError] = useState('');
+    const storedToken = useSelector((state: RootState) => state.auth.token);
+    const { data: bankListData, error, isLoading } = useGetBankListQuery({ token: storedToken });
+    const [verifyBankAccount] = useVerifyBankAccountMutation();
+    const [transferFunds] = useTransferFundsMutation();
+    const { secondData } = location.state || {};
 
     useEffect(() => {
 
@@ -37,54 +52,125 @@ const Transfer = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
+    useEffect(() => {
+        console.log(bankListData);
+    }, [bankListData, error, isLoading]);
 
-
-
+      useEffect(() => {
+        if (secondData) {
+            setShowModal(true);
+        }
+    }, [secondData]);
 
     const handleBack = () => {
         navigate(-1);
     };
 
-    interface ValidateEmail {
-        (email: string): boolean;
-    }
-    const validateEmail: ValidateEmail = (email) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
+ 
 
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setEmail(value);
-
-        if (validateEmail(value)) {
-            setEmailError('');
-        } else {
-            setEmailError('Please enter a valid email address.');
-        }
-    };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setAmount(value);
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleAccountNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setAccountNumber(value);
+    };
+
+    interface Bank {
+        name: string;
+        code: string;
+    }
+
+    interface BankListData {
+        data: Bank[];
+    }
+
+    const packageOptions: Bank[] = (bankListData as BankListData)?.data.map((bank: Bank) => ({
+        name: bank.name,
+        code: bank.code
+    })) || [];
+
+    const handlePackageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedBank = packageOptions.find(bank => bank.name === e.target.value);
+        if (selectedBank) {
+            setSelectedPackage(selectedBank.code);
+            if (accountNumber) {
+                await handleVerifyAccount();
+            }
+        }
+        setPackageError('');
+    };
+
+    const handleVerifyAccount = async () => {
+
+        if (!selectedPackage) {
+            setPackageError('Please select a bank.');
+        }
+        if (!accountNumber) {
+            setAccountNumberError('Please enter a valid account number.');
+        }
+        if (accountNumber && selectedPackage) {
+            try {
+                const response = await verifyBankAccount({ token: storedToken, accountNumber, bankCode: selectedPackage });
+                if (response.data.success) {
+                    setVerifiedAccountData(response.data.message);
+                } else {
+                    toast.error('Something went wrong in verifying the account number');
+                }
+            } catch (err) {
+                console.error(err);
+
+            }
+        } else {
+            setAccountNumberError('Invalid account number.');
+            setPackageError('Invalid bank code.');
+        }
+    }
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!amount) {
-            setAmountError('Please enter a valid phone number with 11 digits.');
+            setAmountError('Please enter an amount.');
         }
-        if (amount && email) {
-            setShowModal(true);
-            // setTransferSuccessfulModal(true);
-            // setTransferFailedModal(true);
-            // setPaymentSuccessfulModal(true);
-            setAmount('')
+        if (amount) {
             setAmountError('');
-            setEmail('');
-            setEmailError('')
+            
+            try {
 
+                setLoading(true);
+                const response = await transferFunds({
+                    debitAccountNumber: "string",
+                    token: storedToken,
+                    nameEnquiryReference: "",
+                    beneficiaryBankCode: selectedPackage,
+                    beneficiaryAccountNumber: accountNumber,
+                    amount: amount,
+                    saveBeneficiary: false,
+                    narration: ""
+                });
+
+                if (response.data.success) {
+
+                    toast.success(response.data.message);
+                    navigate('/pin/enter', { state: { data: response.data.data, service: "transfer" } });
+
+                } else {
+
+                    toast.error('Something Went Wrong. Please try again.');
+                }
+            } catch (err) {
+
+                console.error(err);
+                toast.error('Transaction failed. Please try again.');
+            } finally {
+                setSelectedPackage("");
+                setAccountNumber("");
+                setAmount("");
+                setLoading(false);
+            }
         }
     };
 
@@ -95,6 +181,7 @@ const Transfer = () => {
         // setPaymentSuccessfulModal(false);
         navigate('/home');
     };
+
 
     return (
         <div>
@@ -112,9 +199,55 @@ const Transfer = () => {
                         <p className='text-[#4CAF50] font-[600] font-poppins text-xl my-5'>Safe & secure</p>
                         <form className='mt-5 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
                             <div>
+                            <div className='mt-5'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-2'>Amount</p>
+                                    <input
+                                        type="number"
+                                        value={accountNumber}
+                                        onChange={handleAccountNumberChange}
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                        placeholder='eg: $200'
+                                    />
+                                    {accountNumberError && <p className='text-[#D45A0E] text-sm text-center'>{accountNumberError}</p>}
 
-                                <div className=''>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
+                                </div>
+                                <div className='mt-8'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-2'>Select Provider</p>
+                                    <div className="relative">
+                                        {/* <select
+                                            value={selectedPackage}
+                                            onChange={handlePackageChange}
+                                            className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
+                                        >
+                                            <option value="" disabled>Select Bank</option>
+                                            {packageOptions.map((option: string, index: number) => (
+                                                <option key={index} value={option}>{option}</option>
+                                            ))}
+                                        </select> */}
+                                        <select
+                                            value={selectedPackage ? packageOptions.find(option => option.code === selectedPackage)?.name : ''}
+                                            onChange={handlePackageChange}
+                                            className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
+                                        >
+                                            <option value="" disabled>Select Bank</option>
+                                            {packageOptions.map((option, index) => (
+                                                <option key={index} value={option.name}>{option.name}</option>
+                                            ))}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4">
+                                            <svg className="w-4 h-4 fill-current text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                <path d="M10 12l-6-6h12l-6 6z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+
+
+                                    {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
+                                </div>
+                           
+                                {verifiedAccountData && <p className='text-[#4CAF50] font-[400] text-sm font-poppins mt-3'>{verifiedAccountData}</p>}
+                                <div className='mt-8'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-2'>Amount</p>
                                     <input
                                         type="number"
                                         value={amount}
@@ -125,22 +258,16 @@ const Transfer = () => {
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
 
                                 </div>
-                                <div className='mt-5'>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Email</p>
-                                    <input
-                                        type='email'
-                                        value={email}
-                                        onChange={handleEmailChange}
-                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='example@gmail.com'
-                                    />
-                                    {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
-                                </div>
+                        
                             </div>
                             <button
                                 type="submit"
                                 className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
-                                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                                {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                                    :
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                                }
+
                             </button>
                         </form>
                     </div>

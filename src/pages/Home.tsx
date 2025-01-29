@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { ArrowRight, CableIcon, CancelIcon, DataIcon, DepositIcon, ElectricityIcon, HiddenIcon, NotificationIcon, PhoneIcon, ProfileIcon, QuickServiceIcon, RoundedIcon, TransferIcon } from '../assets/svg';
 import { useFetchServicesQuery } from '../services/apiService';
+import '../App.css'
 
 const Home = () => {
     const storedUser = useSelector((state: RootState) => state.user.user);
@@ -132,7 +133,7 @@ const Home = () => {
                                 <QuickServiceIcon />
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Quick service</p>
                             </div>
-                            <div className='flex justify-between items-center py-3 mt-5 '>
+                            <div className={`flex ${isLoading ? 'justify-center' : 'justify-between'} items-center py-3 mt-5`}>
                                 {servicesData && servicesData.data.map((servicedata, index: number) => (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
@@ -142,7 +143,7 @@ const Home = () => {
                                                     navigate('/data', { state: { data: servicedata._id } });
                                                     break;
                                                 case 'AIRTIME':
-                                                    navigate('/airtime' , { state: { data: servicedata._id } });
+                                                    navigate('/airtime', { state: { data: servicedata._id } });
                                                     break;
                                                 case 'UTILITY':
                                                     navigate('/utility', { state: { data: servicedata._id } });
@@ -163,6 +164,13 @@ const Home = () => {
                                         <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>{servicedata.identifier}</p>
                                     </div>
                                 ))}
+                                {isLoading &&
+                                    <div className='flex justify-center items-center'>
+                                        <div className='loader'>
+                                            <div className="spinner"></div>
+                                        </div>
+                                    </div>}
+
                             </div>
                         </div>
                         <div className="bg-[#1E1E1E] h-[20%] px-5 py-4 rounded-[15px] mt-3">

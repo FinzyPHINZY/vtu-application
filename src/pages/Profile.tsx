@@ -6,12 +6,13 @@ import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { ArrowRight, CustomerSupport2, LeftArrowIcon, TransactionPin } from '../assets/svg'
 import ProfileIcon from '../assets/images/profile.png'
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 
 const Profile = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
-
-
+    const storedUser = useSelector((state: RootState) => state.user.user);
     useEffect(() => {
 
         const handleResize = () => {
@@ -53,8 +54,8 @@ const Profile = () => {
                         </div>
                         <div className="bg-[#1E1E1E] h-[35%] mt-3 px-5 pb-10 pt-8 rounded-[15px] flex flex-col justify-center items-center">
                             <img src={ProfileIcon} className='w-15 h-15 rounded-xl' />
-                            <p className="text-white font-[500] text-xl font-poppins mt-3">Nickson jay</p>
-                            <p className="text-white font-[300] text-base font-poppins mt-2">Nicksonjay@gmail.com</p>
+                            <p className="text-white font-[500] text-xl font-poppins mt-3">{storedUser.firstName} {storedUser.lastName}</p>
+                            <p className="text-white font-[300] text-base font-poppins mt-2">{storedUser.email}</p>
                         </div>
                         <div className="bg-[#1E1E1E] h-[15%] px-5 py-4 rounded-[15px] mt-3">
 

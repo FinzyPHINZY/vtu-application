@@ -10,10 +10,14 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
+import { setPin as setUserPin } from '../store/slices/userSlices';
+
 
 const CreateTransactionPin = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [pin, setPin] = useState(['', '', '', '']);
     const [setTransactionPin] = useSetTransactionPinMutation();
@@ -67,7 +71,7 @@ const CreateTransactionPin = () => {
                 const response = await setTransactionPin({ token: storedToken, pin: pin.join('') });
                 if (response.data.success) {
                     toast.success(response.data.message);
-
+                    dispatch(setUserPin(pin.join('')));
                     navigate('/home');
                 } else {
                     toast.error(response.data.message);

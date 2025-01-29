@@ -5,12 +5,14 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
-import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery } from '../services/apiService';
+import { useFetchServiceByIdQuery,
+     useFetchServiceCategoriesQuery,
+      usePurchaseCableTVMutation,
+    usePurchaseCableTV2Mutation } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
-import { usePurchaseCableTVMutation } from '../services/apiService';
 import { CancelIcon } from '../assets/svg'
 
 
@@ -26,6 +28,7 @@ const BuyCable = () => {
     const [loading, setLoading] = useState(false);
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [purchaseCableTV] = usePurchaseCableTVMutation();
+    const [purchaseCableTV2] = usePurchaseCableTV2Mutation();
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
 
@@ -132,9 +135,34 @@ const BuyCable = () => {
         }
     }, [secondData]);
 
-    const handleCloseModal = () => {
-        setShowModal(false);
-        navigate('/home');
+    const handleCloseModal = async () => {
+        try {
+
+            setLoading(true);
+            const response = await purchaseCableTV2({
+                serviceCategoryId: "61e985180e69308aa37a7a94",
+                amount: 200,
+                bundleCode: "string",
+                debitAccountNumber: "string",
+                token: storedToken,
+                pin: "(4 digits)", 
+                cardNumber: "string",
+            });
+
+            if (response.data.success) {
+                toast.success(response.data.message);
+                navigate('/home');
+            } else {
+                toast.error('Something Went Wrong. Please try again.');
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Transaction failed. Please try again.');
+        } finally {
+            setLoading(false);
+            setShowModal(false);
+        }
+        
     };
 
 

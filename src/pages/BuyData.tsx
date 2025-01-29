@@ -84,7 +84,7 @@ const BuyData = () => {
         if (selectedPackage && number && number.length >= 10) {
             setPackageError('');
             setNumberError('');
-            setShowModal(true);
+            
             try {
 
                 setLoading(true);

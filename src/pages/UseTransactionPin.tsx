@@ -75,6 +75,9 @@ const UseTransactionPin = () => {
                         case 'cabletv':
                             navigate('/cable', { state: { secondData: data }  } );
                             break;
+                        case 'transfer':
+                            navigate('/transfer', { state: { secondData: data }  } );
+                            break;
                         default:
                             toast.error("Unknown service type");
                             break;
