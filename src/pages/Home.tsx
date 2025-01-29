@@ -63,7 +63,7 @@ const Home = () => {
                         <div className="bg-[#1E1E1E] h-[35%] px-5 py-8 rounded-[15px]">
                             <div className='flex justify-between items-center '>
                                 <p className='text-white font-[400] text-lg font-kavoon'>Bold data</p>
-                                <div onClick={() => setShowModal(true)}>
+                                <div onClick={() => navigate('/profile')}>
                                     <ProfileIcon />
                                 </div>
                             </div>
@@ -103,7 +103,7 @@ const Home = () => {
                                                 <p className='text-[#FFFFFFBF] font-[200] text-sm font-poppins'>You need to set transaction pin to perform a transaction</p>
                                             </div>
                                         </div>
-                                        <div onClick={() => navigate("/create-pin")}>
+                                        <div onClick={() => navigate("/pin/create")}>
                                             <ArrowRight />
                                         </div>
                                     </div>
@@ -118,7 +118,7 @@ const Home = () => {
                                                 <p className='text-[#FFFFFFBF] font-[200] text-sm font-poppins'>You need to complete your registration to perform a transaction</p>
                                             </div>
                                         </div>
-                                        <div onClick={() => navigate("/complete-verification")}>
+                                        <div onClick={() => navigate("/verification/complete")}>
                                             <ArrowRight />
                                         </div>
                                     </div>
@@ -139,16 +139,16 @@ const Home = () => {
                                         onClick={() => {
                                             switch (servicedata.identifier) {
                                                 case 'DATA':
-                                                    navigate('/buy-data', { state: { data: servicedata._id } });
+                                                    navigate('/data', { state: { data: servicedata._id } });
                                                     break;
                                                 case 'AIRTIME':
-                                                    navigate('/buy-airtime' , { state: { data: servicedata._id } });
+                                                    navigate('/airtime' , { state: { data: servicedata._id } });
                                                     break;
                                                 case 'UTILITY':
-                                                    navigate('/buy-electricity', { state: { data: servicedata._id } });
+                                                    navigate('/utility', { state: { data: servicedata._id } });
                                                     break;
                                                 case 'CABLETV':
-                                                    navigate('/buy-cable', { state: { data: servicedata._id } });
+                                                    navigate('/cable', { state: { data: servicedata._id } });
                                                     break;
                                                 default:
                                                     navigate('/');

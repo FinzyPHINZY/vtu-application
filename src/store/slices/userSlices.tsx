@@ -30,6 +30,7 @@ interface UserState {
   user: User;
   otp: string;
   email: string;
+  pin: string
 }
 
 
@@ -59,6 +60,7 @@ const initialState: UserState = {
   },
   otp: '',
   email: '',
+  pin: '',
 };
 
 const userSlice = createSlice({
@@ -75,6 +77,9 @@ const userSlice = createSlice({
     setEmail: (state, action: PayloadAction<string>) => {
       state.email = action.payload;
     },
+    setPin: (state, action: PayloadAction<string>) => {
+      state.pin = action.payload;
+    },
     setStatus: (state, action: PayloadAction<string>) => {
       state.user.accountDetails.status = action.payload;
     },
@@ -82,5 +87,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUserInfo, setOtp, clearUserInfo, setEmail, setStatus } = userSlice.actions;
+export const { setUserInfo, setOtp, clearUserInfo, setEmail, setStatus, setPin } = userSlice.actions;
 export default userSlice.reducer;

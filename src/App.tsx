@@ -40,7 +40,7 @@ function App() {
           <Route path="/data" element={<BuyData />} />
           <Route path="/airtime" element={<BuyAirtime />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/electricity" element={<BuyElectricity />} />
+          <Route path="/utility" element={<BuyElectricity />} />
           <Route path="/cable" element={<BuyCable />} />
           <Route path="/transactions" element={<TransactionHistory />} />
           <Route path="/transfer" element={<Transfer />} />

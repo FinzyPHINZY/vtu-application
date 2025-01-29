@@ -11,7 +11,7 @@ import { RootState } from '../store/store';
 import '../App.css'
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
-import { usePurchaseDataMutation } from '../services/apiService';
+import { usePurchaseDataMutation, usePurchaseData2Mutation } from '../services/apiService';
 
 const BuyData = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -21,14 +21,13 @@ const BuyData = () => {
     const [packageError, setPackageError] = useState('');
     const [number, setNumber] = useState('');
     const [numberError, setNumberError] = useState('');
-    const [showModal, setShowModal] = useState(false);
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
-    const { data: serviceDataId } = location.state || {};
+    const { data: serviceDataId, secondData } = location.state || {};
+    const [showModal, setShowModal] = useState(false);
     const [purchaseData] = usePurchaseDataMutation();
-
-
+    const [purchaseData2] = usePurchaseData2Mutation();
     const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: serviceDataId });
     const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: serviceDataId });
 
@@ -93,6 +92,7 @@ const BuyData = () => {
                     serviceCategoryId: "61e985180e69308aa37a7a94",
                     amount: 200,
                     channel: "string",
+                    bundleCode: "string",
                     debitAccountNumber: "string",
                     phoneNumber: "string",
                     statusUrl: "string",
@@ -102,7 +102,7 @@ const BuyData = () => {
                 if (response.data.success) {
 
                     toast.success(response.data.message);
-                    navigate('/pin/enter', { state: { data: response.data.data, service: "cabletv" } });
+                    navigate('/pin/enter', { state: { data: response.data.data, service: "data" } });
 
                 } else {
 
@@ -123,9 +123,47 @@ const BuyData = () => {
         }
     };
 
-    const handleCloseModal = () => {
-        setShowModal(false);
-        navigate('/otp');
+
+    useEffect(() => {
+        if (secondData) {
+            setShowModal(true);
+        }
+    }, [secondData]);
+
+    const handleCloseModal = async () => {
+        try {
+
+            setLoading(true);
+            const response = await purchaseData2({
+                serviceCategoryId: "61e985180e69308aa37a7a94",
+                amount: 200,
+                bundleCode: "string",
+                debitAccountNumber: "string",
+                phoneNumber: "string",
+                token: storedToken,
+                pin: "(4 digits)"
+            });
+
+            if (response.data.success) {
+
+                toast.success(response.data.message);
+                navigate('/home');
+
+            } else {
+
+                toast.error('Something Went Wrong. Please try again.');
+            }
+        } catch (err) {
+
+            console.error(err);
+            toast.error('Transaction failed. Please try again.');
+        } finally {
+       
+            setLoading(false);
+            setShowModal(false);
+        }
+        
+
     };
 
     interface ServiceData {

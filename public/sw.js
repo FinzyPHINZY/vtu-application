@@ -1,32 +1,32 @@
-const cacheData = "appV1";
+// const cacheData = "appV1";
 
-self.addEventListener("install", (event) => {
-    event.waitUntil(
-        caches.open(cacheData).then((cache) => {
-            cache.addAll([
-                "/static/js/main.chunk.js",
-                "/static/js/0.chunk.js",
-                "static/js/bundle.js",
-                "/index.html",
-                "/",
-                "/fonts/DM-Sans-regular.woff2",
-                "/fonts/DM-Sans-regular.woff",
-                "/vite.svg", // Add the SVG here
-            ]);
-        })
-    );
-});
+// self.addEventListener("install", (event) => {
+//     event.waitUntil(
+//         caches.open(cacheData).then((cache) => {
+//             cache.addAll([
+//                 "/static/js/main.chunk.js",
+//                 "/static/js/0.chunk.js",
+//                 "static/js/bundle.js",
+//                 "/index.html",
+//                 "/",
+//                 "/fonts/DM-Sans-regular.woff2",
+//                 "/fonts/DM-Sans-regular.woff",
+//                 "/vite.svg", // Add the SVG here
+//             ]);
+//         })
+//     );
+// });
 
-self.addEventListener("fetch", (event) => {
-    event.respondWith(
-        caches.match(event.request).then((resp) => {
-            if (resp) {
-                return resp;
-            }
+// self.addEventListener("fetch", (event) => {
+//     event.respondWith(
+//         caches.match(event.request).then((resp) => {
+//             if (resp) {
+//                 return resp;
+//             }
 
-        })
-    );
-});
+//         })
+//     );
+// });
 // self.addEventListener('install', (event) => {
 //     event.waitUntil(
 //       caches.open('my-pwa-cache').then((cache) => {
@@ -50,7 +50,7 @@ self.addEventListener("fetch", (event) => {
 // });
 
 
-// console.log("I de here")
+console.log("I de here")
 
 // import { precacheAndRoute } from 'workbox-precaching'
 

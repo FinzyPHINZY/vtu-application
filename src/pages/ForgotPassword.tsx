@@ -74,7 +74,7 @@ const ForgotPassword = () => {
                 if (response.data.success) {
                     toast.success(response.data.message);
                     dispatch(setEmailSetter(email));
-                    navigate('/reset-otp');
+                    navigate('/otp/reset');
                 } else {
                     toast.error(response.data.message);
                 }

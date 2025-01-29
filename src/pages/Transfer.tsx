@@ -93,7 +93,7 @@ const Transfer = () => {
         // setTransferFailedModal(false);
         // setTransferSuccessfulModal(false);
         // setPaymentSuccessfulModal(false);
-        navigate('/otp');
+        navigate('/home');
     };
 
     return (

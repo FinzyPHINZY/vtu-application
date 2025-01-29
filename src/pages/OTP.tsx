@@ -79,7 +79,7 @@ const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
                 if (response.data.success) {
                   
                     toast.success(response.data.message);
-                    navigate('/complete-signup');
+                    navigate('/account/complete-registration');
              
                 } else {
                   

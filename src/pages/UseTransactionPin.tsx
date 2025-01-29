@@ -1,15 +1,23 @@
 import { useState, useEffect } from 'react';
 import DesktopImage from '../assets/images/bold-data.png';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
-import {  LeftArrowIcon } from '../assets/svg';
+import { LeftArrowIcon } from '../assets/svg';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
+import { Circles } from 'react-loader-spinner';
+import { toast } from 'react-toastify';
 
 const UseTransactionPin = () => {
     const [isMobileView, setIsMobileView] = useState(false);
+    const storedPin = useSelector((state: RootState) => state.user.pin);
     const navigate = useNavigate();
+    const location = useLocation();
     const [pin, setPin] = useState(['', '', '', '']);
+    const { data, service } = location.state || {};
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -46,9 +54,44 @@ const UseTransactionPin = () => {
         navigate(-1);
     };
 
-    const handleCloseModal = () => {
-        setPin(['', '', '', '']);
-        navigate('/otp');
+    
+
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (pin.filter(num => num !== '').length === 4) {
+            setLoading(true);
+            try {
+                if (pin.join('') === storedPin) {
+                    switch (service) {
+                        case 'data':
+                            navigate('/data', { state: { data }  } );
+                            break;
+                        case 'airtime':
+                            navigate('/airtime', { state: { data }  } );
+                            break;
+                        case 'utility':
+                            navigate('/utility', { state: { data }  } );
+                            break;
+                        case 'cabletv':
+                            navigate('/cable', { state: { secondData: data }  } );
+                            break;
+                        default:
+                            toast.error("Unknown service type");
+                            break;
+                    }
+                } else {
+                    toast.error("Wrong Transaction Pin");
+                }
+            } catch (err) {
+                console.error(err);
+                toast.error('Error occurred. Please try again.');
+            } finally {
+                setLoading(false);
+                setPin(['', '', '', '']);
+            }
+        } else {
+            toast.error('Please input a four-digit pin');
+        }
     };
 
 
@@ -62,7 +105,7 @@ const UseTransactionPin = () => {
                         <div></div>
                     </div>
                     <p className='font-poppins font-[400] text-center text-sm text-white my-8'>
-                    Enter your transaction PIN
+                        Enter your transaction PIN
                     </p>
                     <div className='flex justify-between items-center '>
                         {pin.map((digit, index) => (
@@ -84,9 +127,12 @@ const UseTransactionPin = () => {
                         ))}
                     </div>
                     <button
-                        onClick={handleCloseModal}
+                        onClick={handleSubmit}
                         className='bg-[#D45A0E] h-16 w-full rounded-[35px] flex justify-center items-center'>
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                            :
+                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>}
+
                     </button>
                 </div>
             ) : (

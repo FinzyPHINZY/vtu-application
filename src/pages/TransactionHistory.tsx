@@ -39,7 +39,7 @@ const TransactionHistory = () => {
 
     const handleCloseModal = () => {
         setShowModal(false);
-        navigate('/otp');
+       
     };
 
 

@@ -74,11 +74,13 @@ const Profile = () => {
                                     <p className='text-[#FFFFFF] font-[400] text-base font-poppins'>Transaction PIN</p>
 
                                 </div>
-                                <ArrowRight />
+                                <div onClick={() => navigate("/pin/create")}>
+                                    <ArrowRight />
+                                </div>
                             </div>
                         </div>
 
-                        <p className='text-[#ED1C1C] text-center font-[400] text-sm font-poppins mt-5'>Log Out</p>
+                        <p className='text-[#ED1C1C] text-center font-[400] text-sm font-poppins mt-5' onClick={() => navigate("/login")}>Log Out</p>
 
                     </div>
                 ) : (

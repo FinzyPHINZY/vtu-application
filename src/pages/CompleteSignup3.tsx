@@ -73,7 +73,7 @@ const CompleteSignup3 = () => {
                 if (response.data.success) {
 
                     toast.success(response.data.message);
-                    navigate('/complete-signup3');
+                    navigate('/home');
 
                 } else {
                     toast.error("Something went wrong. Please try again.");

@@ -11,6 +11,7 @@ import { RootState } from '../store/store';
 import { usePurchaseAirtimeMutation } from '../services/apiService';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
+import { CancelIcon } from '../assets/svg'
 
 const BuyAirtime = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -23,8 +24,9 @@ const BuyAirtime = () => {
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [purchaseAirtime] = usePurchaseAirtimeMutation();
-    const { data: serviceDataId } = location.state || {};
+    const { data: serviceDataId, secondData } = location.state || {};
     const [loading, setLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
 
 
     const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: serviceDataId });
@@ -33,6 +35,13 @@ const BuyAirtime = () => {
     useEffect(() => {
         console.log(serviceDataId, servicesByCategoryData, servicesByIdData,);
     }, [serviceDataId, servicesByCategoryData, servicesByIdData,]);
+
+    useEffect(() => {
+        if (secondData) {
+            setShowModal(true);
+        }
+    }, [secondData]);
+
     useEffect(() => {
 
         const handleResize = () => {
@@ -120,6 +129,10 @@ const BuyAirtime = () => {
         }
     };
 
+    const handleCloseModal = () => {
+        setShowModal(false);
+        navigate('/home');
+    };
 
     interface ServiceData {
         logoUrl: string;
@@ -254,6 +267,38 @@ const BuyAirtime = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Modal Component */}
+                            {showModal && (
+                                <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[300px] py-5 px-10 flex z-50 justify-between flex-col'>
+                                    <div className='flex justify-between items-center'>
+                                        <div>             </div>
+                                        <p className='text-white font-[500]  font-poppins text-base '>Summary</p>
+                                        <div onClick={() => setShowModal(false)}>
+                                            <CancelIcon />
+                                        </div>
+                
+                                    </div>
+                                    <div className='flex justify-between items-center mt-4'>
+                                        <p className='text-white font-[400]  font-poppins text-sm '>Type:</p>
+                                        <p className='text-white font-[400]  font-poppins text-sm '>MTN SME DATA</p>
+                                    </div>
+                                    <div className='flex justify-between items-center mt-4'>
+                                        <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
+                                        <p className='text-white font-[400]  font-poppins text-sm '>09056811438</p>
+                                    </div>
+                                    <div className='flex justify-between items-center mt-4'>
+                                        <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
+                                        <p className='text-white font-[400]  font-poppins text-sm '>$200</p>
+                                    </div>
+                                    <button
+                
+                                        onClick={handleCloseModal}
+                                        className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
+                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                                    </button>
+                                </div>
+                            )}
         </div>
     )
 }

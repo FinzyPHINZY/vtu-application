@@ -80,7 +80,7 @@ const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
                 if (response.data.success) {
                     console.log(3)
                     toast.success(response.data.message);
-                    navigate('/reset-password');
+                    navigate('/password/reset');
                     console.log(4)
                 } else {
                     console.log(5)

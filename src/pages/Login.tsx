@@ -172,7 +172,7 @@ const Login = () => {
                                         placeholder='Enter your password'
                                     />
                                     {passwordError && <p className='text-[#D45A0E] text-sm text-center'>{passwordError}</p>}
-                                    <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5' onClick={() => navigate("/forgot-password")}>forgot password?</p>
+                                    <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5' onClick={() => navigate("/password/request-password")}>forgot password?</p>
                                 </div>
                             </div>
                             <button

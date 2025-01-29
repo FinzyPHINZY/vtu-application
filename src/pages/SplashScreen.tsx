@@ -59,7 +59,7 @@ const SplashScreen = () => {
     }, []);
 
     const handleEmailContinue = () => {
-        navigate('/create-account');
+        navigate('/account/create');
     };
 
     // const handleLogout = () => {
