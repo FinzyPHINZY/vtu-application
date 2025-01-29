@@ -283,7 +283,7 @@ export const utilityTransactionValidation = [
 ];
 
 export const transactionPinValidation = [
-  body('pin')
+  body('transactionPin')
     .isString()
     .isLength({ min: 4, max: 4 })
     .matches(/^\d{4}$/)

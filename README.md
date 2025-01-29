@@ -21,7 +21,7 @@
 
 ---
 
-### **Phase 2: Bank Account Integration ⏳**
+### **Phase 2: Bank Account Integration ✅**
 
 1. **Virtual Account Creation**
 
@@ -51,7 +51,7 @@
 
 ---
 
-### **Phase 3: Feature Implementation**
+### **Phase 3: Feature Implementation ✅**
 
 #### **1. Airtime Purchase (Priority Feature)**
 
@@ -81,9 +81,9 @@
 
 ---
 
-### **Phase 4: Notifications**
+### **Phase 4: Notifications ✅**
 
-- Use Firebase Cloud Messaging (FCM) for real-time notifications on successful transactions, deposits, and withdrawals.
+- Use Nodemailer for notifications on successful transactions, deposits, and withdrawals.
 - Send email notifications for transaction receipts.
 
 ---
@@ -103,3 +103,144 @@
 3. **Other Features:** Once the foundation is ready, these features can be built incrementally without dependency issues.
 
 ---
+
+### **How to Get a Domain for Your Backend (api.bolddata.com, etc.)**
+
+To get a domain, you need to **buy one** from a domain registrar and **set it up** to point to your DigitalOcean server.
+
+---
+
+### **Step 1: Buy a Domain**
+
+You can purchase a domain from a **domain registrar** like:
+
+- [Namecheap](https://www.namecheap.com) (Recommended, good prices + free WHOIS protection)
+- [Google Domains](https://domains.google/) (Now moved to Squarespace)
+- [GoDaddy](https://www.godaddy.com/)
+- [Cloudflare](https://www.cloudflare.com/) (Cheap and fast DNS management)
+
+#### **How to Choose a Domain**
+
+- If **bolddata.com** is already taken, try alternatives like:
+  - `bolddata.app`
+  - `bolddata.io`
+  - `bolddata.ng` (Nigerian domain)
+  - `bolddata.africa`
+- Avoid long or complicated names.
+- A `.com` is the best choice, but `.app` and `.io` are also common for tech projects.
+
+**💰 Cost?**
+
+- `.com` domains: $10–$15 per year
+- `.ng` (Nigeria domains): More expensive ($20–$40)
+
+---
+
+### **Step 2: Get Your Server’s Public IP**
+
+You already have your **DigitalOcean droplet running**. To get its IP:
+
+```sh
+curl ifconfig.me
+```
+
+or check the DigitalOcean dashboard.
+
+---
+
+### **Step 3: Set Up DNS (Point Domain to Server)**
+
+Once you buy the domain, go to the **DNS settings** of your domain provider (e.g., Namecheap, GoDaddy).
+
+#### **Create an A Record:**
+
+| Type | Name  | Value                                               |
+| ---- | ----- | --------------------------------------------------- |
+| A    | `@`   | **Your DigitalOcean server IP**                     |
+| A    | `api` | **Your DigitalOcean server IP** (for API subdomain) |
+
+This means:
+
+- `bolddata.com` → Points to your backend
+- `api.bolddata.com` → Points to your backend API
+
+⏳ **DNS changes take 5–30 minutes to propagate.**
+
+---
+
+### **Step 4: Set Up Nginx on Your Server**
+
+After DNS is set up, log in to your server:
+
+```sh
+ssh root@your-server-ip
+```
+
+Then configure Nginx:
+
+```sh
+sudo nano /etc/nginx/sites-available/bolddata
+```
+
+Add this config:
+
+```nginx
+server {
+    listen 80;
+    server_name api.bolddata.com;
+
+    location / {
+        proxy_pass http://localhost:7000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
+
+Save and exit (`CTRL + X`, then `Y`, then `ENTER`).
+
+Enable the config:
+
+```sh
+sudo ln -s /etc/nginx/sites-available/bolddata /etc/nginx/sites-enabled/
+sudo nginx -t  # Test config
+sudo systemctl restart nginx  # Restart Nginx
+```
+
+---
+
+### **Step 5: Enable HTTPS (SSL with Let’s Encrypt)**
+
+Run:
+
+```sh
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d api.bolddata.com
+```
+
+This will **automatically**:
+
+- Get an SSL certificate
+- Configure Nginx for HTTPS
+
+Now, your backend is available at:  
+**✅ https://api.bolddata.com** 🎉
+
+---
+
+### **Final Checks**
+
+✔ Run `curl -I https://api.bolddata.com` to check if it's working.  
+✔ If using a frontend, update the API URL from `http://your-ip:7000` → `https://api.bolddata.com`.  
+✔ Set up **automatic SSL renewal**:
+
+```sh
+sudo certbot renew --dry-run
+```
+
+---
+
+### **That’s it! 🚀**
+
+Let me know if you need help setting up DNS or anything else!
