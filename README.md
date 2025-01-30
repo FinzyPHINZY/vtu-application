@@ -106,7 +106,7 @@
 
 TODO:
 
-- Expose token: expiresIn
-- Provide prefilled values for transaction endpoint requirements.
-- Enhance and Streamline Transactions workflow. Provide necessary endpoints
-- Display Safehaven response data from power/tv number verification.
+- Expose token: expiresIn ✅
+- Provide prefilled values for transaction endpoint requirements.✅
+- Enhance and Streamline Transactions workflow. Provide necessary endpoints✅
+- Display Safehaven response data from power/tv number verification.✅
