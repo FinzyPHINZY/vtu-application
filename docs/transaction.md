@@ -27,7 +27,6 @@ Processes an airtime purchase transaction.
   "serviceCategoryId": "string",
   "amount": "integer (positive)",
   "phoneNumber": "string (E.164 format)",
-  "debitAccountNumber": "string",
   "pin": "string (4 digits)"
 }
 ```
@@ -36,11 +35,10 @@ Processes an airtime purchase transaction.
 
 ```json
 {
-  "serviceCategoryId": "MOB123",
-  "amount": 500,
-  "phoneNumber": "+1234567890",
-  "debitAccountNumber": "12345678",
-  "pin": "1234"
+  "serviceCategoryId": "61e9892e0e69308aa37a7a9c",
+  "phoneNumber": "+2347051717505",
+  "amount": 100,
+  "transactionPin": "0000"
 }
 ```
 
@@ -53,11 +51,7 @@ Processes an airtime purchase transaction.
   "success": true,
   "message": "Airtime purchase successful",
   "data": {
-    "reference": "AIR123456789",
-    "amount": 500,
-    "phoneNumber": "+1234567890",
-    "status": "success",
-    "timestamp": "2025-01-25T12:34:56.789Z"
+    "phoneNumber": "+2347051717505"
   }
 }
 ```
