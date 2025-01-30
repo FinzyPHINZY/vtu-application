@@ -51,35 +51,13 @@ router.post(
   servicesController.verifyPowerOrTvData
 );
 
-// // VAS Payment endpoints
-// router.post(
-//   '/pay/airtime',
-//   validateHeaders,
-//   airtimeValidation,
-//   validateRequest,
-//   servicesController.purchaseAirtime
-// );
-// router.post(
-//   '/pay/data',
-//   validateHeaders,
-//   dataValidation,
-//   validateRequest,
-//   servicesController.purchaseData
-// );
-// router.post(
-//   '/pay/cable-tv',
-//   validateHeaders,
-//   cableTVValidation,
-//   validateRequest,
-//   servicesController.purchaseCableTV
-// );
-// router.post(
-//   '/pay/utility',
-//   validateHeaders,
-//   utilityValidation,
-//   validateRequest,
-//   servicesController.payUtilityBill
-// );
+// get category products:
+router.get(
+  '/service-categories/products/:categoryId',
+  validateHeaders,
+  validateRequest,
+  servicesController.getCategoryProducts
+);
 
 // VAS Transaction endpoints
 router.get(

@@ -114,6 +114,7 @@ export const getCategoryProducts = async (req, res) => {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
     const { categoryId } = req.params;
+    console.log(req.params);
 
     const response = await axios.get(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/service-category/${categoryId}/products`,
@@ -127,14 +128,14 @@ export const getCategoryProducts = async (req, res) => {
       }
     );
 
-    const { data } = response;
+    const { data } = response.data;
 
     console.log(`Products for category ${categoryId} fetched successfully`);
 
     return res.status(200).json({
-      success: false,
+      success: true,
       message: 'Products fetched successfully',
-      data: data.data,
+      data,
     });
   } catch (error) {
     console.error('Failed to fetch category products');
@@ -185,194 +186,6 @@ export const verifyPowerOrTvData = async (req, res) => {
     return res
       .status(500)
       .json({ success: true, message: 'Internal Server Error' });
-  }
-};
-
-export const purchaseAirtime = async (req, res) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const {
-      serviceCategoryId,
-      amount,
-      channel = 'WEB',
-      phoneNumber,
-      statusUrl,
-    } = req.body;
-
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/airtime`,
-      {
-        serviceCategoryId,
-        amount,
-        channel,
-        debitAccountNumber,
-        phoneNumber,
-        statusUrl,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000,
-      }
-    );
-
-    const { data } = response;
-
-    console.log(`Airtime purchase initiated for ${phoneNumber}`);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Airtime purchase initiated successfully',
-      data: data.data,
-    });
-  } catch (error) {
-    console.error('Airtime purchase failed:', error);
-    return res
-      .status(500)
-      .json({ success: true, message: 'Airtime purchase failed' });
-  }
-};
-
-export const purchaseData = async (req, res) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const {
-      serviceCategoryId,
-      bundleCode,
-      amount,
-      channel,
-      phoneNumber,
-      statusUrl,
-    } = req.body;
-
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/data`,
-      {
-        serviceCategoryId,
-        bundleCode,
-        amount,
-        channel,
-        debitAccountNumber,
-        phoneNumber,
-        statusUrl,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000,
-      }
-    );
-
-    const { data } = response;
-
-    console.log(`Data bundle purchase initiated for ${phoneNumber}`);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Data bundle purchase initiated successfully',
-      data: data.data,
-    });
-  } catch (error) {
-    console.error('Data bundle purchase failed:', error);
-    return res
-      .status(500)
-      .json({ success: false, message: 'Data bundle purchase failed' });
-  }
-};
-
-export const purchaseCableTV = async (req, res) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const { serviceCategoryId, bundleCode, amount, channel, cardNumber } =
-      req.body;
-
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/cable-tv`,
-      {
-        serviceCategoryId,
-        bundleCode,
-        amount,
-        channel,
-        debitAccountNumber,
-        cardNumber,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000,
-      }
-    );
-
-    const { data } = response;
-
-    console.log(`Cable TV subscription initiated for card ${cardNumber}`);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Cable TV subscription initiated successfully',
-      data: data.data,
-    });
-  } catch (error) {
-    console.error('Cable TV subscription failed:', error);
-    return res
-      .status(500)
-      .json({ success: false, message: 'Cable TV subscription failed' });
-  }
-};
-
-export const payUtilityBill = async (req, res) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const { serviceCategoryId, meterNumber, amount, channel, vendType } =
-      req.body;
-
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/utility`,
-      {
-        serviceCategoryId,
-        meterNumber,
-        amount,
-        channel,
-        debitAccountNumber,
-        vendType,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000,
-      }
-    );
-
-    const { data } = response;
-
-    console.log(`Utility bill payment initiated for meter ${meterNumber}`);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Utility bill payment initiated successfully',
-      data: data.data,
-    });
-  } catch (error) {
-    console.error('Utility bill payment failed:', error);
-    return res
-      .status(500)
-      .json({ success: false, message: 'Utility bill payment failed' });
   }
 };
 
