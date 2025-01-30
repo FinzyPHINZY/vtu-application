@@ -57,7 +57,7 @@ export const validateTransactionPin = async (req, res, next) => {
       await user.save();
       return res
         .status(401)
-        .json({ success: false, message: 'Invalid transaction PIN' });
+        .json({ success: false, message: 'Incorrect transaction PIN' });
     }
 
     // Reset failed attempts on successful validation

@@ -7,7 +7,7 @@ const transactionSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    type: {
+    serviceType: {
       type: String,
       enum: [
         'airtime',
@@ -19,6 +19,10 @@ const transactionSchema = new mongoose.Schema(
         'tvSubscription',
       ],
       required: true,
+    },
+    type: {
+      type: String,
+      enum: ['debit', 'credit'],
     },
     amount: {
       type: Number,

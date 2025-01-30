@@ -75,11 +75,13 @@ const userSchema = new mongoose.Schema(
       minlength: 4,
       maxlength: 4,
     },
-    transactions: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'Transaction',
-      default: [],
-    },
+    transactions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Transaction',
+        default: [],
+      },
+    ],
     transactionPin: {
       type: String,
       required: false,

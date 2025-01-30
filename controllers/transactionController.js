@@ -1,4 +1,9 @@
-import { generateTransferReference } from '../utils/helpers.js';
+import axios from 'axios';
+import AppError from '../utils/error.js';
+import {
+  generateRandomReference,
+  generateTransferReference,
+} from '../utils/helpers.js';
 import {
   isValidAccountNumber,
   isValidPhoneNumber,
@@ -6,6 +11,7 @@ import {
   sendTransactionReceipt,
   validateBalance,
 } from '../utils/transaction.js';
+import Transaction from '../models/Transaction.js';
 
 const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
 
@@ -23,13 +29,15 @@ export const purchaseAirtime = async (req, res) => {
 
     const user = await validateBalance(req.user.id, amount);
 
+    const reference = generateRandomReference('AIR', user.firstName);
+
     const transactionDetails = {
-      reference: `AIR${Date.now()}`,
+      reference,
       serviceType: 'airtime',
       metadata: {
         serviceCategoryId,
         phoneNumber,
-        debitAccountNumber,
+        debitAccountNumber: process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER, //user.accountNumber,
       },
     };
 
@@ -39,11 +47,13 @@ export const purchaseAirtime = async (req, res) => {
       transactionDetails
     );
 
+    console.log('purchasing airtime');
+
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/airtime`,
       {
         serviceCategoryId,
-        amount,
+        amount: 100,
         channel: 'WEB',
         debitAccountNumber,
         phoneNumber,
@@ -58,13 +68,16 @@ export const purchaseAirtime = async (req, res) => {
       }
     );
 
-    // Update transaction status
-    transaction.status = 'success';
-    transaction.providerResponse = response.data;
+    const transactionDoc = await Transaction.findById(transaction.toString());
+
+    transactionDoc.status = 'success';
+
+    await transactionDoc.save();
+
     await user.save();
 
     // Send receipt
-    await sendTransactionReceipt(user, transaction);
+    await sendTransactionReceipt(user, transactionDoc);
 
     console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
@@ -80,11 +93,21 @@ export const purchaseAirtime = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log('Failed to purchase airtime', error);
+    console.log('Failed to purchase airtime', error.response);
 
-    return res
-      .status('500')
-      .json({ success: false, message: 'Internal Server Error' });
+    // Handle known errors
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error?.message,
+    });
   }
 };
 

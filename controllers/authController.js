@@ -244,6 +244,7 @@ export const login = async (req, res) => {
         phoneNumber: user.phoneNumber,
       },
       token,
+      expires_in,
     });
   } catch (error) {
     console.error('Error during login', error.response);

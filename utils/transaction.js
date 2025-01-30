@@ -1,6 +1,8 @@
+import Transaction from '../models/Transaction.js';
 import User from '../models/User.js';
 import sendEmail from '../services/emailService.js';
 import { generateTransactionReceipt } from './email.js';
+import AppError from './error.js';
 
 // Utility function to validate phone number format
 export const isValidPhoneNumber = (phoneNumber) => {
@@ -15,11 +17,11 @@ export const isValidAccountNumber = (accountNumber) => {
 export const validateBalance = async (userId, amount) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error(404, 'User not found');
+    throw new AppError(404, 'User not found');
   }
 
   if (user.accountBalance < amount) {
-    throw new Error(400, 'Insufficient account balance');
+    throw new AppError(400, 'Insufficient account balance');
   }
 
   return user;
@@ -35,14 +37,24 @@ export const processTransaction = async (user, amount, transactionDetails) => {
       user.accountBalance -= amount;
 
       // Add transaction to history
-      user.transactions.push({
-        ...transactionDetails,
-        amount,
-        type: 'debit',
-        status: 'pending',
-        createdAt: new Date(),
-      });
+      // Create a new transaction document
+      const transaction = await Transaction.create(
+        [
+          {
+            ...transactionDetails,
+            amount,
+            type: 'debit',
+            status: 'pending',
+            user: user._id, // Link transaction to user
+          },
+        ],
+        { session }
+      );
 
+      // Push only the transaction ID into user's transactions array
+      user.transactions.push(transaction[0]._id);
+
+      // Save user document
       await user.save({ session });
     });
 
@@ -57,7 +69,10 @@ export const processTransaction = async (user, amount, transactionDetails) => {
 // Utility function to send transaction receipt
 export const sendTransactionReceipt = async (user, transaction) => {
   try {
+    // const transactionDoc = await Transaction.findById(transaction);
     const receiptHtml = generateTransactionReceipt(user, transaction);
+
+    // console.log(transactionDoc);
 
     await sendEmail(user.email, 'Transaction Receipt', receiptHtml);
   } catch (error) {

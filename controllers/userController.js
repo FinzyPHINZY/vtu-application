@@ -159,9 +159,9 @@ export const resetPassword = async (req, res, next) => {
 
 export const setTransactionPin = async (req, res) => {
   try {
-    const { pin } = req.body;
+    const { transactionPin } = req.body;
 
-    if (!/^\d{4}$/.test(pin)) {
+    if (!/^\d{4}$/.test(transactionPin)) {
       return res
         .status(400)
         .json({ success: false, message: 'PIN must be exactly 4 digits' });
@@ -175,7 +175,7 @@ export const setTransactionPin = async (req, res) => {
         .json({ success: false, message: 'User not found' });
     }
 
-    const encryptedPin = await bcrypt.hash(pin, 10);
+    const encryptedPin = await bcrypt.hash(transactionPin, 10);
 
     user.transactionPin = encryptedPin;
     user.hasSetTransactionPin = true;

@@ -1,15 +1,21 @@
 meta {
-  name: get services categories
+  name: set transaction pin
   type: http
-  seq: 26
+  seq: 34
 }
 
-get {
-  url: http://localhost:7000/api/services/61e985180e69308aa37a7a94/service-categories
-  body: none
+post {
+  url: http://localhost:7000/api/user/set-transaction-pin
+  body: json
   auth: bearer
 }
 
 auth:bearer {
   token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3OTcwMmUzYzFmMTgxNzQ1Y2ZmNzVmNSIsInNhZmVIYXZlbkFjY2Vzc1Rva2VuIjp7ImFjY2Vzc190b2tlbiI6ImV5SmhiR2NpT2lKU1V6STFOaUlzSW5SNWNDSTZJa3BYVkNKOS5leUpwYzNNaU9pSm9kSFJ3Y3pvdkwyRndhUzV6WVc1a1ltOTRMbk5oWm1Wb1lYWmxibTFtWWk1amIyMGlMQ0p6ZFdJaU9pSmtOMkZtT0RJMU9HUmtOMkZoTnpBNVlXSXpObVppT1dNME1qRTJNMll5TWlJc0ltRjFaQ0k2SW1oMGRIQnpPaTh2WW05c1pHUmhkR0V1WTI5dElpd2lhblJwSWpvaVlqUTBNVEZsWW1Vd1pEUXhZVEEzT1RNeU4yUmxaakExTmprNE5XTXpOV1VpTENKbmNtRnVkRjkwZVhCbElqb2lZV05qWlhOelgzUnZhMlZ1SWl3aWMyTnZjR1Z6SWpwYklsSkZRVVFpTENKWFVrbFVSU0lzSWxCQldTSmRMQ0pwWW5OZlkyeHBaVzUwWDJsa0lqb2lOamM0TURnMVlUSTVOMll6WVdVd01ESTBaak00TmpJM0lpd2lhV0p6WDNWelpYSmZhV1FpT2lJMk56Z3dPRFJrWlRrM1pqTmhaVEF3TWpSbU16ZzJNR1lpTENKcFlYUWlPakUzTXpneU1EVTVNemNzSW1WNGNDSTZNVGN6T0RJd09ETXpOMzAuQ3ZIcW5oVnVyckRYUkE5RzRHSDFIWFlUeWo1V2ptZFdMODJJZ05hcWxlSlU5dEJUS3VlTmZ1NDU2a211dmNUeWVnSTJxRjlLX25SM1VmekVTbXhGNkdCeHgzUjVQeXExaVBjUTEya3VJVTRCQkE0angyTi1WSW9jMFE1YVh2cVNYQVdSeERnM0ZDN284YmxxRGlCR1JQbkROWkp2RGNhY1d4N01nNmVQalM0IiwiZXhwaXJlc19pbiI6MjM5OSwiaWJzX2NsaWVudF9pZCI6IjY3ODA4NWEyOTdmM2FlMDAyNGYzODYyNyJ9LCJpYXQiOjE3MzgyMDU5MzcsImV4cCI6MTczODI5MjMzN30.3jIb6z-uF8r5PBTTKV2iVcT5unVH8h8RYZxMoattgYU
+}
+
+body:json {
+  {
+    "transactionPin": "0000"
+  }
 }
