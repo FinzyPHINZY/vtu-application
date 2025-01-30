@@ -152,6 +152,13 @@ All requests require the following headers:
   "serviceCategoryId": "string",
   "entityNumber": "string"
 }
+
+
+// Example:
+{
+  "serviceCategoryId": "61e98bf962d9b6a917f93030",
+  "entityNumber": "04252204906"
+}
 ```
 
 **Description:** Verify the validity of entity details (e.g., meter or card number).

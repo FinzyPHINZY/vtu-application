@@ -84,6 +84,12 @@ This section describes the endpoints used for managing user-specific actions, in
 
 - `pin` (required): A 4-digit transaction PIN.
 
+```
+{
+  "transactionPin": "0000"
+}
+```
+
 **Validation**:
 
 - The PIN must:
