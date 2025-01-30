@@ -13,8 +13,6 @@ import {
 } from '../utils/transaction.js';
 import Transaction from '../models/Transaction.js';
 
-const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
-
 export const purchaseAirtime = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
@@ -29,6 +27,8 @@ export const purchaseAirtime = async (req, res) => {
 
     const user = await validateBalance(req.user.id, amount);
 
+    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
+
     const reference = generateRandomReference('AIR', user.firstName);
 
     const transactionDetails = {
@@ -37,7 +37,7 @@ export const purchaseAirtime = async (req, res) => {
       metadata: {
         serviceCategoryId,
         phoneNumber,
-        debitAccountNumber: process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER, //user.accountNumber,
+        debitAccountNumber,
       },
     };
 
@@ -53,7 +53,7 @@ export const purchaseAirtime = async (req, res) => {
       `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/airtime`,
       {
         serviceCategoryId,
-        amount: 100,
+        amount,
         channel: 'WEB',
         debitAccountNumber,
         phoneNumber,
@@ -68,12 +68,12 @@ export const purchaseAirtime = async (req, res) => {
       }
     );
 
-    const transactionDoc = await Transaction.findById(transaction.toString());
+    const { data } = response.data;
 
+    const transactionDoc = await Transaction.findById(transaction.toString());
     transactionDoc.status = 'success';
 
     await transactionDoc.save();
-
     await user.save();
 
     // Send receipt
@@ -84,13 +84,7 @@ export const purchaseAirtime = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Airtime purchase successful',
-      data: {
-        reference: transaction.reference,
-        amount: transaction.amount,
-        phoneNumber,
-        status: transaction.status,
-        timestamp: transaction.createdAt,
-      },
+      data,
     });
   } catch (error) {
     console.log('Failed to purchase airtime', error.response);
@@ -127,9 +121,14 @@ export const purchaseData = async (req, res) => {
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
 
+    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
+
+    // create reference
+    const reference = generateRandomReference('DAT', user.firstName);
+
     // process the transaction
     const transactionDetails = {
-      reference: `DAT${Date.now()}`,
+      reference,
       serviceType: 'data',
       metadata: {
         serviceCategoryId,
@@ -145,7 +144,9 @@ export const purchaseData = async (req, res) => {
       transactionDetails
     );
 
-    // make purchase request to safehaven endpoint
+    console.log('purchasing data');
+
+    // make purchase request to safe-haven endpoint
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/data`,
       {
@@ -166,34 +167,39 @@ export const purchaseData = async (req, res) => {
       }
     );
 
+    const { data } = response.data;
+
     // update transaction status
-    transaction.status = 'success';
-    transaction.providerResponse = response.data;
+    const transactionDoc = await Transaction.findById(transaction.toString());
+    transactionDoc.status = 'success';
+
+    await transactionDoc.save();
     await user.save();
 
     // send receipt
-    await sendTransactionReceipt(user, transaction);
+    await sendTransactionReceipt(user, transactionDoc);
 
     console.log(`Data bundle purchase successful for user: ${req.user.id}`);
 
     return res.status(200).json({
       success: true,
       message: 'Data bundle purchase successful',
-      data: {
-        reference: transaction.reference,
-        amount: transaction.amount,
-        bundleCode,
-        phoneNumber,
-        status: transaction.status,
-        timestamp: transaction.createdAt,
-      },
+      data,
     });
   } catch (error) {
     console.error('Failed to purchase data', error);
 
+    // Handle known errors
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
     return res
       .status(500)
-      .json({ success: false, message: 'Intenal Server Error' });
+      .json({ success: false, message: 'Internal Server Error' });
   }
 };
 
@@ -206,9 +212,14 @@ export const payCableTV = async (req, res) => {
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
 
+    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
+
+    // create external reference
+    const reference = generateRandomReference('CAB_TV', user.firstName);
+
     // Process the transaction
     const transactionDetails = {
-      reference: `CAB${Date.now()}`,
+      reference,
       serviceType: 'cable_tv',
       metadata: {
         serviceCategoryId,
@@ -223,6 +234,8 @@ export const payCableTV = async (req, res) => {
       amount,
       transactionDetails
     );
+
+    console.log('purchasing tv subscription');
 
     // Make request to Safe Haven API
     const response = await axios.post(
@@ -244,9 +257,12 @@ export const payCableTV = async (req, res) => {
       }
     );
 
-    // update transaction status
-    transaction.status = 'success';
-    transaction.providerResponse = response.data;
+    const { data } = response.data;
+
+    const transactionDoc = await Transaction.findById(transaction.toString());
+    transactionDoc.status = 'success';
+
+    await transactionDoc.save();
     await user.save();
 
     // send transaction receipt
@@ -257,17 +273,18 @@ export const payCableTV = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Cable TV payment successful',
-      data: {
-        reference: transaction.reference,
-        amount: transaction.amount,
-        bundleCode,
-        cardNumber,
-        status: transaction.status,
-        timestamp: transaction.createdAt,
-      },
+      data,
     });
   } catch (error) {
     console.error('Failed to Purchase TV Subscription', error);
+
+    // Handle known errors
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     return res
       .status(500)
@@ -284,9 +301,13 @@ export const payUtilityBill = async (req, res) => {
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
 
+    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
+
+    const reference = generateRandomReference('UTIL', user.firstName);
+
     // Process the transaction
     const transactionDetails = {
-      reference: `UTL${Date.now()}`,
+      reference,
       serviceType: 'utility',
       metadata: {
         serviceCategoryId,
@@ -296,7 +317,13 @@ export const payUtilityBill = async (req, res) => {
       },
     };
 
-    const transaction = await processTransaction(user, transactionDetails);
+    const transaction = await processTransaction(
+      user,
+      amount,
+      transactionDetails
+    );
+
+    console.log('paying utility bill');
 
     // Make request to Safe Haven API
     const response = await axios.post(
@@ -318,30 +345,35 @@ export const payUtilityBill = async (req, res) => {
       }
     );
 
+    const { data } = response.data;
+
     // Update transaction status
-    transaction.status = 'success';
-    transaction.providerResponse = response.data;
+    const transactionDoc = await Transaction.findById(transaction.toString());
+    transactionDoc.status = 'success';
+
+    await transactionDoc.save();
     await user.save();
 
     // Send receipt
-    await sendTransactionReceipt(user, transaction);
+    await sendTransactionReceipt(user, transactionDoc);
 
     console.log(`Utility bill payment successful for user: ${req.user.id}`);
 
     res.status(200).json({
       success: true,
       message: 'Utility bill payment successful',
-      data: {
-        reference: transaction.reference,
-        amount: transaction.amount,
-        meterNumber,
-        vendType,
-        status: transaction.status,
-        timestamp: transaction.createdAt,
-      },
+      data,
     });
   } catch (error) {
     console.error('Failed to pay utility bill', error);
+
+    // Handle known errors
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     return res
       .status(500)
@@ -366,7 +398,6 @@ export const transferFunds = async (req, res) => {
 
     const payload = {
       nameEnquiryReference,
-      debitAccountNumber,
       beneficiaryBankCode,
       beneficiaryAccountNumber,
       amount,
@@ -374,12 +405,6 @@ export const transferFunds = async (req, res) => {
       narration,
       paymentReference,
     };
-
-    if (!isValidAccountNumber(debitAccountNumber)) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Invalid account number' });
-    }
 
     if (!isValidAccountNumber(beneficiaryAccountNumber)) {
       return res.status(400).json({
@@ -390,8 +415,12 @@ export const transferFunds = async (req, res) => {
 
     const user = await validateBalance(req.user.id, amount);
 
+    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
+
+    const reference = generateRandomReference('TRF', user.firstName);
+
     const transactionDetails = {
-      reference: `TR${Date.now()}`,
+      reference,
       serviceType: 'transfer',
       metadata: {
         beneficiaryAccountNumber,
@@ -408,6 +437,8 @@ export const transferFunds = async (req, res) => {
       transactionDetails
     );
 
+    console.log('making transfers');
+
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers`,
       payload,
@@ -421,29 +452,34 @@ export const transferFunds = async (req, res) => {
       }
     );
 
-    // Update transaction status
-    transaction.status = 'success';
-    transaction.providerResponse = response.data;
+    const { data } = response.data;
+
+    const transactionDoc = await Transaction.findById(transaction.toString());
+    transactionDoc.status = 'success';
+
+    await transactionDoc.save();
     await user.save();
 
     // Send receipt
-    await sendTransactionReceipt(user, transaction);
+    await sendTransactionReceipt(user, transactionDoc);
 
     console.log(`Transfer to ${beneficiaryAccountNumber} successful`);
 
     return res.status(200).json({
       success: true,
       message: 'Fund transfer successful',
-      data: {
-        reference: transaction.reference,
-        amount: transaction.amount,
-        beneficiaryAccountNumber,
-        status: transaction.status,
-        timestamp: transaction.createdAt,
-      },
+      data,
     });
   } catch (error) {
     console.log('Failed to transfer funds', error);
+
+    // Handle known errors
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     return res
       .status('500')
