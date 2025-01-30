@@ -168,7 +168,7 @@ export const verifyPowerOrTvData = async (req, res) => {
       }
     );
 
-    const { data } = response;
+    const { data } = response.data;
 
     console.log(
       `Entity verification completed for category ${serviceCategoryId}`
@@ -177,7 +177,7 @@ export const verifyPowerOrTvData = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Entity verification successful',
-      data: data.data,
+      data,
     });
   } catch (error) {
     console.error('Failed to verify information', error);
