@@ -13,11 +13,7 @@ export const createSubAccount = async (req, res) => {
       identityNumber,
       identityId,
       otp,
-      autoSweep = false,
-      autoSweepDetails = { schedule: 'Instant' },
     } = req.body;
-
-    const externalReference = generateRandomReference();
 
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -32,7 +28,11 @@ export const createSubAccount = async (req, res) => {
         .json({ success: false, message: 'User already has a sub-account' });
     }
 
+    const externalReference = generateRandomReference('ACC', user.firstName);
+
     const payload = {
+      firstName: user.firstName,
+      lastName: user.lastName,
       phoneNumber,
       emailAddress,
       externalReference,
@@ -41,8 +41,8 @@ export const createSubAccount = async (req, res) => {
       identityId,
       otp,
       callbackUrl: process.env.FRONTEND_BASE_URL,
-      autoSweep,
-      autoSweepDetails,
+      autoSweep: false,
+      autoSweepDetails: { schedule: 'Instant' },
     };
 
     const response = await axios.post(

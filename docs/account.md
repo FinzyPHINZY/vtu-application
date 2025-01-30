@@ -42,37 +42,23 @@ All routes under `/api/account` use the following middleware:
 
 ```json
 {
-  "firstName": "Darth",
-  "lastName": "Verde",
   "phoneNumber": "+2348167817217",
-  "emailAddress": "finzyphinzyy@gmail.com",
-  "bvn": "22474927531",
-  "identityId": "679506daf2fa86eaa2a61fb7",
+  "emailAddress": "finzyphinzy@gmail.com",
+  "identityId": "679aeb1df8c48148ecb48ce3",
   "identityNumber": "22474927531",
   "identityType": "BVN",
-  "otp": "234532",
-  "callbackUrl": "https://finzyphinzy.vercel.app",
-  "autoSweep": false,
-  "autoSweepDetails": {
-    "schedule": "Instant"
-  }
+  "otp": "234532"
 }
 ```
 
 **Validation Rules:**
 
-- `firstName`: Must be a valid non-empty string.
-- `lastName`: Must be a valid non-empty string.
 - `phoneNumber`: Must be a valid phone number including the country code.
 - `emailAddress`: Must be a valid email address.
-- `bvn`: Must be a string of the user bank verification number.
 - `identityType`: Must be `BVN`. `NIN` isn't functioning at the moment.
 - `identityNumber`: Must be 11 digits.
 - `identityId`: Required string field.
 - `otp`: Required string field.
-- `callbackUrl`: Required string field.
-- `autoSweep`: Optional boolean.
-- `autoSweepDetails`: Optional object with a `schedule` field.
 
 **Response:**
 

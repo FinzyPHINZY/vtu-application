@@ -61,10 +61,6 @@ export const subAccountValidation = [
     .isEmail()
     .normalizeEmail()
     .withMessage('Invalid email address'),
-  body('externalReference')
-    .isString()
-    .notEmpty()
-    .withMessage('External reference is required'),
   body('identityType')
     .isString()
     .default('BVN')
@@ -78,14 +74,6 @@ export const subAccountValidation = [
     .notEmpty()
     .withMessage('Identity ID is required'),
   body('otp').isString().notEmpty().withMessage('OTP is required'),
-  body('autoSweep')
-    .isBoolean()
-    .default(false)
-    .withMessage('autoSweep must be a boolean'),
-  body('autoSweepDetails')
-    .isObject()
-    .default({ schedule: 'Instant' })
-    .withMessage('Invalid autoSweepDetails format'),
 ];
 
 export const accountIdValidation = [
@@ -312,10 +300,10 @@ export const passwordValidation = [
     ),
 ];
 
-export const generateRandomReference = () => {
-  const prefix = 'AC_';
-  const randomValue = Math.floor(1000000 + Math.random() * 9000000); // Random 7-digit number
-  return `${prefix}${randomValue}`;
+export const generateRandomReference = (prefix, firstName) => {
+  const timestamp = Date.now();
+  const userName = firstName || 'User'; // Default if firstName is missing
+  return `${prefix}_${userName}_${timestamp}`;
 };
 
 export const generateTransferReference = () => {
