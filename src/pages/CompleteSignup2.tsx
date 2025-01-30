@@ -94,7 +94,7 @@ const CompleteSignup2 = () => {
                     if (secondResponse.data) {
                         
                         toast.success(secondResponse.data.message);
-                        const thirdResponse = await createSubAccount({
+                        await createSubAccount({
                             firstName: storedUser.firstName,
                             lastName: storedUser.lastName,
                             phoneNumber: storedUser.phoneNumber,

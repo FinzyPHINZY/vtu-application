@@ -174,43 +174,43 @@ export const apiService = createApi({
       }),
     }),
     purchaseAirtime2: builder.mutation({
-      query: ({ serviceCategoryId, amount, token, phoneNumber, debitAccountNumber, pin }) => ({
+      query: ({ serviceCategoryId, amount, token, phoneNumber, debitAccountNumber, transactionPin }) => ({
         url: 'transactions/airtime',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { serviceCategoryId, amount, phoneNumber, debitAccountNumber, pin },
+        body: { serviceCategoryId, amount, phoneNumber, debitAccountNumber, transactionPin },
       }),
     }),
     purchaseData2: builder.mutation({
-      query: ({ serviceCategoryId, bundleCode, token, amount, phoneNumber, debitAccountNumber, pin }) => ({
+      query: ({ serviceCategoryId, bundleCode, token, amount, phoneNumber, debitAccountNumber, transactionPin }) => ({
         url: 'transactions/data',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { serviceCategoryId, bundleCode, amount, phoneNumber, debitAccountNumber, pin },
+        body: { serviceCategoryId, bundleCode, amount, phoneNumber, debitAccountNumber, transactionPin },
       }),
     }),
     purchaseCableTV2: builder.mutation({
-      query: ({ serviceCategoryId, bundleCode, token, amount, cardNumber, debitAccountNumber, pin }) => ({
+      query: ({ serviceCategoryId, bundleCode, token, amount, cardNumber, debitAccountNumber, transactionPin }) => ({
         url: 'transactions/cable-tv',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { serviceCategoryId, bundleCode, amount, cardNumber, debitAccountNumber, pin },
+        body: { serviceCategoryId, bundleCode, amount, cardNumber, debitAccountNumber, transactionPin },
       }),
     }),
     purchaseUtilityBill2: builder.mutation({
-      query: ({ serviceCategoryId, meterNumber, token, amount, vendType, debitAccountNumber, pin }) => ({
+      query: ({ serviceCategoryId, meterNumber, token, amount, vendType, debitAccountNumber, transactionPin }) => ({
         url: 'transactions/utility',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { serviceCategoryId, meterNumber, amount, vendType, debitAccountNumber, pin },
+        body: { serviceCategoryId, meterNumber, amount, vendType, debitAccountNumber, transactionPin },
       }),
     }),
     getBankList: builder.query({
@@ -273,13 +273,13 @@ export const apiService = createApi({
       }),
     }),
     setTransactionPin: builder.mutation({
-      query: ({ pin, token }) => ({
+      query: ({ transactionPin, token }) => ({
         url: 'user/set-transaction-pin',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { pin },
+        body: { transactionPin },
       }),
     }),
     // Add other endpoints here as needed

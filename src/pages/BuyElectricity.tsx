@@ -5,33 +5,41 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
-import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery, usePurchaseUtilityBill2Mutation, usePayUtilityBillMutation } from '../services/apiService';
+import {
+    useFetchServiceByIdQuery,
+    useFetchServiceCategoriesQuery,
+    usePurchaseUtilityBill2Mutation,
+    useVerifyPowerTVDataMutation
+} from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import '../App.css'
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 import { CancelIcon } from '../assets/svg'
+import SuccessIcon from '../assets/images/success.png'
+import BackgroundImage from '../assets/images/background.png'
 
 const BuyElectricity = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const [selectedPackage, setSelectedPackage] = useState('');
-    const [packageError, setPackageError] = useState('');
+    // const [selectedPackage, setSelectedPackage] = useState('');
+    // const [packageError, setPackageError] = useState('');
     const [number, setNumber] = useState('');
     const [numberError, setNumberError] = useState('');
     const [amount, setAmount] = useState('');
     const [amountError, setAmountError] = useState('');
+    const [verified, setVerified] = useState("")
     const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
     const storedToken = useSelector((state: RootState) => state.auth.token);
-    const [payUtlityBill] = usePayUtilityBillMutation();
     const [purchaseUtilityBill2] = usePurchaseUtilityBill2Mutation();
+    const [verifyPowerTVData] = useVerifyPowerTVDataMutation();
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
-
-
+    const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
+    const storedPin = useSelector((state: RootState) => state.user.pin);
     const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: serviceDataId });
     const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: serviceDataId });
 
@@ -62,12 +70,12 @@ const BuyElectricity = () => {
     const handleBack = () => {
         navigate(-1);
     };
-    const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
+    // const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
 
-    const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedPackage(e.target.value);
-        setPackageError('');
-    };
+    // const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    //     setSelectedPackage(e.target.value);
+    //     setPackageError('');
+    // };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setAmount(e.target.value);
@@ -76,6 +84,7 @@ const BuyElectricity = () => {
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setNumber(value);
+        handleMeterNumberVerification();
 
 
 
@@ -92,62 +101,45 @@ const BuyElectricity = () => {
     };
 
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (!selectedPackage) {
-            setPackageError('Please select a package.');
-        }
-        if (!number) {
-            setNumberError('Please enter a valid meter number');
-        }
-        if (!amount) {
-            setNumberError('Please enter the amount of units');
-        }
-        if (selectedPackage && number && amount) {
-            setPackageError('');
-            setNumberError('');
-            setAmountError("")
+        try {
 
-            try {
+            setLoading(true);
+            const response = await purchaseUtilityBill2({
+                serviceCategoryId: serviceDataId,
+                meterNumber: number,
+                amount: parseInt(amount, 10),
+                vendType: "prepaid",
+                debitAccountNumber: "0119017579",
+                transactionPin: storedPin,
+                token: storedToken
 
-                setLoading(true);
-                const response = await payUtlityBill({
-                    serviceCategoryId: "61e985180e69308aa37a7a94",
-                    amount: 200,
-                    channel: "string",
-                    debitAccountNumber: "string",
-                    meterNumber: "string",
-                    vendType: "string",
-                    token: storedToken,
+            });
 
-                });
+            if (response.data.success) {
 
-                if (response.data.success) {
+                toast.success(response.data.message);
+                setShowModal(false);
+                setPaymentSuccessfulModal(true);
 
-                    toast.success(response.data.message);
-                    navigate('/pin/enter', { state: { data: response.data.data, service: "utility" } });
+            } else {
 
-                } else {
-
-                    toast.error('Something Went Wrong. Please try again.');
-                }
-            } catch (err) {
-
-                console.error(err);
-                toast.error('Transaction failed. Please try again.');
-            } finally {
-                setAmount("");
-                setNumber("");
-                setSelectedPackage("");
-                setLoading(false);
+                toast.error('Something Went Wrong. Please try again.');
             }
+        } catch (err) {
 
+            console.error(err);
+            toast.error('Transaction failed. Please try again.');
+        } finally {
+            setAmount("");
+            setNumber("");
+            // setSelectedPackage("");
+            setLoading(false);
         }
-        else {
-            setAmountError('Please enter a valid amount.');
-            setNumberError('Please enter a valid phone number');
-            setPackageError('Please select your choice');
-        }
+
+
+
     }
 
     useEffect(() => {
@@ -157,35 +149,53 @@ const BuyElectricity = () => {
     }, [secondData]);
 
     const handleCloseModal = async () => {
-        try {
+        // if (!selectedPackage) {
+        //     setPackageError('Please select a package.');
+        // }
+        if (!number) {
+            setNumberError('Please enter a valid meter number');
+        }
+        if (!amount) {
+            setAmountError('Please enter the amount of units');
+        }
 
-            setLoading(true);
-            const response = await purchaseUtilityBill2({
-                serviceCategoryId: "61e985180e69308aa37a7a94",
-                amount: 200,
-                pin: "string",
-                debitAccountNumber: "string",
-                meterNumber: "string",
-                vendType: "string",
-                token: storedToken,
-
-            });
-
-            if (response.data.success) {
-                toast.success(response.data.message);
-                navigate('/home');
-            } else {
-                toast.error('Something Went Wrong. Please try again.');
-            }
-        } catch (err) {
-            console.error(err);
-            toast.error('Transaction failed. Please try again.');
-        } finally {
+        setLoading(true);
+        if ( number && amount) {
+            // setPackageError('');
+            setNumberError('');
+            setAmountError("")
+            navigate('/pin/utility/enter', { state: { service: "utility" } });
+            
             setLoading(false);
-            setShowModal(false);
+        } else {
+            setAmountError('Please enter a valid amount.');
+            setNumberError('Please enter a valid meter number');
+            // setPackageError('Please select your choice');
         }
     };
 
+    const handleMeterNumberVerification = async () => {
+        try {
+            const response = await verifyPowerTVData({
+                token: storedToken,
+                serviceCategoryId: serviceDataId,
+                entityNumber: number
+            })
+            if (response.data.success) {
+                setVerified(response.data.message)
+            } else {
+                toast.error("Your meter number is not valid")
+                
+                // setSelectedPackage("")
+            }
+
+
+        } catch {
+            toast.error("There was an error please try again");
+         
+            // setSelectedPackage("")
+        }
+    }
 
     return (
         <div>
@@ -202,7 +212,7 @@ const BuyElectricity = () => {
                         {/* <div className='flex justify-between items-center py-3 mt-10 overflow-x-auto '> */}
                         <div className='flex flex-col items-center justify-between gap-4 relative pt-5'>
                             <div className='w-full p-4 overflow-x-scroll scroll whitespace-nowrap scroll-smooth scrollbar-hide ' >
-                                {servicesByCategoryData && servicesByCategoryData.data.map((servicedata, index: number) => {
+                                {servicesByCategoryData && servicesByCategoryData.data.map((servicedata: ServiceData, index: number) => {
                                     console.log(servicedata.logoUrl, 40004);
                                     return (
                                         <div id="sliderItem"
@@ -301,9 +311,9 @@ const BuyElectricity = () => {
                                 </div>
                             </div>
                         )}
-                        <form className='mt-10 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
+                        <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
                             <div>
-                                <div>
+                                {/* <div>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Select Provider</p>
                                     <div className="relative">
                                         <select
@@ -325,20 +335,7 @@ const BuyElectricity = () => {
 
 
                                     {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
-                                </div>
-                                <div className='mt-5'>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
-
-                                    <input
-                                        type="number"
-                                        value={amount}
-                                        onChange={handleAmountChange}
-                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='eg: $200'
-                                    />
-                                    {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
-
-                                </div>
+                                </div> */}
                                 <div className='mt-5'>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Meter number</p>
                                     <input
@@ -351,9 +348,24 @@ const BuyElectricity = () => {
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 
                                 </div>
+                                {verified && <p className='text-[#4CAF50] font-[400] text-sm font-poppins mt-3'>{verified}</p>}
+                                <div className='mt-5'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
+
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={handleAmountChange}
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                        placeholder='200'
+                                    />
+                                    {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
+
+                                </div>
+
                             </div>
                             <button
-                                type="submit"
+                                onClick={handleCloseModal}
                                 className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
                                 {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
                                     :
@@ -401,22 +413,51 @@ const BuyElectricity = () => {
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Type:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>MTN SME DATA</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Utility</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>09056811438</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Meter number:</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{number}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>$200</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{amount}</p>
                     </div>
                     <button
 
-                        onClick={handleCloseModal}
+                        onClick={handleSubmitButton}
                         className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                            :
+                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        }
+
                     </button>
+                </div>
+            )}
+
+            {paymentSuccessfulModal && (
+                <div className='fixed  inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'
+                    style={{
+                        backgroundImage: `url(${BackgroundImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                    }}>
+
+                    <div className='flex justify-end items-center' onClick={() => { setPaymentSuccessfulModal(false); navigate("/home") }}>
+                        <CancelIcon />
+                    </div>
+                    <div className='flex justify-center items-center'>
+                        <img src={SuccessIcon} />
+                    </div>
+                    <p className='text-white font-[400] font-poppins text-2xl text-center'>Payment Successful</p>
+                    <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Thank you for patronizing us today.
+                        We value you!</p>
+                    {/* <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p> */}
+
+
+
                 </div>
             )}
         </div>

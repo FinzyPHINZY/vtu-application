@@ -5,31 +5,35 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { CancelIcon, LeftArrowIcon } from '../assets/svg'
-import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery } from '../services/apiService';
+import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery, usePurchaseData2Mutation } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import '../App.css'
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
-import { usePurchaseDataMutation, usePurchaseData2Mutation } from '../services/apiService';
+import SuccessIcon from '../assets/images/success.png'
+import BackgroundImage from '../assets/images/background.png'
 
 const BuyData = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const [selectedPackage, setSelectedPackage] = useState('');
-    const [packageError, setPackageError] = useState('');
+    // const [selectedPackage, setSelectedPackage] = useState('');
+    // const [packageError, setPackageError] = useState('');
     const [number, setNumber] = useState('');
     const [numberError, setNumberError] = useState('');
+    const [amount, setAmount] = useState('');
+    const [amountError, setAmountError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
-    const [purchaseData] = usePurchaseDataMutation();
     const [purchaseData2] = usePurchaseData2Mutation();
     const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: serviceDataId });
     const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: serviceDataId });
+    const storedPin = useSelector((state: RootState) => state.user.pin);
+    const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
 
     useEffect(() => {
         console.log(serviceDataId, servicesByCategoryData, servicesByIdData,);
@@ -58,12 +62,12 @@ const BuyData = () => {
     const handleBack = () => {
         navigate(-1);
     };
-    const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
+    // const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
 
-    const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedPackage(e.target.value);
-        setPackageError('');
-    };
+    // const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    //     setSelectedPackage(e.target.value);
+    //     setPackageError('');
+    // };
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -73,81 +77,33 @@ const BuyData = () => {
 
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!selectedPackage) {
-            setPackageError('Please select an email address.');
-        }
-        if (!number || number.length !== 11) {
-            setNumberError('Please enter a valid phone number.');
-        }
-        if (selectedPackage && number && number.length >= 10) {
-            setPackageError('');
-            setNumberError('');
-            
-            try {
-
-                setLoading(true);
-                const response = await purchaseData({
-                    serviceCategoryId: "61e985180e69308aa37a7a94",
-                    amount: 200,
-                    channel: "string",
-                    bundleCode: "string",
-                    debitAccountNumber: "string",
-                    phoneNumber: "string",
-                    statusUrl: "string",
-                    token: storedToken
-                });
-
-                if (response.data.success) {
-
-                    toast.success(response.data.message);
-                    navigate('/pin/enter', { state: { data: response.data.data, service: "data" } });
-
-                } else {
-
-                    toast.error('Something Went Wrong. Please try again.');
-                }
-            } catch (err) {
-
-                console.error(err);
-                toast.error('Transaction failed. Please try again.');
-            } finally {
-                setSelectedPackage("");
-                setNumber("");
-                setLoading(false);
-            }
-        } else {
-            setPackageError('Please select your choice.');
-            setNumberError('Please enter a valid phone number');
-        }
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setAmount(e.target.value);
+        setAmountError('');
     };
 
+    const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
+        e.preventDefault();
 
-    useEffect(() => {
-        if (secondData) {
-            setShowModal(true);
-        }
-    }, [secondData]);
 
-    const handleCloseModal = async () => {
         try {
 
             setLoading(true);
             const response = await purchaseData2({
-                serviceCategoryId: "61e985180e69308aa37a7a94",
-                amount: 200,
-                bundleCode: "string",
-                debitAccountNumber: "string",
-                phoneNumber: "string",
-                token: storedToken,
-                pin: "(4 digits)"
+                serviceCategoryId: serviceDataId,
+                bundleCode: "BUN123",
+                amount: parseInt(amount, 10),
+                phoneNumber: number,
+                debitAccountNumber: "0119017579",
+                transactionPin: storedPin,
+                token: storedToken
             });
 
             if (response.data.success) {
 
                 toast.success(response.data.message);
-                navigate('/home');
+                setShowModal(false);
+                setPaymentSuccessfulModal(true);
 
             } else {
 
@@ -158,13 +114,48 @@ const BuyData = () => {
             console.error(err);
             toast.error('Transaction failed. Please try again.');
         } finally {
-       
+            // setSelectedPackage("");
+            setNumber("");
+            setAmount("");
             setLoading(false);
-            setShowModal(false);
         }
-        
 
     };
+
+
+    useEffect(() => {
+        if (secondData) {
+            setShowModal(true);
+        }
+    }, [secondData]);
+
+    const handleCloseModal = async () => {
+        // if (!selectedPackage) {
+        //     setPackageError('Please select your choice.');
+        // }
+        if (!number) {
+            setNumberError('Please enter a valid phone number.');
+        }
+
+        if (!amount) {
+            setAmountError('Please enter a valid amount');
+        }
+        setLoading(true);
+        if (amount && number) {
+            // setPackageError('');
+            setNumberError('');
+            setAmountError('')
+            navigate('/pin/data/enter', { state: { service: "data" } });
+            
+            setLoading(false);
+        } else {
+            setNumberError('Please enter a valid phone number');
+            // setPackageError('Please select your choice');
+            setAmountError('Please enter a valid amount.');
+
+        }
+    };
+
 
     interface ServiceData {
         logoUrl: string;
@@ -189,7 +180,7 @@ const BuyData = () => {
                             <div>       </div>
                         </div>
                         <div className='flex justify-between items-center py-3 mt-10 '>
-                            {servicesByCategoryData && servicesByCategoryData.data.map((servicedata, index: number) => {
+                            {servicesByCategoryData && servicesByCategoryData.data.map((servicedata: ServiceData, index: number) => {
                                 console.log(servicedata.logoUrl, 40004);
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
@@ -237,9 +228,9 @@ const BuyData = () => {
                                 </div>
                             </div>
                         )}
-                        <form className='mt-10 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
+                        <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
                             <div>
-                                <div>
+                                {/* <div>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Select package</p>
                                     <div className="relative">
                                         <select
@@ -261,8 +252,8 @@ const BuyData = () => {
 
 
                                     {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
-                                </div>
-                                <div className='mt-12'>
+                                </div> */}
+                                <div className=''>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Phone number</p>
                                     <input
                                         type="number"
@@ -274,11 +265,23 @@ const BuyData = () => {
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 
                                 </div>
+                                <div className='mt-8'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={handleAmountChange}
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                        placeholder='200'
+                                    />
+                                    {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
+
+                                </div>
                             </div>
                             <button
-                                type="submit"
+                                onClick={handleCloseModal}
                                 className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
-                                 {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                                {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
                                     :
                                     <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
                                 }
@@ -324,22 +327,51 @@ const BuyData = () => {
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Type:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>MTN SME DATA</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>DATA</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>09056811438</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{number}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>$200</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{amount}</p>
                     </div>
                     <button
 
-                        onClick={handleCloseModal}
+                        onClick={handleSubmitButton}
                         className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                            :
+                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        }
+
                     </button>
+                </div>
+            )}
+
+            {paymentSuccessfulModal && (
+                <div className='fixed  inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'
+                    style={{
+                        backgroundImage: `url(${BackgroundImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                    }}>
+
+                    <div className='flex justify-end items-center' onClick={() => { setPaymentSuccessfulModal(false); navigate("/home") }}>
+                        <CancelIcon />
+                    </div>
+                    <div className='flex justify-center items-center'>
+                        <img src={SuccessIcon} />
+                    </div>
+                    <p className='text-white font-[400] font-poppins text-2xl text-center'>Payment Successful</p>
+                    <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Thank you for patronizing us today.
+                        We value you!</p>
+                    {/* <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p> */}
+
+
+
                 </div>
             )}
         </div>

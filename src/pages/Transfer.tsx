@@ -8,7 +8,12 @@ import { CancelIcon, LeftArrowIcon } from '../assets/svg'
 import SuccessIcon from '../assets/images/success.png'
 import FailedIcon from '../assets/images/failed.png'
 import BackgroundImage from '../assets/images/background.png'
-import { useGetBankListQuery, useVerifyBankAccountMutation, useTransferFundsMutation } from '../services/apiService';
+import {
+    useGetBankListQuery,
+    useVerifyBankAccountMutation,
+    useTransferFundsMutation,
+    //    useGetTransferStatusMutation
+} from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
@@ -22,6 +27,8 @@ const Transfer = () => {
     const [accountNumber, setAccountNumber] = useState('');
     const [accountNumberError, setAccountNumberError] = useState('');
     const [amountError, setAmountError] = useState('');
+    const [narration, setNarration] = useState("")
+    const [narrationError, setNarrationError] = useState("")
     const [verifiedAccountData, setVerifiedAccountData] = useState('');
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -34,6 +41,7 @@ const Transfer = () => {
     const { data: bankListData, error, isLoading } = useGetBankListQuery({ token: storedToken });
     const [verifyBankAccount] = useVerifyBankAccountMutation();
     const [transferFunds] = useTransferFundsMutation();
+    // const [transferStatus] = useGetTransferStatusMutation();
     const { secondData } = location.state || {};
 
     useEffect(() => {
@@ -56,7 +64,7 @@ const Transfer = () => {
         console.log(bankListData);
     }, [bankListData, error, isLoading]);
 
-      useEffect(() => {
+    useEffect(() => {
         if (secondData) {
             setShowModal(true);
         }
@@ -66,7 +74,7 @@ const Transfer = () => {
         navigate(-1);
     };
 
- 
+
 
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +86,12 @@ const Transfer = () => {
         const value = e.target.value;
         setAccountNumber(value);
     };
+
+    const handleNarrationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        setNarration(value);
+    };
+
 
     interface Bank {
         name: string;
@@ -137,49 +151,66 @@ const Transfer = () => {
         }
         if (amount) {
             setAmountError('');
-            
+            setNarrationError("")
             try {
 
                 setLoading(true);
-                const response = await transferFunds({
-                    debitAccountNumber: "string",
-                    token: storedToken,
-                    nameEnquiryReference: "",
-                    beneficiaryBankCode: selectedPackage,
-                    beneficiaryAccountNumber: accountNumber,
-                    amount: amount,
-                    saveBeneficiary: false,
-                    narration: ""
-                });
 
-                if (response.data.success) {
+                navigate('/pin/transfer/enter', { state: { service: "transfer" } });
 
-                    toast.success(response.data.message);
-                    navigate('/pin/enter', { state: { data: response.data.data, service: "transfer" } });
 
-                } else {
-
-                    toast.error('Something Went Wrong. Please try again.');
-                }
             } catch (err) {
 
                 console.error(err);
                 toast.error('Transaction failed. Please try again.');
             } finally {
-                setSelectedPackage("");
-                setAccountNumber("");
-                setAmount("");
+               
                 setLoading(false);
             }
         }
     };
 
-    const handleCloseModal = () => {
-        setShowModal(false);
-        // setTransferFailedModal(false);
-        // setTransferSuccessfulModal(false);
-        // setPaymentSuccessfulModal(false);
-        navigate('/home');
+
+
+    const handleCloseModal = async () => {
+
+        try {
+
+            setLoading(true);
+            const response = await transferFunds({
+                debitAccountNumber: "0119017579",
+                token: storedToken,
+                nameEnquiryReference: "61e985180e69308aa37a7a94",
+                beneficiaryBankCode: selectedPackage,
+                beneficiaryAccountNumber: accountNumber,
+                amount: parseInt(amount, 10),
+                saveBeneficiary: false,
+                narration: narration,
+                
+            });
+
+            if (response.data.success) {
+
+                toast.success(response.data.message);
+                setShowModal(false)
+                setTransferSuccessfulModal(true)
+            } else {
+
+                toast.error('Something Went Wrong. Please try again.');
+            }
+        } catch (err) {
+
+            console.error(err);
+            setShowModal(false)
+            setTransferFailedModal(true);
+            // toast.error('Transaction failed. Please try again.');
+        } finally {
+            setSelectedPackage("");
+            setAccountNumber("");
+            setAmount("");
+            setNarration("")
+            setLoading(false);
+        }
     };
 
 
@@ -199,7 +230,7 @@ const Transfer = () => {
                         <p className='text-[#4CAF50] font-[600] font-poppins text-xl my-5'>Safe & secure</p>
                         <form className='mt-5 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
                             <div>
-                            <div className='mt-5'>
+                                <div className='mt-5'>
                                     <p className='text-white font-[500] text-base font-poppins mb-2'>Amount</p>
                                     <input
                                         type="number"
@@ -244,7 +275,7 @@ const Transfer = () => {
 
                                     {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
                                 </div>
-                           
+
                                 {verifiedAccountData && <p className='text-[#4CAF50] font-[400] text-sm font-poppins mt-3'>{verifiedAccountData}</p>}
                                 <div className='mt-8'>
                                     <p className='text-white font-[500] text-base font-poppins mb-2'>Amount</p>
@@ -258,7 +289,17 @@ const Transfer = () => {
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
 
                                 </div>
-                        
+                                <div className='mt-8'>
+                                    <p className='text-white font-[500] text-base font-poppins mb-2'>Narration</p>
+                                    <textarea
+                                        value={narration}
+                                        onChange={handleNarrationChange}
+                                        className='w-full h-32 border border-[#E0E0E0] rounded-[35px] px-4 py-2 text-white bg-black outline-none resize-none'
+                                        placeholder='Narration'
+                                    />
+                                    {narrationError && <p className='text-[#D45A0E] text-sm text-center'>{narrationError}</p>}
+
+                                </div>
                             </div>
                             <button
                                 type="submit"
@@ -338,7 +379,7 @@ const Transfer = () => {
                         backgroundRepeat: 'no-repeat',
                     }}>
 
-                    <div className='flex justify-end items-center' onClick={() => setTransferSuccessfulModal(false)}>
+                    <div className='flex justify-end items-center' onClick={() => { setTransferSuccessfulModal(false); navigate("/home") }}>
                         <CancelIcon />
                     </div>
                     <div className='flex justify-center items-center'>
@@ -347,7 +388,7 @@ const Transfer = () => {
                     <p className='text-white font-[400] font-poppins text-2xl text-center'>Transfer Successful</p>
                     <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Thank you for patronizing us today.
                         We value you!</p>
-                    <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p>
+                    {/* <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p> */}
 
 
 
@@ -357,7 +398,7 @@ const Transfer = () => {
                 <div className='fixed  inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'
                 >
 
-                    <div className='flex justify-end items-center' onClick={() => setTransferFailedModal(false)}>
+                    <div className='flex justify-end items-center' onClick={() => {setTransferFailedModal(false); navigate("/home")}}>
                         <CancelIcon />
                     </div>
                     <div className='flex justify-center items-center'>
@@ -365,7 +406,7 @@ const Transfer = () => {
                     </div>
                     <p className='text-white font-[400] font-poppins text-2xl text-center'>Transfer Failed</p>
                     <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Due to insufficient funds.</p>
-                    <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p>
+                    {/* <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p> */}
 
 
 
@@ -380,7 +421,7 @@ const Transfer = () => {
                         backgroundRepeat: 'no-repeat',
                     }}>
 
-                    <div className='flex justify-end items-center' onClick={() => setPaymentSuccessfulModal(false)}>
+                    <div className='flex justify-end items-center' onClick={() => {setPaymentSuccessfulModal(false); navigate("/home")}}>
                         <CancelIcon />
                     </div>
                     <div className='flex justify-center items-center'>
@@ -389,7 +430,7 @@ const Transfer = () => {
                     <p className='text-white font-[400] font-poppins text-2xl text-center'>Payment Successful</p>
                     <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Thank you for patronizing us today.
                         We value you!</p>
-                    <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p>
+                    {/* <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p> */}
 
 
 
@@ -400,3 +441,5 @@ const Transfer = () => {
 }
 
 export default Transfer
+
+

@@ -5,12 +5,14 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
-import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery, usePurchaseAirtimeMutation, usePurchaseAirtime2Mutation } from '../services/apiService';
+import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery, usePurchaseAirtime2Mutation } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 import { CancelIcon } from '../assets/svg'
+import SuccessIcon from '../assets/images/success.png'
+import BackgroundImage from '../assets/images/background.png'
 
 const BuyAirtime = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -21,12 +23,13 @@ const BuyAirtime = () => {
     const [number, setNumber] = useState('');
     const [numberError, setNumberError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
+    const storedPin = useSelector((state: RootState) => state.user.pin);
     const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
-    const [purchaseAirtime] = usePurchaseAirtimeMutation();
     const [purchaseAirtime2] = usePurchaseAirtime2Mutation();
     const { data: serviceDataId, secondData } = location.state || {};
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
 
 
     const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: serviceDataId });
@@ -79,72 +82,27 @@ const BuyAirtime = () => {
 
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+
+    const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        if (!amount) {
-            setAmountError('Please select an email address.');
-        }
-        if (!number || number.length !== 11) {
-            setNumberError('Please enter a valid phone number with 11 digits.');
-        }
-        if (amount && number && number.length === 11) {
-            setAmountError('');
-            setNumberError('');
-       
-            try {
 
-                setLoading(true);
-                const response = await purchaseAirtime({
-                    serviceCategoryId: "61e985180e69308aa37a7a94",
-                    amount: 200,
-                    channel: "string",
-                    debitAccountNumber: "string",
-                    phoneNumber: "string",
-                    statusUrl: "string",
-                    token: storedToken
-                });
-
-                if (response.data.success) {
-
-                    toast.success(response.data.message);
-                    navigate('/pin/enter', { state: { data: response.data.data, service: "airtime" }  });
-
-                } else {
-
-                    toast.error('Something Went Wrong. Please try again.');
-                }
-            } catch (err) {
-
-                console.error(err);
-                toast.error('Transaction failed. Please try again.');
-            } finally {
-                setAmount("");
-                setNumber("");
-                setLoading(false);
-            }
-
-        } else {
-            setAmountError('Please enter a valid amount.');
-            setNumberError('Please enter a valid phone number');
-        }
-    };
-
-    const handleCloseModal = async () => {
         try {
-
             setLoading(true);
             const response = await purchaseAirtime2({
-                serviceCategoryId: "61e985180e69308aa37a7a94",
-                amount: 200,
-                pin: "string",
-                debitAccountNumber: "string",
-                phoneNumber: "string",
+                serviceCategoryId: serviceDataId,
+                amount: parseInt(amount, 10),
+                channel: "WEB",
+                debitAccountNumber: "0119017579",
+                phoneNumber: number,
+                statusUrl: "https://finzyphinzy.vercel.app",
+                transactionPin: storedPin,
                 token: storedToken
             });
 
             if (response.data.success) {
                 toast.success(response.data.message);
-                navigate('/home');
+                setShowModal(false);
+                setPaymentSuccessfulModal(true);
             } else {
                 toast.error('Something Went Wrong. Please try again.');
             }
@@ -152,8 +110,31 @@ const BuyAirtime = () => {
             console.error(err);
             toast.error('Transaction failed. Please try again.');
         } finally {
+            setAmount("");
+            setNumber("");
             setLoading(false);
-            setShowModal(false);
+        }
+
+    };
+
+    const handleCloseModal = async () => {
+        if (!amount) {
+            setAmountError('Please enter a valid amount.');
+        }
+        if (!number) {
+            setNumberError('Please enter a valid phone number');
+        }
+
+        setLoading(true);
+        if (amount && number) {
+            setAmountError('');
+            setNumberError('');
+            navigate('/pin/airtime/enter');
+          
+            setLoading(false);
+        } else {
+            setAmountError('Please enter a valid amount.');
+            setNumberError('Please enter a valid phone number');
         }
     };
 
@@ -178,7 +159,7 @@ const BuyAirtime = () => {
                             <div>       </div>
                         </div>
                         <div className='flex justify-between items-center py-3 mt-10 '>
-                            {servicesByCategoryData && servicesByCategoryData.data.map((servicedata, index: number) => {
+                            {servicesByCategoryData && servicesByCategoryData.data.map((servicedata: ServiceData, index: number) => {
                                 console.log(servicedata.logoUrl, 40004);
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
@@ -226,17 +207,17 @@ const BuyAirtime = () => {
                                 </div>
                             </div>
                         )}
-                        <form className='mt-20 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
+                        <form className='mt-20 flex-grow flex flex-col justify-between pb-20'>
                             <div>
                                 <div>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Airtime</p>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
 
                                     <input
                                         type="number"
                                         value={amount}
                                         onChange={handleAmountChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='1234567890'
+                                        placeholder='300'
                                     />
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
 
@@ -255,7 +236,7 @@ const BuyAirtime = () => {
                                 </div>
                             </div>
                             <button
-                                type="submit"
+                                onClick={handleCloseModal}
                                 className='bg-[#D45A0E] h-16 mt-20 w-full rounded-[35px] flex justify-center items-center '>
                                 {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
                                     :
@@ -291,37 +272,65 @@ const BuyAirtime = () => {
                     </div>
                 )}
 
-                {/* Modal Component */}
-                            {showModal && (
-                                <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[300px] py-5 px-10 flex z-50 justify-between flex-col'>
-                                    <div className='flex justify-between items-center'>
-                                        <div>             </div>
-                                        <p className='text-white font-[500]  font-poppins text-base '>Summary</p>
-                                        <div onClick={() => setShowModal(false)}>
-                                            <CancelIcon />
-                                        </div>
-                
-                                    </div>
-                                    <div className='flex justify-between items-center mt-4'>
-                                        <p className='text-white font-[400]  font-poppins text-sm '>Type:</p>
-                                        <p className='text-white font-[400]  font-poppins text-sm '>MTN SME DATA</p>
-                                    </div>
-                                    <div className='flex justify-between items-center mt-4'>
-                                        <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
-                                        <p className='text-white font-[400]  font-poppins text-sm '>09056811438</p>
-                                    </div>
-                                    <div className='flex justify-between items-center mt-4'>
-                                        <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
-                                        <p className='text-white font-[400]  font-poppins text-sm '>$200</p>
-                                    </div>
-                                    <button
-                
-                                        onClick={handleCloseModal}
-                                        className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
-                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
-                                    </button>
-                                </div>
-                            )}
+            {/* Modal Component */}
+            {showModal && (
+                <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[300px] py-5 px-10 flex z-50 justify-between flex-col'>
+                    <div className='flex justify-between items-center'>
+                        <div>             </div>
+                        <p className='text-white font-[500]  font-poppins text-base '>Summary</p>
+                        <div onClick={() => setShowModal(false)}>
+                            <CancelIcon />
+                        </div>
+
+                    </div>
+                    <div className='flex justify-between items-center mt-4'>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Type:</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Airtime</p>
+                    </div>
+                    <div className='flex justify-between items-center mt-4'>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{number}</p>
+                    </div>
+                    <div className='flex justify-between items-center mt-4'>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{amount}</p>
+                    </div>
+                    <button
+
+                        onClick={handleSubmitButton}
+                        className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
+                        {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                            :
+                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        }
+
+                    </button>
+                </div>
+            )}
+            {paymentSuccessfulModal && (
+                <div className='fixed  inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'
+                    style={{
+                        backgroundImage: `url(${BackgroundImage})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                    }}>
+
+                    <div className='flex justify-end items-center' onClick={() => { setPaymentSuccessfulModal(false); navigate("/home") }}>
+                        <CancelIcon />
+                    </div>
+                    <div className='flex justify-center items-center'>
+                        <img src={SuccessIcon} />
+                    </div>
+                    <p className='text-white font-[400] font-poppins text-2xl text-center'>Payment Successful</p>
+                    <p className='text-[#FFFFFF6B] font-[300] font-poppins text-base text-center'>Thank you for patronizing us today.
+                        We value you!</p>
+                    {/* <p className='text-[#0D7CFF] font-[300] font-poppins text-base text-center'>View  receipt</p> */}
+
+
+
+                </div>
+            )}
         </div>
     )
 }

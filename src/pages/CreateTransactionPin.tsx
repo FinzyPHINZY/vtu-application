@@ -68,7 +68,7 @@ const CreateTransactionPin = () => {
 
             setLoading(true);
             try {
-                const response = await setTransactionPin({ token: storedToken, pin: pin.join('') });
+                const response = await setTransactionPin({ token: storedToken, transactionPin: pin.join('') });
                 if (response.data.success) {
                     toast.success(response.data.message);
                     dispatch(setUserPin(pin.join('')));
@@ -78,7 +78,7 @@ const CreateTransactionPin = () => {
                 }
             } catch (err) {
                 console.error(err);
-                toast.error('Failed to set transaction pin. Please try again.');
+                // toast.error(err.data.message);
             } finally {
                 setLoading(false);
                 setPin(['', '', '', '']);

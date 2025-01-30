@@ -15,7 +15,7 @@ import TransactionHistory from './pages/TransactionHistory';
 import Transfer from './pages/Transfer';
 import Profile from './pages/Profile';
 import CreateTransactionPin from './pages/CreateTransactionPin';
-import swDev from './swDev';
+// import swDev from './swDev';
 import CompleteSignup from './pages/CompleteSignup';
 import { ToastContainer } from 'react-toastify';
 import ResetPassword from './pages/ResetPassword';
@@ -23,6 +23,11 @@ import CompleteSignup2 from './pages/CompleteSignup2';
 import ResetPasswordOTP from './pages/ResetPasswordOTP';
 import CompleteSignup3 from './pages/CompleteSignup3';
 import UseTransactionPin from './pages/UseTransactionPin';
+import PWABadge from './PWABadge.tsx'
+import UseTransactionPin2 from './pages/UseTransactionPin2.tsx';
+import UseTransactionPin3 from './pages/UseTransactionPin3.tsx';
+import UseTransactionPin4 from './pages/UseTransactionPin4.tsx';
+import UseTransactionPin5 from './pages/UseTransactionPin5.tsx';
 
 function App() {
 
@@ -46,7 +51,11 @@ function App() {
           <Route path="/transfer" element={<Transfer />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/pin/create" element={<CreateTransactionPin />} />
-          <Route path="/pin/enter" element={<UseTransactionPin />} />
+          <Route path="/pin/data/enter" element={<UseTransactionPin />} />
+           <Route path="/pin/airtime/enter" element={<UseTransactionPin2 />} />
+           <Route path="/pin/utility/enter" element={<UseTransactionPin3 />} />
+           <Route path="/pin/cable/enter" element={<UseTransactionPin4 />} />
+           <Route path="/pin/transfer/enter" element={<UseTransactionPin5 />} />
           <Route path="/account/complete-registration" element={<CompleteSignup />} />
           <Route path="/verification/complete" element={<CompleteSignup2 />} />
           <Route path="/verification/validate" element={<CompleteSignup3 />} />
@@ -54,15 +63,16 @@ function App() {
         </Routes>
       </Router>
       <ToastContainer />
+      <PWABadge />
     </>
   )
 }
 // swDev();
 
-try {
-  swDev();
-} catch (error) {
-  console.error("Service worker registration failed:", error);
-}
+// try {
+//   swDev();
+// } catch (error) {
+//   console.error("Service worker registration failed:", error);
+// }
 
 export default App

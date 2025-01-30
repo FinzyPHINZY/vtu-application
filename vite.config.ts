@@ -7,35 +7,34 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      registerType: 'autoUpdate',
+      injectRegister: false,
+  
+      pwaAssets: {
+        disabled: false,
+        config: true,
+      },
+  
       manifest: {
-        name: "My App",
-        short_name: "App",
-        description: "My Progressive Web App",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
-        icons: [
-          {
-            src: "icon.png",
-            sizes: "192x192",
-            type: "image/png"
-          },
-          {
-            src: "icon.png",
-            sizes: "512x512",
-            type: "image/png"
-          }
-        ]
+        name: 'vite-pwa',
+        short_name: 'vite-pwa',
+        description: 'Template PWA',
+        theme_color: '#ffffff',
       },
-      workbox: {
-        globPatterns: ['**/*.{html,htm,js,css,png,jpg,jpeg,gif,svg}'],
+  
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico, ts, tsx, jsx}'],
       },
-      includeAssets: [
-        '**/*',
-      ],
+  
       devOptions: {
         enabled: true,
+        navigateFallback: 'index.html',
+        suppressWarnings: true,
         type: 'module',
       },
-    }),
+    })
   ],
 })

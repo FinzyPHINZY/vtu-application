@@ -5,11 +5,13 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface AuthState {
   isAuthenticated: boolean;
   token: string | null;
+  expires_in: string;
 }
 
 const initialState: AuthState = {
   isAuthenticated: false,
   token: null,
+  expires_in: "",
 };
 
 const authSlice = createSlice({

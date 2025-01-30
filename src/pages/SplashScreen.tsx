@@ -11,7 +11,10 @@ import { RiTwitterXLine } from "react-icons/ri";
 import { FcGoogle } from "react-icons/fc";
 import { MailBoxIcon } from '../assets/svg'
 import BackgroundImage from '../assets/images/background.png'
-import { GoogleLogin, googleLogout, useGoogleLogin } from '@react-oauth/google';
+import { 
+    // GoogleLogin, 
+    // googleLogout, 
+    useGoogleLogin } from '@react-oauth/google';
 // import { jwtDecode } from 'jwt-decode';
 import { useGoogleLoginMutation } from '../services/apiService';
 import { toast } from 'react-toastify';
@@ -41,6 +44,7 @@ const SplashScreen = () => {
             console.log(error)
         }
     })
+    
     useEffect(() => {
         // Function to check screen size
         const handleResize = () => {

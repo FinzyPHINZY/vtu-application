@@ -10,7 +10,7 @@ import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 
-const UseTransactionPin = () => {
+const UseTransactionPin3 = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const navigate = useNavigate();
@@ -61,7 +61,7 @@ const UseTransactionPin = () => {
             try {
                 if (pin.join('') === storedPin) {
 
-                    navigate('/data', { state: { secondData: true } });
+                    navigate('/utility', { state: { secondData: true } });
 
                 } else {
                     toast.error("Wrong Transaction Pin");
@@ -143,4 +143,4 @@ const UseTransactionPin = () => {
     );
 };
 
-export default UseTransactionPin;
+export default UseTransactionPin3;

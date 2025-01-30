@@ -6,6 +6,7 @@ interface AccountDetails {
   accountType: string;
   accountBalance: string;
   status: string;
+  accountNumber: string;
   _id: string;
 }
 
@@ -54,6 +55,7 @@ const initialState: UserState = {
       accountName: '',
       accountType: '',
       accountBalance: '',
+      accountNumber: '',
       status: '',
       _id: '',
     },

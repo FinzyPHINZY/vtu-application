@@ -134,7 +134,7 @@ const Home = () => {
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Quick service</p>
                             </div>
                             <div className={`flex ${isLoading ? 'justify-center' : 'justify-between'} items-center py-3 mt-5`}>
-                                {servicesData && servicesData.data.map((servicedata, index: number) => (
+                                {servicesData && servicesData.data.map((servicedata : { identifier: string, _id: string }, index: number) => (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
                                         onClick={() => {
