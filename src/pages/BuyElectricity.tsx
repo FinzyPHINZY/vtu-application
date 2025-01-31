@@ -30,7 +30,7 @@ const BuyElectricity = () => {
     const [numberError, setNumberError] = useState('');
     const [amountError, setAmountError] = useState('');
     // const [verified, setVerified] = useState("")
-    const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
+    // const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [purchaseUtilityBill2] = usePurchaseUtilityBill2Mutation();
@@ -95,9 +95,9 @@ const BuyElectricity = () => {
         identifier: string;
     }
 
-    const handleItemClick = (servicedata: ServiceData) => {
-        setSelectedService(servicedata);
-    };
+    // const handleItemClick = (servicedata: ServiceData) => {
+    //     setSelectedService(servicedata);
+    // };
 
 
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
@@ -224,12 +224,11 @@ const BuyElectricity = () => {
                                     console.log(servicedata.logoUrl, 40004);
                                     return (
                                         <div id="sliderItem"
-                                            onClick={() => handleItemClick(servicedata)}
+                                            // onClick={() => handleItemClick(servicedata)}
                                             key={index}
                                             className=' relative overflow-hidden shadow-md rounded-md hover:cursor-pointer inline-block hover:scale-105 ease-in-out duration-300 '>
                                             <div className="  h-fit rounded-[15px]  p-4 max-sm:p-2 " >
-                                                {/* // <div className=' flex flex-col justify-center items-center gap-2'
-                                                    key={index}> */}
+                                        
                                                 {servicedata.identifier === 'BENIN' &&
                                                     <div className="card">
                                                         <img src={servicedata.logoUrl} alt={servicedata.name} />
@@ -297,15 +296,15 @@ const BuyElectricity = () => {
                             </div>
                         </div>
 
-                        <div className='flex justify-between items-center py-3 border-b-[1px] border-[#FFFFFF21] mt-2 '>
+                        {/* <div className='flex justify-between items-center py-3 border-b-[1px] border-[#FFFFFF21] mt-2 '>
                             <div className='bg-[#2F2F2F] h-14 w-[42%] rounded-[10px] flex justify-center items-center'>
                                 <p className='text-white font-poppins font-[400] text-base'>Prepaid</p>
                             </div>
                             <div className='bg-[#2F2F2F] h-14 w-[42%] rounded-[10px] flex justify-center items-center'>
                                 <p className='text-white font-poppins font-[400] text-base'>Postpaid</p>
                             </div>
-                        </div>
-                        {selectedService && (
+                        </div> */}
+                        {/* {selectedService && (
                             <div className='w-full p-4 mt-4 border-t border-gray-200 flex flex-col justify-center items-start'>
                                 <div className='flex flex-col  items-center'>
                                     <p className='text-white font-[400] text-base font-poppins mb-3'>Selected Service:</p>
@@ -318,7 +317,7 @@ const BuyElectricity = () => {
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        )} */}
                         <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
                             <div>
                                 {/* <div>

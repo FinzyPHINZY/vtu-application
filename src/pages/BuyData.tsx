@@ -24,7 +24,7 @@ const BuyData = () => {
     const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [amountError, setAmountError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
-    const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
+    // const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
@@ -171,9 +171,9 @@ const BuyData = () => {
         identifier: string;
     }
 
-    const handleItemClick = (servicedata: ServiceData) => {
-        setSelectedService(servicedata);
-    };
+    // const handleItemClick = (servicedata: ServiceData) => {
+    //     setSelectedService(servicedata);
+    // };
 
     return (
         <div>
@@ -193,7 +193,8 @@ const BuyData = () => {
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
-                                        onClick={() => handleItemClick(servicedata)}>
+                                    // onClick={() => handleItemClick(servicedata)}
+                                    >
                                         {servicedata.identifier === 'MTN' &&
                                             <div className="card">
                                                 <img src={servicedata.logoUrl} alt={servicedata.name} />
@@ -222,7 +223,7 @@ const BuyData = () => {
 
 
                         </div>
-                        {selectedService && (
+                        {/* {selectedService && (
                             <div className='w-full p-4 mt-4 border-t border-gray-200 flex flex-col justify-center items-start'>
                                 <div className='flex flex-col  items-center'>
                                     <p className='text-white font-[400] text-base font-poppins mb-3'>Selected Service:</p>
@@ -235,7 +236,7 @@ const BuyData = () => {
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        )} */}
                         <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
                             <div>
                                 {/* <div>

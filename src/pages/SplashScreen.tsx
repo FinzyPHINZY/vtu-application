@@ -91,8 +91,10 @@ const SplashScreen = () => {
                                 </div>
                                 <img src={More} className='w-15 h-15 rounded-xl' />
                             </div>
-                            <p className='text-2xl text-center font-[700]  font-mochiy-pop-one mt-7 text-white'>Bills made simple</p>
-                            <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>Lorem ipsum dolor sit amet consectetur. Nullam vitae neque augue diam pharetra turpis est. Dignissim amet et orci cras eget vitae .</p>
+                            <p className='text-2xl text-center font-[700]  font-mochiy-pop-one mt-7 text-white'> Simplify your life with quick, secure, and convenient bill payments all in one place. </p>
+                            <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>TWith Bold Data. you can easily pay for airtime, data, cable TV subscriptions, and utility bills. With just a few clicks, manage your everyday payments and stay on top of your bills without any hassle. </p>
+                            <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>   </p>
+                           
                         </div>
                         <div className='mb-16'>
                             <div className='bg-white h-16 mb-5 rounded-[35px] flex justify-center items-center gap-8 max-sm:gap-6 ' onClick={() => login()}>

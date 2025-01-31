@@ -22,7 +22,7 @@ const BuyAirtime = () => {
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
-    const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
+    // const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [purchaseAirtime2] = usePurchaseAirtime2Mutation();
     const { data: serviceDataId, secondData } = location.state || {};
     const storedPin = useSelector((state: RootState) => state.user.pin);
@@ -156,9 +156,9 @@ const BuyAirtime = () => {
         identifier: string;
     }
 
-    const handleItemClick = (servicedata: ServiceData) => {
-        setSelectedService(servicedata);
-    };
+    // const handleItemClick = (servicedata: ServiceData) => {
+    //     setSelectedService(servicedata);
+    // };
 
     return (
         <div>
@@ -177,7 +177,8 @@ const BuyAirtime = () => {
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
-                                        onClick={() => handleItemClick(servicedata)}>
+                                        // onClick={() => handleItemClick(servicedata)}
+                                        >
                                         {servicedata.identifier === 'MTN' &&
                                             <div className="card">
                                                 <img src={servicedata.logoUrl} alt={servicedata.name} />
@@ -206,7 +207,7 @@ const BuyAirtime = () => {
 
 
                         </div>
-                        {selectedService && (
+                        {/* {selectedService && (
                             <div className='w-full p-4 mt-4 border-t border-gray-200 flex flex-col justify-center items-start'>
                                 <div className='flex flex-col  items-center'>
                                     <p className='text-white font-[400] text-base font-poppins mb-3'>Selected Service:</p>
@@ -219,7 +220,7 @@ const BuyAirtime = () => {
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        )} */}
                         <form className='mt-20 flex-grow flex flex-col justify-between pb-20'>
                             <div>
                                 <div>

@@ -30,7 +30,7 @@ const BuyCable = () => {
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
     const [amountError, setAmountError] = useState('');
-    const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
+    // const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const storedToken = useSelector((state: RootState) => state.auth.token);
@@ -177,9 +177,9 @@ const BuyCable = () => {
         identifier: string;
     }
 
-    const handleItemClick = (servicedata: ServiceData) => {
-        setSelectedService(servicedata);
-    };
+    // const handleItemClick = (servicedata: ServiceData) => {
+    //     setSelectedService(servicedata);
+    // };
 
     // const handleMeterNumberVerification = async () => {
     //     try {
@@ -221,7 +221,8 @@ const BuyCable = () => {
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
-                                        onClick={() => handleItemClick(servicedata)}>
+                                        // onClick={() => handleItemClick(servicedata)}
+                                        >
                                         {servicedata.identifier === 'DSTV' &&
                                             <div className="card">
                                                 <img src={servicedata.logoUrl} alt={servicedata.name} />
@@ -246,7 +247,7 @@ const BuyCable = () => {
 
 
                         </div>
-                        {selectedService && (
+                        {/* {selectedService && (
                             <div className='w-full p-4 mt-4 border-t border-gray-200 flex flex-col justify-center items-start'>
                                 <div className='flex flex-col  items-center'>
                                     <p className='text-white font-[400] text-base font-poppins mb-3'>Selected Service:</p>
@@ -259,7 +260,7 @@ const BuyCable = () => {
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        )} */}
                         <form className='mt-10 flex-grow flex flex-col justify-between pb-20' >
                             <div>
                                 {/* <div>
