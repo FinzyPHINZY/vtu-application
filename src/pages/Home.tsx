@@ -76,7 +76,7 @@ const Home = () => {
                                 <p className='text-[#FFFFFFB0] font-[400] text-sm font-poppins text-center'> Total balance</p>
                                 <div className='flex justify-center items-center gap-1 mt-2'>
                                     <p className='text-[#FFFFFFB2] font-[400] text-base font-kavoon'>N</p>
-                                    <p className='text-[#FFFFFF] font-[700] text-2xl font-poppins'>
+                                    <p className='text-[#FFFFFF] px-2 font-[700] text-2xl font-poppins'>
                                         {accountBalanceHidden ? '**' : storedUser.accountBalance}
                                     </p>
                                     <div onClick={toggleAccountBalance}>
