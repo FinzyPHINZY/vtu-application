@@ -36,8 +36,6 @@ export const convertAccessTokenToIdToken = async (req, res, next) => {
     // Attach the user info to the request
     req.user = {
       email: response.data.email,
-      name: response.data.name,
-      picture: response.data.picture,
       googleId: response.data.sub,
     };
 
