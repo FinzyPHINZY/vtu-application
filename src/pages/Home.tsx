@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import DesktopImage from '../assets/images/bold-data.png'
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
-import { RiTwitterXLine } from "react-icons/ri";
 import { useNavigate } from 'react-router-dom';
 import MTN from '../assets/images/mtn.png';
 import { useSelector } from 'react-redux';
@@ -14,6 +13,7 @@ import '../App.css'
 const Home = () => {
     const storedUser = useSelector((state: RootState) => state.user.user);
     const storedToken = useSelector((state: RootState) => state.auth.token);
+    const [accountBalanceHidden, setAccountBalanceHidden] = useState(false); // Add state to toggle balance visibility
     console.log(storedUser, storedToken, 48)
     console.log(storedUser.hasSetTransactionPin)
     const [isMobileView, setIsMobileView] = useState(false);
@@ -41,6 +41,10 @@ const Home = () => {
         console.log(servicesData, error, isLoading);
     }, [servicesData, error, isLoading]);
 
+
+    const toggleAccountBalance = () => {
+        setAccountBalanceHidden(!accountBalanceHidden);
+    };
 
     // const handleCloseModal = () => {
     //     setShowModal(false);
@@ -71,9 +75,13 @@ const Home = () => {
                             <div className='mt-10'>
                                 <p className='text-[#FFFFFFB0] font-[400] text-sm font-poppins text-center'> Total balance</p>
                                 <div className='flex justify-center items-center gap-1 mt-2'>
-                                    <p className='text-[#FFFFFFB2] font-[400] text-base font-kavoon'>$</p>
-                                    <p className='text-[#FFFFFF] font-[700] text-2xl font-poppins'>{storedUser.accountBalance}</p>
-                                    <HiddenIcon />
+                                    <p className='text-[#FFFFFFB2] font-[400] text-base font-kavoon'>N</p>
+                                    <p className='text-[#FFFFFF] font-[700] text-2xl font-poppins'>
+                                        {accountBalanceHidden ? '**' : storedUser.accountBalance}
+                                    </p>
+                                    <div onClick={toggleAccountBalance}>
+                                        <HiddenIcon />
+                                    </div>
                                 </div>
                             </div>
                             <div className='flex justify-between items-center  mt-10'>
@@ -134,7 +142,7 @@ const Home = () => {
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Quick service</p>
                             </div>
                             <div className={`flex ${isLoading ? 'justify-center' : 'justify-between'} items-center py-3 mt-5`}>
-                                {servicesData && servicesData.data.map((servicedata : { identifier: string, _id: string }, index: number) => (
+                                {servicesData && servicesData.data.map((servicedata: { identifier: string, _id: string }, index: number) => (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
                                         onClick={() => {
@@ -173,7 +181,7 @@ const Home = () => {
 
                             </div>
                         </div>
-                        <div className="bg-[#1E1E1E] h-[20%] px-5 py-4 rounded-[15px] mt-3">
+                        <div className="bg-[#1E1E1E] h-[20%] px-5 py-4 rounded-[15px] mt-3 mb-5">
                             <div className='flex justify-between items-center mb-5'>
 
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Transaction</p>
@@ -219,9 +227,12 @@ const Home = () => {
                         <div>
                             <p className='text-white font-[400]  font-poppins text-2xl text-center mb-2'>Follow us on</p>
                             <div className='flex flex-1 justify-center items-center gap-4'>
-                                <FaInstagram className='text-white' />
-                                <FiFacebook className='text-white' />
-                                <RiTwitterXLine className='text-white' />
+                                <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
+                                    <FaInstagram className='text-white' />
+                                </a>
+                                <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
+                                    <FiFacebook className='text-white' />
+                                </a>
 
                             </div>
                         </div>

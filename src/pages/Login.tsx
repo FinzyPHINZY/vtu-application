@@ -3,7 +3,6 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
-import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
@@ -58,7 +57,7 @@ const Login = () => {
         const lowercaseRegex = /[a-z]/;
         const digitRegex = /[0-9]/;
         const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
-    
+
         if (password.length < minLength) {
             setPasswordError("Password must be at least 8 characters long.");
             return false;
@@ -80,7 +79,7 @@ const Login = () => {
             return false;
         }
         setPasswordError('');
-        return true; 
+        return true;
     };
     const handleBack = () => {
         navigate(-1);
@@ -105,7 +104,7 @@ const Login = () => {
 
     };
 
-  
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (validateEmail(email) && validatePassword(password)) {
@@ -163,7 +162,7 @@ const Login = () => {
                                     {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
                                 </div>
                                 <div className='mt-12'>
-                                <p className='text-white font-[500] text-base font-poppins mb-5'>Password</p>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Password</p>
                                     <input
                                         type="password"
                                         value={password}
@@ -201,9 +200,12 @@ const Login = () => {
                         <div>
                             <p className='text-white font-[400]  font-poppins text-2xl text-center mb-2'>Follow us on</p>
                             <div className='flex flex-1 justify-center items-center gap-4'>
-                                <FaInstagram className='text-white' />
-                                <FiFacebook className='text-white' />
-                                <RiTwitterXLine className='text-white' />
+                                <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
+                                    <FaInstagram className='text-white' />
+                                </a>
+                                <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
+                                    <FiFacebook className='text-white' />
+                                </a>
 
                             </div>
                         </div>

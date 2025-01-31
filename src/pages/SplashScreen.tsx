@@ -7,14 +7,14 @@ import EEDC from '../assets/images/eedc.png'
 import More from '../assets/images/more.png'
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
-import { RiTwitterXLine } from "react-icons/ri";
 import { FcGoogle } from "react-icons/fc";
 import { MailBoxIcon } from '../assets/svg'
 import BackgroundImage from '../assets/images/background.png'
-import { 
+import {
     // GoogleLogin, 
     // googleLogout, 
-    useGoogleLogin } from '@react-oauth/google';
+    useGoogleLogin
+} from '@react-oauth/google';
 // import { jwtDecode } from 'jwt-decode';
 import { useGoogleLoginMutation } from '../services/apiService';
 import { toast } from 'react-toastify';
@@ -23,7 +23,7 @@ const SplashScreen = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const [googleLoginMutation] = useGoogleLoginMutation();
     const navigate = useNavigate();
-    const login =  useGoogleLogin({
+    const login = useGoogleLogin({
         onSuccess: async token => {
             console.log(token)
             try {
@@ -44,7 +44,7 @@ const SplashScreen = () => {
             console.log(error)
         }
     })
-    
+
     useEffect(() => {
         // Function to check screen size
         const handleResize = () => {
@@ -131,9 +131,13 @@ const SplashScreen = () => {
                         <div>
                             <p className='text-white font-[400]  font-poppins text-2xl text-center mb-2'>Follow us on</p>
                             <div className='flex flex-1 justify-center items-center gap-4'>
-                                <FaInstagram className='text-white' />
-                                <FiFacebook className='text-white' />
-                                <RiTwitterXLine className='text-white' />
+                                <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
+                                    <FaInstagram className='text-white' />
+                                </a>
+                                <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
+                                    <FiFacebook className='text-white' />
+                                </a>
+
 
                             </div>
                         </div>

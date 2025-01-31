@@ -3,7 +3,6 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
-import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import {
     useFetchServiceByIdQuery,
@@ -169,12 +168,12 @@ const BuyElectricity = () => {
         }
 
         setLoading(true);
-        if ( number && amount) {
+        if (number && amount) {
             // setPackageError('');
             setNumberError('');
             setAmountError("")
             navigate('/pin/utility/enter', { state: { service: "utility" } });
-            
+
             setLoading(false);
         } else {
             setAmountError('Please enter a valid amount.');
@@ -194,14 +193,14 @@ const BuyElectricity = () => {
     //             setVerified(response.data.message)
     //         } else {
     //             toast.error("Your meter number is not valid")
-                
+
     //             // setSelectedPackage("")
     //         }
 
 
     //     } catch {
     //         toast.error("There was an error please try again");
-         
+
     //         // setSelectedPackage("")
     //     }
     // }
@@ -400,9 +399,12 @@ const BuyElectricity = () => {
                         <div>
                             <p className='text-white font-[400]  font-poppins text-2xl text-center mb-2'>Follow us on</p>
                             <div className='flex flex-1 justify-center items-center gap-4'>
-                                <FaInstagram className='text-white' />
-                                <FiFacebook className='text-white' />
-                                <RiTwitterXLine className='text-white' />
+                                <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
+                                    <FaInstagram className='text-white' />
+                                </a>
+                                <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
+                                    <FiFacebook className='text-white' />
+                                </a>
 
                             </div>
                         </div>

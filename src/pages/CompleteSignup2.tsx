@@ -3,7 +3,6 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
-import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import {
     useInitiateVerificationMutation,
@@ -80,7 +79,7 @@ const CompleteSignup2 = () => {
                     debitAccountNumber: "0119017579",
                     token: storedToken
                 });
- 
+
                 if (response.data.success) {
                     console.log(response.data.data._id, 400);
                     toast.success(response.data.message);
@@ -90,9 +89,9 @@ const CompleteSignup2 = () => {
                         identityId: response.data.data._id,
                         token: storedToken
                     });
-                
+
                     if (secondResponse.data) {
-                        
+
                         toast.success(secondResponse.data.message);
                         await createSubAccount({
                             firstName: storedUser.firstName,
@@ -114,11 +113,11 @@ const CompleteSignup2 = () => {
                         });
                         dispatch(setStatus(response.data.data.status));
                         // if (thirdResponse.data.success) {
-                            // toast.success(thirdResponse.data.message);
-                            navigate('/home');
-                    //     } else {
-                    //         toast.error("Sub-account creation failed. Please try again.");
-                    //     }
+                        // toast.success(thirdResponse.data.message);
+                        navigate('/home');
+                        //     } else {
+                        //         toast.error("Sub-account creation failed. Please try again.");
+                        //     }
                     } else {
                         toast.error("validation verification failed. Please try again.");
                     }
@@ -189,9 +188,12 @@ const CompleteSignup2 = () => {
                         <div>
                             <p className='text-white font-[400]  font-poppins text-2xl text-center mb-2'>Follow us on</p>
                             <div className='flex flex-1 justify-center items-center gap-4'>
-                                <FaInstagram className='text-white' />
-                                <FiFacebook className='text-white' />
-                                <RiTwitterXLine className='text-white' />
+                                <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
+                                    <FaInstagram className='text-white' />
+                                </a>
+                                <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
+                                    <FiFacebook className='text-white' />
+                                </a>
 
                             </div>
                         </div>

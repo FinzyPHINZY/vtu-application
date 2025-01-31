@@ -3,7 +3,6 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
-import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg'
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -40,20 +39,20 @@ const OTP = () => {
     }, []);
 
 
-const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
+    const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
         e.preventDefault();
-      
-            try {
-              
-                const response = await requestOtp(storedEmail).unwrap();
-                toast.success(response.message);
-            
-             
-            } catch (err) {
-                console.error(err);
-                toast.error('Failed to send OTP. Please try again.');
-            } 
-      
+
+        try {
+
+            const response = await requestOtp(storedEmail).unwrap();
+            toast.success(response.message);
+
+
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to send OTP. Please try again.');
+        }
+
     };
 
     const handleBack = () => {
@@ -72,29 +71,29 @@ const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
         if (otp) {
             setOtpError('');
             try {
-          
+
                 setLoading(true);
                 const response = await verifyOtp({ email: storedEmail, otp });
-             
+
                 if (response.data.success) {
-                  
+
                     toast.success(response.data.message);
                     navigate('/account/complete-registration');
-             
+
                 } else {
-                  
+
                     toast.error(response.data.message);
                 }
             } catch (err) {
-            
+
                 console.error(err);
                 toast.error('Failed to send OTP. Please try again.');
             } finally {
-           
+
                 setLoading(false);
             }
         } else {
-          
+
             setOtpError('Please enter a valid email address.');
         }
     };
@@ -151,9 +150,12 @@ const ResendOTP = async (e: React.MouseEvent<HTMLParagraphElement>) => {
                         <div>
                             <p className='text-white font-[400]  font-poppins text-2xl text-center mb-2'>Follow us on</p>
                             <div className='flex flex-1 justify-center items-center gap-4'>
-                                <FaInstagram className='text-white' />
-                                <FiFacebook className='text-white' />
-                                <RiTwitterXLine className='text-white' />
+                                <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
+                                    <FaInstagram className='text-white' />
+                                </a>
+                                <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
+                                    <FiFacebook className='text-white' />
+                                </a>
 
                             </div>
                         </div>
