@@ -15,7 +15,7 @@ This section describes the endpoints used for managing user-specific actions, in
 
 **Body Parameters**:
 
-- `email` (required): The user's email address.
+- `email` (required): finzyphinzy@gmail.com.
 
 **Validation**:
 
@@ -46,8 +46,8 @@ This section describes the endpoints used for managing user-specific actions, in
 
 **Body Parameters**:
 
-- `email` (required): The user's email address.
-- `password` (required): The new password.
+- `email` (required): finzyphinzy@gmail.com
+- `password` (required): password
 
 **Validation**:
 

@@ -90,7 +90,7 @@ Processes a data purchase transaction.
   "amount": "integer (positive)",
   "phoneNumber": "string (E.164 format)",
   "debitAccountNumber": "string",
-  "pin": "string (4 digits)"
+  "transactionPin": "string (4 digits)"
 }
 ```
 
@@ -98,12 +98,11 @@ Processes a data purchase transaction.
 
 ```json
 {
-  "serviceCategoryId": "DATA123",
-  "bundleCode": "BUN123",
-  "amount": 1000,
-  "phoneNumber": "+1234567890",
-  "debitAccountNumber": "12345678",
-  "pin": "1234"
+  "serviceCategoryId": "6502e9a236208a4de6d1b2ac",
+  "bundleCode": "DataPlan 100MB Daily",
+  "amount": 100,
+  "phoneNumber": "+2348167817217",
+  "transactionPin": "0000"
 }
 ```
 
@@ -154,12 +153,11 @@ Processes a cable TV payment transaction.
 
 ```json
 {
-  "serviceCategoryId": "string",
-  "bundleCode": "string",
-  "amount": "integer (positive)",
-  "cardNumber": "string",
-  "debitAccountNumber": "string",
-  "pin": "string (4 digits)"
+  "serviceCategoryId": "61e9857bbce8e444a4976641",
+  "bundleCode": "Jinja",
+  "amount": 3300,
+  "cardNumber": "8061717048",
+  "transactionPin": "0000"
 }
 ```
 

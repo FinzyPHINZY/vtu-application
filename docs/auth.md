@@ -15,7 +15,7 @@ None
 
 ```json
 {
-  "email": "user@example.com"
+  "email": "finzyphinzy@gmail.com"
 }
 ```
 
@@ -66,7 +66,7 @@ None
 
 ```json
 {
-  "email": "user@example.com",
+  "email": "finzyphinzy@john.com",
   "otp": "1234"
 }
 ```
@@ -118,11 +118,11 @@ None
 
 ```json
 {
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "user@example.com",
-  "phoneNumber": "1234567890",
-  "password": "securepassword"
+  "firstName": "Boluwatife",
+  "lastName": "Adeyemi",
+  "email": "finzyphinzy@gmail.com",
+  "phoneNumber": "+2347051717507",
+  "password": "password"
 }
 ```
 
@@ -135,14 +135,14 @@ None
   "success": true,
   "message": "Signed up successfully",
   "data": {
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "user@example.com",
-    "phoneNumber": "1234567890",
+    "firstName": "Boluwatife",
+    "lastName": "Adeyemi",
+    "email": "finzyphinzy@gmail.com",
+    "phoneNumber": "+2347051717507",
     "accountBalance": 0,
     "accountDetails": {
       "bankName": "",
-      "accountName": "John Doe",
+      "accountName": "Boluwatife Adeyemi",
       "accountType": "Current",
       "accountBalance": "0",
       "status": "Pending"
@@ -177,8 +177,8 @@ None
 
 ```json
 {
-  "email": "user@example.com",
-  "password": "securepassword"
+  "email": "finzyphinzy@gmail.com",
+  "password": "password"
 }
 ```
 
@@ -191,9 +191,9 @@ None
   "success": true,
   "message": "Signed in successfully",
   "data": {
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "user@example.com",
+    "firstName": "Boluwatife",
+    "lastName": "Adeyemi",
+    "email": "finzyphinzy@gmail.com",
     "accountBalance": 0
   },
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -213,5 +213,4 @@ None
 
 ## Notes:
 
-1. Replace `"otp": "1234"` in responses with real OTP in development only; exclude OTP in production for security.
-2. The `Safe Haven` API integration during login ensures the `safeHavenAccessToken` is refreshed for each session.
+1. The `Safe Haven` API integration during login ensures the `safeHavenAccessToken` is refreshed for each session.

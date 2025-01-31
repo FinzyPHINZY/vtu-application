@@ -31,8 +31,8 @@ Initiates a BVN verification process by sending the BVN and debit account number
 {
   "type": "BVN",
   "async": false,
-  "number": "12345678901",
-  "debitAccountNumber": "1234567890"
+  "number": "12345678901", // bvn number
+  "debitAccountNumber": "0119017579"
 }
 ```
 
