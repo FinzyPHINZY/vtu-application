@@ -266,7 +266,7 @@ export const googleLogin = async (req, res) => {
 
     if (user) {
       return res
-        .status(409)
+        .status(403)
         .json({ success: false, message: 'user already exists' });
     }
 
@@ -276,7 +276,7 @@ export const googleLogin = async (req, res) => {
       isVerified: true,
       isGoogleUser: true,
       phoneNumber: '',
-      firstName: 'temp',
+      firstName: '',
       lastName: '',
       accountBalance: 0,
       accountDetails: {
@@ -288,7 +288,7 @@ export const googleLogin = async (req, res) => {
       },
     });
 
-    await user.save();
+    const updatedUser = await user.save();
 
     // Get Safe Haven token
     const body = {
@@ -319,7 +319,6 @@ export const googleLogin = async (req, res) => {
     const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
 
     // Remove sensitive data from user object
-    const userResponse = user.toObject();
 
     console.log(`User logged in with Google successfully: ${email}`);
 
@@ -337,13 +336,26 @@ export const googleLogin = async (req, res) => {
       expiresIn: '1d',
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Google login successful',
+      message: 'Signed in successfully',
       data: {
-        user: userResponse,
+        _id: updatedUser._id,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        accountBalance: updatedUser.accountBalance,
+        transactions: updatedUser.transactions,
+        hasSetTransactionPin: updatedUser.hasSetTransactionPin,
+        isVerified: updatedUser.isVerified,
+        status: updatedUser.status,
+        isGoogleUser: true,
+        accountDetails: updatedUser.accountDetails,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        phoneNumber: updatedUser.phoneNumber,
       },
       token,
+      expires_in,
     });
   } catch (error) {
     console.error('Google login failed:', error);

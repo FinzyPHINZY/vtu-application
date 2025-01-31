@@ -62,7 +62,10 @@ export const tokenExtractor = (req, res, next) => {
 };
 
 export const userExtractor = async (req, res, next) => {
-  console.log('JWT', req.token, process.env.JWT_SECRET);
+  if (!req.token) {
+    return res.status(400).json({ success: false, message: 'Invalid Token' });
+  }
+
   const decodedToken = jwt.verify(req.token, process.env.JWT_SECRET);
 
   if (!decodedToken.id) {
