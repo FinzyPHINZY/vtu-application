@@ -1,6 +1,7 @@
 import express from 'express';
 import * as authController from '../controllers/authController.js';
 import {
+  convertAccessTokenToIdToken,
   loginLimiter,
   otpRateLimiter,
   validateRequest,
@@ -18,9 +19,10 @@ router.post('/login', authController.login);
 
 router.post(
   '/google',
-  loginLimiter,
-  googleLoginValidation,
-  validateRequest,
+  convertAccessTokenToIdToken,
+  // loginLimiter,
+  // googleLoginValidation,
+  // validateRequest,
   authController.googleLogin
 );
 

@@ -377,58 +377,44 @@ export const login = async (req, res) => {
 
 export const googleLogin = async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { email, name, picture, googleId } = req.user;
 
-    if (!idToken) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Google ID token is required' });
-    }
-
-    // Verify Google token
-    let ticket;
-    try {
-      ticket = await googleClient.verifyIdToken({
-        idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-    } catch (error) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'Invalid or expired Google token' });
-    }
-
-    const { sub: googleId, email, email_verified } = ticket.getPayload();
-
-    if (!email_verified) {
-      return res.status(400).json({
-        success: false,
-        message: 'Google account email is not verified',
-      });
-    }
+    console.log(email, name, picture, googleId);
 
     // Find or create user
     let user = await User.findOne({
       $or: [{ googleId }, { email, authProvider: 'google' }],
     });
 
-    if (!user) {
-      user = await User.create({
-        email,
-        googleId,
-        googleEmail: email,
-        authProvider: 'google',
-        isVerified: true,
-        isGoogleUser: true,
-      });
-    } else {
-      user.googleId = googleId;
-      user.googleEmail = email;
-      user.authProvider = 'google';
-      user.isVerified = true;
-      user.isGoogleUser = true;
-      await user.save();
+    if (user) {
+      return res
+        .status(409)
+        .json({ success: false, message: 'user already exists' });
     }
+
+    console.log('i got here');
+
+    user = await User.create({
+      email,
+      googleId,
+      isVerified: true,
+      isGoogleUser: true,
+      phoneNumber: '',
+      firstName: 'temp',
+      lastName: '',
+      accountBalance: 0,
+      accountDetails: {
+        bankName: '',
+        accountName: '',
+        accountType: 'Current',
+        accountBalance: '0',
+        status: 'Pending',
+      },
+    });
+
+    const updatedUser = await user.save();
+
+    console.log('this is user', updatedUser);
 
     // Get Safe Haven token
     const body = {
@@ -460,9 +446,6 @@ export const googleLogin = async (req, res) => {
 
     // Remove sensitive data from user object
     const userResponse = user.toObject();
-    delete userResponse.password;
-    delete userResponse.failedLoginAttempts;
-    delete userResponse.lastLoginAttempt;
 
     console.log(`User logged in with Google successfully: ${email}`);
 
@@ -479,6 +462,14 @@ export const googleLogin = async (req, res) => {
     const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
       expiresIn: '1d',
     });
+
+    console.log(
+      'this is response',
+      'userresponse',
+      userResponse,
+      'token',
+      token
+    );
 
     res.status(200).json({
       success: true,

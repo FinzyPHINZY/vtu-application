@@ -16,32 +16,38 @@ export const requestLogger = (req, res, next) => {
   next();
 };
 
-export const auth = async (req, res, next) => {
+export const convertAccessTokenToIdToken = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'No token provided' });
+    const { access_token } = req.body.idToken; // This is actually the access token
+
+    if (!access_token) {
+      return res.status(400).json({ message: 'Access Token required' });
     }
 
-    const token = authHeader.split(' ')[1];
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'No token provided' });
+    // Fetch user info using the access token
+    const response = await axios.get(
+      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`
+    );
+
+    if (!response.data.email) {
+      return res.status(400).json({ message: 'Invalid Google Access Token' });
     }
 
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Attach the user info to the request
+    req.user = {
+      email: response.data.email,
+      name: response.data.name,
+      picture: response.data.picture,
+      googleId: response.data.sub,
+    };
 
-      req.user = decoded;
-      next();
-    } catch (error) {
-      return res.status(401).json({ success: false, message: 'Invalid token' });
-    }
+    next(); // Proceed to the actual authentication controller
   } catch (error) {
-    next(error);
+    console.error(
+      'Token conversion error:',
+      error?.response?.data || error.message
+    );
+    return res.status(401).json({ message: 'Invalid Google Access Token' });
   }
 };
 
@@ -58,6 +64,7 @@ export const tokenExtractor = (req, res, next) => {
 };
 
 export const userExtractor = async (req, res, next) => {
+  console.log('JWT', req.token, process.env.JWT_SECRET);
   const decodedToken = jwt.verify(req.token, process.env.JWT_SECRET);
 
   if (!decodedToken.id) {

@@ -14,14 +14,10 @@ const userSchema = new mongoose.Schema(
     firstName: {
       type: String,
       required: false,
-      minlength: 2,
-      maxlength: 50,
     },
     lastName: {
       type: String,
       required: false,
-      minlength: 2,
-      maxlength: 50,
     },
     email: {
       type: String,
