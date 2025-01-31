@@ -5,14 +5,13 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
+// import { useSelector } from 'react-redux';
+// import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 
 const UseTransactionPin = () => {
     const [isMobileView, setIsMobileView] = useState(false);
-    const storedPin = useSelector((state: RootState) => state.user.pin);
     const navigate = useNavigate();
     const [pin, setPin] = useState(['', '', '', '']);
     const [loading, setLoading] = useState(false);
@@ -59,7 +58,7 @@ const UseTransactionPin = () => {
         if (pin.filter(num => num !== '').length === 4) {
             setLoading(true);
             try {
-                if (pin.join('') === storedPin) {
+                if (pin.join('')) {
 
                     navigate('/data', { state: { secondData: true } });
 

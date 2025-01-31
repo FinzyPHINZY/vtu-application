@@ -5,18 +5,19 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { RiTwitterXLine } from "react-icons/ri";
 import { LeftArrowIcon } from '../assets/svg';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
+// import { useSelector } from 'react-redux';
+// import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
+import { setPin as setUserPin } from '../store/slices/userSlices';
 
 const UseTransactionPin2 = () => {
     const [isMobileView, setIsMobileView] = useState(false);
-    const storedPin = useSelector((state: RootState) => state.user.pin);
     const navigate = useNavigate();
     const [pin, setPin] = useState(['', '', '', '']);
     const [loading, setLoading] = useState(false);
-
+    const dispatch = useDispatch();
     useEffect(() => {
         const handleResize = () => {
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -59,9 +60,9 @@ const UseTransactionPin2 = () => {
         if (pin.filter(num => num !== '').length === 4) {
             setLoading(true);
             try {
-                if (pin.join('') === storedPin) {
-
-                    navigate('/airtime', { state: { secondData: true } });
+                if (pin.join('')) {
+                    dispatch(setUserPin(pin.join('')));
+                    navigate('/airtime', { state: { secondData: true,  } });
 
                 } else {
                     toast.error("Wrong Transaction Pin");

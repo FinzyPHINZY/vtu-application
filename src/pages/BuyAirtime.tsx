@@ -18,32 +18,27 @@ const BuyAirtime = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [amountError, setAmountError] = useState('');
-    const [number, setNumber] = useState('');
+    const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
-    const storedPin = useSelector((state: RootState) => state.user.pin);
     const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [purchaseAirtime2] = usePurchaseAirtime2Mutation();
     const { data: serviceDataId, secondData } = location.state || {};
+    const storedPin = useSelector((state: RootState) => state.user.pin);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
 
 
-    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: serviceDataId });
-    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: serviceDataId });
-
+    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: "61e985180e69308aa37a7a94" });
+    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: "61e985180e69308aa37a7a94" });
     useEffect(() => {
         console.log(serviceDataId, servicesByCategoryData, servicesByIdData,);
     }, [serviceDataId, servicesByCategoryData, servicesByIdData,]);
 
-    useEffect(() => {
-        if (secondData) {
-            setShowModal(true);
-        }
-    }, [secondData]);
+ 
 
     useEffect(() => {
 
@@ -66,7 +61,7 @@ const BuyAirtime = () => {
 
 
     const handleBack = () => {
-        navigate(-1);
+        navigate('/home');
     };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,6 +77,18 @@ const BuyAirtime = () => {
 
     };
 
+    useEffect(() => {
+        if (secondData) {
+            setShowModal(true);
+        }
+    }, [secondData]);
+
+    useEffect(() => {
+        // Store amount and number in localStorage
+        localStorage.setItem('amount', amount);
+        localStorage.setItem('number', number);
+    }, [amount, number]);
+
 
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -89,7 +96,7 @@ const BuyAirtime = () => {
         try {
             setLoading(true);
             const response = await purchaseAirtime2({
-                serviceCategoryId: serviceDataId,
+                serviceCategoryId: "61e985180e69308aa37a7a94",
                 amount: parseInt(amount, 10),
                 channel: "WEB",
                 debitAccountNumber: "0119017579",
@@ -98,21 +105,27 @@ const BuyAirtime = () => {
                 transactionPin: storedPin,
                 token: storedToken
             });
-
-            if (response.data.success) {
+             
+            if (response?.data?.success) {
                 toast.success(response.data.message);
-                setShowModal(false);
                 setPaymentSuccessfulModal(true);
             } else {
-                toast.error('Something Went Wrong. Please try again.');
+                if (response.error && 'data' in response.error) {
+                    console.log((response.error.data as { message: string }).message);
+                    const errorMessage = (response.error.data as { message: string }).message
+                    toast.error(errorMessage);
+                }
             }
-        } catch (err) {
-            console.error(err);
-            toast.error('Transaction failed. Please try again.');
+        } catch (error) {
+            console.error(error);
+            toast.error((error as { data: { message: string } })?.data?.message);
         } finally {
             setAmount("");
             setNumber("");
+            localStorage.setItem('amount', '');
+            localStorage.setItem('number', '');
             setLoading(false);
+            setShowModal(false)
         }
 
     };
@@ -129,8 +142,8 @@ const BuyAirtime = () => {
         if (amount && number) {
             setAmountError('');
             setNumberError('');
-            navigate('/pin/airtime/enter');
-          
+         
+            navigate('/pin/airtime/enter', { state: { service: "airtime", amount: amount, number: number } });
             setLoading(false);
         } else {
             setAmountError('Please enter a valid amount.');
@@ -147,6 +160,7 @@ const BuyAirtime = () => {
     const handleItemClick = (servicedata: ServiceData) => {
         setSelectedService(servicedata);
     };
+
     return (
         <div>
             {
@@ -331,6 +345,7 @@ const BuyAirtime = () => {
 
                 </div>
             )}
+          
         </div>
     )
 }

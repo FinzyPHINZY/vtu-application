@@ -9,7 +9,7 @@ import {
     useFetchServiceByIdQuery,
     useFetchServiceCategoriesQuery,
     usePurchaseCableTV2Mutation,
-    useVerifyPowerTVDataMutation,
+    // useVerifyPowerTVDataMutation,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -25,11 +25,11 @@ const BuyCable = () => {
     const navigate = useNavigate();
     const location = useLocation();
     // const [selectedPackage, setSelectedPackage] = useState('');
-    const [verified, setVerified] = useState("")
+    // const [verified, setVerified] = useState("")
     // const [packageError, setPackageError] = useState('');
-    const [number, setNumber] = useState('');
+    const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
+    const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
-    const [amount, setAmount] = useState('');
     const [amountError, setAmountError] = useState('');
     const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
@@ -39,9 +39,9 @@ const BuyCable = () => {
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
-    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: serviceDataId });
-    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: serviceDataId });
-    const [verifyPowerTVData] = useVerifyPowerTVDataMutation();
+    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: "61e9857bbce8e444a4976641" });
+    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: "61e9857bbce8e444a4976641" });
+    // const [verifyPowerTVData] = useVerifyPowerTVDataMutation();
     useEffect(() => {
         console.log(serviceDataId, servicesByCategoryData, servicesByIdData,);
     }, [serviceDataId, servicesByCategoryData, servicesByIdData,]);
@@ -67,7 +67,7 @@ const BuyCable = () => {
 
 
     const handleBack = () => {
-        navigate(-1);
+        navigate('/home');
     };
     // const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
 
@@ -83,7 +83,7 @@ const BuyCable = () => {
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setNumber(value);
-        handleMeterNumberVerification();
+        // handleMeterNumberVerification();
 
 
 
@@ -97,7 +97,7 @@ const BuyCable = () => {
 
             setLoading(true);
             const response = await purchaseCableTV2({
-                serviceCategoryId: serviceDataId,
+                serviceCategoryId: "61e9857bbce8e444a4976641",
                 bundleCode: "BUN456",
                 amount: parseInt(amount, 10),
                 cardNumber: number,
@@ -106,25 +106,28 @@ const BuyCable = () => {
                 token: storedToken
             });
 
-            if (response.data.success) {
-
+            if (response?.data?.success) {
                 toast.success(response.data.message);
-                setShowModal(false);
-                setPaymentSuccessfulModal(true)
-
+                setPaymentSuccessfulModal(true);
             } else {
-
-                toast.error('Something Went Wrong. Please try again.');
+                if (response.error && 'data' in response.error) {
+                    console.log((response.error.data as { message: string }).message);
+                    const errorMessage = (response.error.data as { message: string }).message
+                    toast.error(errorMessage);
+                }
             }
-        } catch (err) {
+        } catch (error) {
 
-            console.error(err);
-            toast.error('Transaction failed. Please try again.');
+            console.error(error);
+            toast.error((error as { data: { message: string } })?.data?.message);
         } finally {
             setNumber("");
             setAmount("");
             // setSelectedPackage("");
+            localStorage.setItem('amount', '');
+            localStorage.setItem('number', '');
             setLoading(false);
+            setShowModal(false)
         }
 
 
@@ -136,6 +139,12 @@ const BuyCable = () => {
             setShowModal(true);
         }
     }, [secondData]);
+
+    useEffect(() => {
+        // Store amount and number in localStorage
+        localStorage.setItem('amount', amount);
+        localStorage.setItem('number', number);
+    }, [amount, number]);
 
     const handleCloseModal = async () => {
         // if (!selectedPackage) {
@@ -173,28 +182,28 @@ const BuyCable = () => {
         setSelectedService(servicedata);
     };
 
-    const handleMeterNumberVerification = async () => {
-        try {
-            const response = await verifyPowerTVData({
-                token: storedToken,
-                serviceCategoryId: serviceDataId,
-                entityNumber: number
-            })
-            if (response.data.success) {
-                setVerified(response.data.message)
-            } else {
-                toast.error("Your meter number is not valid")
+    // const handleMeterNumberVerification = async () => {
+    //     try {
+    //         const response = await verifyPowerTVData({
+    //             token: storedToken,
+    //             serviceCategoryId: "61e9857bbce8e444a4976641",
+    //             entityNumber: number
+    //         })
+    //         if (response.data.success) {
+    //             setVerified(response.data.message)
+    //         } else {
+    //             toast.error("Your meter number is not valid")
                 
-                // setSelectedPackage("")
-            }
+    //             // setSelectedPackage("")
+    //         }
 
 
-        } catch {
-            toast.error("There was an error please try again");
+    //     } catch {
+    //         toast.error("There was an error please try again");
             
            
-        }
-    }
+    //     }
+    // }
     return (
         <div>
             {
@@ -290,7 +299,7 @@ const BuyCable = () => {
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 
                                 </div>
-                                {verified && <p className='text-[#4CAF50] font-[400] text-sm font-poppins mt-3'>{verified}</p>}
+                                {/* {verified && <p className='text-[#4CAF50] font-[400] text-sm font-poppins mt-3'>{verified}</p>} */}
                                 <div className='mt-5'>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
                                     <input

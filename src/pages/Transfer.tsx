@@ -23,11 +23,11 @@ const Transfer = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const [amount, setAmount] = useState('');
-    const [accountNumber, setAccountNumber] = useState('');
+    const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
+    const [accountNumber, setAccountNumber] = useState(() => localStorage.getItem('accountNumber') || '');
     const [accountNumberError, setAccountNumberError] = useState('');
     const [amountError, setAmountError] = useState('');
-    const [narration, setNarration] = useState("")
+    const [narration, setNarration] = useState(() => localStorage.getItem('narration') || '')
     const [narrationError, setNarrationError] = useState("")
     const [verifiedAccountData, setVerifiedAccountData] = useState('');
     const [loading, setLoading] = useState(false);
@@ -70,8 +70,15 @@ const Transfer = () => {
         }
     }, [secondData]);
 
+    useEffect(() => {
+        // Store amount and number in localStorage
+        localStorage.setItem('amount', amount);
+        localStorage.setItem('accountNumber', accountNumber);
+        localStorage.setItem('narration', narration);
+    }, [amount, accountNumber, narration]);
+
     const handleBack = () => {
-        navigate(-1);
+        navigate("/home");
     };
 
 
@@ -164,14 +171,14 @@ const Transfer = () => {
                 console.error(err);
                 toast.error('Transaction failed. Please try again.');
             } finally {
-               
+
                 setLoading(false);
             }
         }
     };
 
 
-
+    console.log(accountNumberError)
     const handleCloseModal = async () => {
 
         try {
@@ -186,22 +193,23 @@ const Transfer = () => {
                 amount: parseInt(amount, 10),
                 saveBeneficiary: false,
                 narration: narration,
-                
+
             });
 
-            if (response.data.success) {
-
+            if (response?.data?.success) {
                 toast.success(response.data.message);
-                setShowModal(false)
-                setTransferSuccessfulModal(true)
+                setPaymentSuccessfulModal(true);
             } else {
-
-                toast.error('Something Went Wrong. Please try again.');
+                if (response.error && 'data' in response.error) {
+                    console.log((response.error.data as { message: string }).message);
+                    const errorMessage = (response.error.data as { message: string }).message
+                    toast.error(errorMessage);
+                }
             }
-        } catch (err) {
+        } catch (error) {
 
-            console.error(err);
-            setShowModal(false)
+            console.error(error);
+            toast.error((error as { data: { message: string } })?.data?.message);
             setTransferFailedModal(true);
             // toast.error('Transaction failed. Please try again.');
         } finally {
@@ -209,7 +217,11 @@ const Transfer = () => {
             setAccountNumber("");
             setAmount("");
             setNarration("")
+            localStorage.setItem('amount', '');
+            localStorage.setItem('accountNumber', '');
+            localStorage.setItem('narration', '');
             setLoading(false);
+            setShowModal(false);
         }
     };
 
@@ -231,15 +243,15 @@ const Transfer = () => {
                         <form className='mt-5 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
                             <div>
                                 <div className='mt-5'>
-                                    <p className='text-white font-[500] text-base font-poppins mb-2'>Amount</p>
+                                    <p className='text-white font-[500] text-base font-poppins mb-2'>Account Number</p>
                                     <input
                                         type="number"
                                         value={accountNumber}
                                         onChange={handleAccountNumberChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='eg: $200'
+                                        placeholder='1711245709'
                                     />
-                                    {accountNumberError && <p className='text-[#D45A0E] text-sm text-center'>{accountNumberError}</p>}
+                                    {/* {accountNumberError && <p className='text-[#D45A0E] text-sm text-center'>{accountNumberError}</p>} */}
 
                                 </div>
                                 <div className='mt-8'>
@@ -255,8 +267,9 @@ const Transfer = () => {
                                                 <option key={index} value={option}>{option}</option>
                                             ))}
                                         </select> */}
+                                        {/* ? packageOptions.find(option => option.code === selectedPackage)?.name : '' */}
                                         <select
-                                            value={selectedPackage ? packageOptions.find(option => option.code === selectedPackage)?.name : ''}
+                                            value={selectedPackage}
                                             onChange={handlePackageChange}
                                             className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
                                         >
@@ -355,18 +368,26 @@ const Transfer = () => {
                         <p className='text-white font-[400]  font-poppins text-sm '>Transfer</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Email:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>example@gmail.com</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Account Number</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{accountNumber}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>$200</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{amount}</p>
+                    </div>
+                    <div className='flex justify-between items-center mt-4'>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Narration:</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{narration}</p>
                     </div>
                     <button
 
                         onClick={handleCloseModal}
                         className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                            :
+                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Continue</p>
+                        }
+
                     </button>
                 </div>
             )}
@@ -398,7 +419,7 @@ const Transfer = () => {
                 <div className='fixed  inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'
                 >
 
-                    <div className='flex justify-end items-center' onClick={() => {setTransferFailedModal(false); navigate("/home")}}>
+                    <div className='flex justify-end items-center' onClick={() => { setTransferFailedModal(false); navigate("/home") }}>
                         <CancelIcon />
                     </div>
                     <div className='flex justify-center items-center'>
@@ -421,7 +442,7 @@ const Transfer = () => {
                         backgroundRepeat: 'no-repeat',
                     }}>
 
-                    <div className='flex justify-end items-center' onClick={() => {setPaymentSuccessfulModal(false); navigate("/home")}}>
+                    <div className='flex justify-end items-center' onClick={() => { setPaymentSuccessfulModal(false); navigate("/home") }}>
                         <CancelIcon />
                     </div>
                     <div className='flex justify-center items-center'>

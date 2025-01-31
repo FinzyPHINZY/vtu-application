@@ -20,9 +20,9 @@ const BuyData = () => {
     const location = useLocation();
     // const [selectedPackage, setSelectedPackage] = useState('');
     // const [packageError, setPackageError] = useState('');
-    const [number, setNumber] = useState('');
+    const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
-    const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [amountError, setAmountError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
@@ -30,8 +30,8 @@ const BuyData = () => {
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
     const [purchaseData2] = usePurchaseData2Mutation();
-    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: serviceDataId });
-    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: serviceDataId });
+    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: "61e9854bbce8e444a497663e" });
+    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: "61e9854bbce8e444a497663e" });
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
 
@@ -60,7 +60,7 @@ const BuyData = () => {
 
 
     const handleBack = () => {
-        navigate(-1);
+        navigate('/home');
     };
     // const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
 
@@ -90,7 +90,7 @@ const BuyData = () => {
 
             setLoading(true);
             const response = await purchaseData2({
-                serviceCategoryId: serviceDataId,
+                serviceCategoryId: "61e9854bbce8e444a497663e",
                 bundleCode: "BUN123",
                 amount: parseInt(amount, 10),
                 phoneNumber: number,
@@ -99,25 +99,28 @@ const BuyData = () => {
                 token: storedToken
             });
 
-            if (response.data.success) {
-
+            if (response?.data?.success) {
                 toast.success(response.data.message);
-                setShowModal(false);
                 setPaymentSuccessfulModal(true);
-
             } else {
-
-                toast.error('Something Went Wrong. Please try again.');
+                if (response.error && 'data' in response.error) {
+                    console.log((response.error.data as { message: string }).message);
+                    const errorMessage = (response.error.data as { message: string }).message
+                    toast.error(errorMessage);
+                }
             }
-        } catch (err) {
+        } catch (error) {
 
-            console.error(err);
-            toast.error('Transaction failed. Please try again.');
+            console.error(error);
+            toast.error((error as { data: { message: string } })?.data?.message);
         } finally {
             // setSelectedPackage("");
             setNumber("");
             setAmount("");
+            localStorage.setItem('amount', '');
+            localStorage.setItem('number', '');
             setLoading(false);
+            setShowModal(false);
         }
 
     };
@@ -128,6 +131,12 @@ const BuyData = () => {
             setShowModal(true);
         }
     }, [secondData]);
+
+    useEffect(() => {
+        // Store amount and number in localStorage
+        localStorage.setItem('amount', amount);
+        localStorage.setItem('number', number);
+    }, [amount, number]);
 
     const handleCloseModal = async () => {
         // if (!selectedPackage) {
@@ -146,7 +155,7 @@ const BuyData = () => {
             setNumberError('');
             setAmountError('')
             navigate('/pin/data/enter', { state: { service: "data" } });
-            
+
             setLoading(false);
         } else {
             setNumberError('Please enter a valid phone number');
