@@ -343,7 +343,7 @@ const BuyElectricity = () => {
 
                                     {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
                                 </div> */}
-                                <div className='mt-5'>
+                                <div className=''>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Meter number</p>
                                     <input
                                         type="number"

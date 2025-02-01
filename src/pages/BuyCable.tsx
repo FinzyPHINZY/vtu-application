@@ -215,7 +215,7 @@ const BuyCable = () => {
                             <div>       </div>
                         </div>
                         <p className='text-white mt-14 font-[400] text-sm font-poppins '>Select Service</p>
-                        <div className='flex justify-between items-center py-3 mt-5 '>
+                        <div className='flex justify-around items-center py-3 mt-5 '>
                             {servicesByCategoryData && servicesByCategoryData.data.map((servicedata: ServiceData, index: number) => {
                                 console.log(servicedata.logoUrl, 40004);
                                 return (
