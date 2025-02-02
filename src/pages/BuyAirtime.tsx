@@ -111,13 +111,13 @@ const BuyAirtime = () => {
             } else {
                 if (response.error && 'data' in response.error) {
                     console.log((response.error.data as { message: string }).message);
-                    const errorMessage = (response.error.data as { message: string }).message
-                    toast.error(errorMessage);
+                    // const errorMessage = (response.error.data as { message: string }).message
+                    toast.error("really1");
                 }
             }
         } catch (error) {
             console.error(error);
-            toast.error((error as { data: { message: string } })?.data?.message);
+            toast.error("really2");
         } finally {
             setAmount("");
             setNumber("");
