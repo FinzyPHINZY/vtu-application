@@ -35,6 +35,8 @@ router.put('/:id/role', authorizeRoles('admin'), UserController.updateUserRole);
 
 router.post(
   '/request-password-reset',
+  tokenExtractor,
+  userExtractor,
   registrationValidation,
   validateRequest,
   UserController.requestPasswordReset
@@ -42,7 +44,7 @@ router.post(
 
 router.post(
   '/reset-password',
-  passwordValidation,
+  // passwordValidation,
   validateRequest,
   UserController.resetPassword
 );

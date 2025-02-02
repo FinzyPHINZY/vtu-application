@@ -9,6 +9,7 @@ import {
   airtimeTransactionValidation,
   cableTVTransactionValidation,
   dataTransactionValidation,
+  transactionIdValidation,
   transactionPinValidation,
   utilityTransactionValidation,
 } from '../utils/helpers.js';
@@ -66,6 +67,20 @@ router.post(
   requireTransactionPin,
   transactionPinValidation,
   TransactionController.transferFunds
+);
+// VAS Transaction endpoints
+router.get(
+  '/transactions',
+  // validateHeaders,
+  // validateRequest,
+  TransactionController.getTransactions
+);
+router.get(
+  '/transaction/:id',
+  validateHeaders,
+  transactionIdValidation,
+  validateRequest,
+  TransactionController.getTransactionById
 );
 
 export default router;

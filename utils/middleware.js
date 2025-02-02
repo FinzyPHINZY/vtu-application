@@ -49,38 +49,100 @@ export const convertAccessTokenToIdToken = async (req, res, next) => {
   }
 };
 
+// export const tokenExtractor = (req, res, next) => {
+//   const authorization = req.get('authorization');
+
+//   if (authorization && authorization.startsWith('Bearer ')) {
+//     req.token = authorization.replace('Bearer ', '');
+//   } else {
+//     req.token = null;
+//   }
+
+//   next();
+// };
+
+// export const userExtractor = async (req, res, next) => {
+//   if (!req.token) {
+//     return res.status(400).json({ success: false, message: 'Invalid Token' });
+//   }
+
+//   const decodedToken = jwt.verify(req.token, process.env.JWT_SECRET);
+
+//   if (!decodedToken.id) {
+//     return res.status(401).json({ success: false, message: 'Invalid token' });
+//   }
+
+//   const user = await User.findById({ _id: decodedToken.id });
+
+//   if (user) {
+//     req.user = { user, ...decodedToken };
+//   } else {
+//     req.user = null;
+//   }
+
+//   next();
+// };
+
 export const tokenExtractor = (req, res, next) => {
-  const authorization = req.get('authorization');
+  try {
+    const authorization = req.get('authorization');
 
-  if (authorization && authorization.startsWith('Bearer ')) {
-    req.token = authorization.replace('Bearer ', '');
-  } else {
-    req.token = null;
+    if (authorization && authorization.startsWith('Bearer ')) {
+      req.token = authorization.replace('Bearer ', '');
+    } else {
+      req.token = null;
+    }
+
+    next();
+  } catch (error) {
+    console.error('Token Extraction Error:', error.message);
+    return res
+      .status(500)
+      .json({ success: false, message: 'Internal Server Error' });
   }
-
-  next();
 };
 
 export const userExtractor = async (req, res, next) => {
   if (!req.token) {
-    return res.status(400).json({ success: false, message: 'Invalid Token' });
+    return res
+      .status(401)
+      .json({ success: false, message: 'Unauthorized: No token provided' });
   }
 
-  const decodedToken = jwt.verify(req.token, process.env.JWT_SECRET);
+  try {
+    const decodedToken = jwt.verify(req.token, process.env.JWT_SECRET);
 
-  if (!decodedToken.id) {
-    return res.status(401).json({ success: false, message: 'Invalid token' });
+    if (!decodedToken.id) {
+      return res
+        .status(403)
+        .json({ success: false, message: 'Forbidden: Invalid token' });
+    }
+
+    const user = await User.findById(decodedToken.id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
+    }
+
+    req.user = { ...user.toObject(), ...decodedToken };
+    next();
+  } catch (error) {
+    console.error('JWT Verification Error:', error.message);
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expired. Please log in again.',
+      });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(400).json({ success: false, message: 'Invalid token' });
+    } else {
+      return res
+        .status(500)
+        .json({ success: false, message: 'Internal Server Error' });
+    }
   }
-
-  const user = await User.findById({ _id: decodedToken.id });
-
-  if (user) {
-    req.user = { user, ...decodedToken };
-  } else {
-    req.user = null;
-  }
-
-  next();
 };
 
 export const fetchAccessToken = async (req, res, next) => {

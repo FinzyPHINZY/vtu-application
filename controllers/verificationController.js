@@ -6,13 +6,13 @@ const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
 export const initiateVerification = async (req, res) => {
   const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
   try {
-    const { number, async } = req.body;
+    const { number } = req.body;
 
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/identity/v2`,
       {
         number,
-        async,
+        async: false,
         type: 'BVN',
         debitAccountNumber,
       },
@@ -55,9 +55,15 @@ export const validateVerification = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
+    const { identityId, otp } = req.body;
+
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/identity/v2/validate`,
-      req.body,
+      {
+        identityId,
+        otp,
+        type: 'BVN',
+      },
       {
         headers: {
           Authorization: `Bearer ${access_token}`,

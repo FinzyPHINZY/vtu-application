@@ -187,9 +187,27 @@ export const setTransactionPin = async (req, res) => {
 
     console.log(`Transaction PIN set successfully for user: ${req.user.id}`);
 
-    return res
-      .status(200)
-      .json({ success: true, message: 'Transaction PIN set successfully' });
+    return res.status(200).json({
+      success: true,
+      message: 'Transaction PIN set successfully',
+      data: {
+        data: {
+          _id: user._id,
+          email: user.email,
+          role: user.role,
+          accountBalance: user.accountBalance,
+          transactions: user.transactions,
+          hasSetTransactionPin: user.hasSetTransactionPin,
+          isVerified: user.isVerified,
+          status: user.status,
+          isGoogleUser: false,
+          accountDetails: user.accountDetails,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phoneNumber: user.phoneNumber,
+        },
+      },
+    });
   } catch (error) {
     console.error('Failed to set transaction pin', error);
     return res

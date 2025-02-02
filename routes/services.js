@@ -59,19 +59,4 @@ router.get(
   servicesController.getCategoryProducts
 );
 
-// VAS Transaction endpoints
-router.get(
-  '/transactions',
-  // validateHeaders,
-  // validateRequest,
-  servicesController.getTransactions
-);
-router.get(
-  '/transaction/:id',
-  validateHeaders,
-  transactionIdValidation,
-  validateRequest,
-  servicesController.getTransactionById
-);
-
 export default router;

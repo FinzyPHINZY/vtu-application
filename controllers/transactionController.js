@@ -220,7 +220,7 @@ export const payCableTV = async (req, res) => {
     // Process the transaction
     const transactionDetails = {
       reference,
-      serviceType: 'cable_tv',
+      serviceType: 'tvSubscription',
       metadata: {
         serviceCategoryId,
         bundleCode,
@@ -256,6 +256,13 @@ export const payCableTV = async (req, res) => {
         },
       }
     );
+
+    if (response.data.statusCode === 400) {
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to buy cable tv package. Please try again.',
+      });
+    }
 
     const { data } = response.data;
 
@@ -308,7 +315,7 @@ export const payUtilityBill = async (req, res) => {
     // Process the transaction
     const transactionDetails = {
       reference,
-      serviceType: 'utility',
+      serviceType: 'electricity',
       metadata: {
         serviceCategoryId,
         meterNumber,
@@ -484,5 +491,73 @@ export const transferFunds = async (req, res) => {
     return res
       .status('500')
       .json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+export const getTransactions = async (req, res) => {
+  try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
+    const response = await axios.get(
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/transactions`,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+          ClientID: ibs_client_id,
+        },
+        timeout: 30000,
+      }
+    );
+
+    const { data } = response;
+
+    console.log('VAS transactions fetched successfully');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Transactions fetched successfully',
+      data: data,
+    });
+  } catch (error) {
+    console.error('Failed to fetch VAS transactions:', error);
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to fetch transactions' });
+  }
+};
+
+export const getTransactionById = async (req, res) => {
+  try {
+    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
+    const { id } = req.params;
+
+    const response = await axios.get(
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/transaction/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+          ClientID: ibs_client_id,
+        },
+        timeout: 30000,
+      }
+    );
+
+    const { data } = response;
+
+    console.log(`VAS transaction ${id} fetched successfully`);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Transaction fetched successfully',
+      data: data.data,
+    });
+  } catch (error) {
+    console.error(`Failed to fetch VAS transaction ${req.params.id}:`, error);
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to fetch transaction' });
   }
 };

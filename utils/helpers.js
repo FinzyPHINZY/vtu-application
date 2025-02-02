@@ -10,12 +10,12 @@ export const validationValidation = [
     .isString()
     .notEmpty()
     .withMessage('identityId is required'),
-  body('type').equals('BVN').withMessage('Verification type must be BVN'),
+  // body('type').equals('BVN').withMessage('Verification type must be BVN'),
   body('otp').isString().notEmpty().withMessage('OTP is required'),
 ];
 
 export const verificationValidation = [
-  body('async').isBoolean().withMessage('async must be a boolean value'),
+  // body('async').isBoolean().withMessage('async must be a boolean value'),
   body('number')
     .isString()
     .matches(/^\d{11}$/)
