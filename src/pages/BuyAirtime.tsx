@@ -109,15 +109,15 @@ const BuyAirtime = () => {
                 toast.success(response.data.message);
                 setPaymentSuccessfulModal(true);
             } else {
-                if (response.error && 'data' in response.error) {
-                    console.log((response.error.data as { message: string }).message);
-                    // const errorMessage = (response.error.data as { message: string }).message
-                    toast.error("really1");
-                }
+                // if (response.error && 'data' in response.error) {
+                //     console.log((response.error.data as { message: string }).message);
+                //     const errorMessage = (response.error.data as { message: string }).message
+                    toast.error(response.data.message);
+                // }
             }
         } catch (error) {
             console.error(error);
-            toast.error("really2");
+            toast.error((error as { data: { message: string } })?.data?.message);
         } finally {
             setAmount("");
             setNumber("");
