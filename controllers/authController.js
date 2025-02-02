@@ -275,7 +275,7 @@ export const googleLogin = async (req, res) => {
       googleId,
       isVerified: true,
       isGoogleUser: true,
-      phoneNumber: '',
+      phoneNumber: null,
       firstName: '',
       lastName: '',
       accountBalance: 0,
@@ -334,6 +334,28 @@ export const googleLogin = async (req, res) => {
 
     const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
       expiresIn: '1d',
+    });
+
+    console.log('data sent to frontend -->>>>', {
+      success: true,
+      message: 'Signed in successfully',
+      data: {
+        _id: updatedUser._id,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        accountBalance: updatedUser.accountBalance,
+        transactions: updatedUser.transactions,
+        hasSetTransactionPin: updatedUser.hasSetTransactionPin,
+        isVerified: updatedUser.isVerified,
+        status: updatedUser.status,
+        isGoogleUser: true,
+        accountDetails: updatedUser.accountDetails,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        phoneNumber: updatedUser.phoneNumber,
+      },
+      token,
+      expires_in,
     });
 
     return res.status(200).json({
