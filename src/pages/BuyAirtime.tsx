@@ -4,7 +4,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { LeftArrowIcon } from '../assets/svg'
-import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery, usePurchaseAirtime2Mutation } from '../services/apiService';
+import {
+    useFetchServiceByIdQuery,
+    useFetchServiceCategoriesQuery,
+    usePurchaseAirtime2Mutation
+} from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
@@ -112,7 +116,7 @@ const BuyAirtime = () => {
                 // if (response.error && 'data' in response.error) {
                 //     console.log((response.error.data as { message: string }).message);
                 //     const errorMessage = (response.error.data as { message: string }).message
-                    toast.error(response.data.message);
+                toast.error(response.data.message);
                 // }
             }
         } catch (error) {
@@ -177,8 +181,8 @@ const BuyAirtime = () => {
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
-                                        // onClick={() => handleItemClick(servicedata)}
-                                        >
+                                    // onClick={() => handleItemClick(servicedata)}
+                                    >
                                         {servicedata.identifier === 'MTN' &&
                                             <div className="card">
                                                 <img src={servicedata.logoUrl} alt={servicedata.name} />
