@@ -18,11 +18,15 @@ import {
 // import { jwtDecode } from 'jwt-decode';
 import { useGoogleLoginMutation } from '../services/apiService';
 import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../store/slices/userSlices';
+import { loginUser } from '../store/slices/authSlices';
 
 const SplashScreen = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const [googleLoginMutation] = useGoogleLoginMutation();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const login = useGoogleLogin({
         onSuccess: async token => {
             console.log(token)
@@ -30,6 +34,8 @@ const SplashScreen = () => {
                 const response = await googleLoginMutation({ idToken: token });
                 if (response.data.success) {
                     toast.success(response.data.message);
+                    dispatch(setUserInfo(response.data.data));
+                    dispatch(loginUser(response.data.token));
                     navigate('/home');
                 } else {
                     toast.error("Something went wrong. Please try again.");

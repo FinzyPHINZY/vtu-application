@@ -13,7 +13,8 @@ import '../App.css'
 const Home = () => {
     const storedUser = useSelector((state: RootState) => state.user.user);
     const storedToken = useSelector((state: RootState) => state.auth.token);
-    const [accountBalanceHidden, setAccountBalanceHidden] = useState(false); // Add state to toggle balance visibility
+    const storedPin = useSelector((state: RootState) => state.user.pin);
+    const [accountBalanceHidden, setAccountBalanceHidden] = useState(false); 
     console.log(storedUser, storedToken, 48)
     console.log(storedUser.hasSetTransactionPin)
     const [isMobileView, setIsMobileView] = useState(false);
@@ -102,7 +103,7 @@ const Home = () => {
                                     <NotificationIcon />
                                     <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Notification</p>
                                 </div>
-                                {!storedUser.hasSetTransactionPin &&
+                                {(!storedUser.hasSetTransactionPin || storedPin != "") &&
                                     <div className='flex justify-between items-center mt-5'>
 
                                         <div className='flex justify-start items-center gap-4'>
@@ -251,7 +252,7 @@ const Home = () => {
 
                     </div>
                     <div className='flex justify-between items-center mt-6'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Bank</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>Bank Name</p>
                         <p className='text-white font-[400]  font-poppins text-sm '>{storedUser.accountDetails.bankName || "Pending"}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
