@@ -6,9 +6,18 @@ import { useNavigate } from 'react-router-dom';
 import MTN from '../assets/images/mtn.png';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-import { ArrowRight, CableIcon, CancelIcon, DataIcon, DepositIcon, ElectricityIcon, HiddenIcon, NotificationIcon, PhoneIcon, ProfileIcon, QuickServiceIcon, RoundedIcon, TransferIcon } from '../assets/svg';
+import { ArrowRight,
+     CableIcon, 
+     CancelIcon, 
+     DataIcon, 
+     DepositIcon, 
+     ElectricityIcon, 
+    //  HiddenIcon, 
+     NotificationIcon, 
+     PhoneIcon, ProfileIcon, QuickServiceIcon, RoundedIcon, TransferIcon } from '../assets/svg';
 import { useFetchServicesQuery } from '../services/apiService';
 import '../App.css'
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Home = () => {
     const storedUser = useSelector((state: RootState) => state.user.user);
@@ -68,7 +77,7 @@ const Home = () => {
 
                         <div className="bg-[#1E1E1E] h-[35%] px-5 py-8 rounded-[15px]">
                             <div className='flex justify-between items-center '>
-                                <p className='text-white font-[400] text-lg font-kavoon'>Bold data</p>
+                                <p className='text-[#FFFFFF] font-[400] text-lg font-poppins'>Bold data</p>
                                 <div onClick={() => navigate('/profile')}>
                                     <ProfileIcon />
                                 </div>
@@ -81,7 +90,8 @@ const Home = () => {
                                         {accountBalanceHidden ? '**' : storedUser.accountBalance}
                                     </p>
                                     <div onClick={toggleAccountBalance}>
-                                        <HiddenIcon />
+                                         {accountBalanceHidden ? <FaEyeSlash color="#FFFFFF" />  :  <FaEye color="#FFFFFF" />}
+                                        {/* <HiddenIcon /> */}
                                     </div>
                                 </div>
                             </div>
@@ -194,7 +204,7 @@ const Home = () => {
                                     <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>No transactions yet</p>
                                 </div>
                             ) : (
-                                storedUser.transactions.map((transaction, index) => (
+                                storedUser.transactions.slice(0, 3).map((transaction, index) => (
                                     <div className='flex justify-between items-center py-5 border-[#FFFFFF21] border-b-[1px]' key={index}>
                                         <div className='flex justify-start items-center gap-4'>
                                             <img src={MTN} className='w-7 h-7 rounded-xl' />

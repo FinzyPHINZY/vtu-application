@@ -10,6 +10,8 @@ import { useLoginMutation } from '../services/apiService';
 import { useDispatch } from 'react-redux';
 import { setUserInfo } from '../store/slices/userSlices';
 import { loginUser } from '../store/slices/authSlices';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 
 const Login = () => {
@@ -21,6 +23,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [passwordError, setPasswordError] = useState('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
     const [login] = useLoginMutation();
 
     useEffect(() => {
@@ -104,6 +107,9 @@ const Login = () => {
 
     };
 
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -163,13 +169,24 @@ const Login = () => {
                                 </div>
                                 <div className='mt-12'>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Password</p>
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={handlePasswordChange}
-                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='Enter your password'
-                                    />
+                                    <div
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black
+                                        flex justify-between items-center'>
+                                        <input
+                                            type={passwordVisible ? 'text' : 'password'}
+                                            value={password}
+                                            onChange={handlePasswordChange}
+                                            className='w-[95%] text-white bg-black outline-none'
+                                            placeholder='Enter your password'
+                                        />
+                                        {/* absolute top-1/2 right-4 transform -translate-y-1/2 */}
+                                        <span
+                                            className=' cursor-pointer'
+                                            onClick={togglePasswordVisibility}
+                                        >
+                                            {passwordVisible ? <FaEye color="#FFFFFF" /> : <FaEyeSlash color="#FFFFFF" />}
+                                        </span>
+                                    </div>
                                     {passwordError && <p className='text-[#D45A0E] text-sm text-center'>{passwordError}</p>}
                                     <p className='text-[#FFFFFF6B] font-[400] text-sm text-end font-poppins mt-5' onClick={() => navigate("/password/request-password")}>forgot password?</p>
                                 </div>
