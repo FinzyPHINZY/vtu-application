@@ -239,6 +239,7 @@ export const login = async (req, res) => {
         status: user.status,
         isGoogleUser: false,
         accountDetails: user.accountDetails,
+        accountNumber: user.accountNumber,
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
