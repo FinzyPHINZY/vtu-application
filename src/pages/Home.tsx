@@ -196,7 +196,8 @@ const Home = () => {
                             <div className='flex justify-between items-center mb-5'>
 
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Transaction</p>
-                                {storedUser.transactions.length > 0 && <p className='text-[#0D7CFF] font-[400] text-sm font-poppins'>See more</p>}
+                                {storedUser.transactions.length > 0 && 
+                                <p className='text-[#0D7CFF] font-[400] text-sm font-poppins' onClick={() => navigate("/transactions")}>See more</p>}
 
                             </div>
                             {storedUser.transactions.length === 0 ? (
@@ -273,12 +274,7 @@ const Home = () => {
                         <p className='text-white font-[400]  font-poppins text-sm '>Account name:</p>
                         <p className='text-white font-[400]  font-poppins text-sm '>{storedUser.accountDetails.accountName}</p>
                     </div>
-                    {/* <button
-
-                        onClick={handleCloseModal}
-                        className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Confirm payment</p>
-                    </button> */}
+                
                 </div>
             )}
         </div>

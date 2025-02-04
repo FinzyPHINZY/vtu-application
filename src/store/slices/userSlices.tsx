@@ -15,7 +15,7 @@ interface User {
   email: string;
   role: string;
   accountBalance: number;
-  transactions: Record<string, string | number | boolean>[];
+  transactions: Record<string, string>[];
   hasSetTransactionPin: boolean;
   isVerified: boolean;
   status: string;

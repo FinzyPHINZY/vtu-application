@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { ArrowRight, CustomerSupport2, LeftArrowIcon, TransactionPin } from '../assets/svg'
-import ProfileIcon from '../assets/images/profile.png'
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import { CgProfile } from "react-icons/cg";
 
 const Profile = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -52,7 +52,10 @@ const Profile = () => {
                             <div>       </div>
                         </div>
                         <div className="bg-[#1E1E1E] h-[35%] mt-3 px-5 pb-10 pt-8 rounded-[15px] flex flex-col justify-center items-center">
-                            <img src={ProfileIcon} className='w-15 h-15 rounded-xl' />
+
+                          
+                                <CgProfile  className='h-16 w-16 text-white' />
+                       
                             <p className="text-white font-[500] text-xl font-poppins mt-3">{storedUser.firstName} {storedUser.lastName}</p>
                             <p className="text-white font-[300] text-base font-poppins mt-2">{storedUser.email}</p>
                         </div>

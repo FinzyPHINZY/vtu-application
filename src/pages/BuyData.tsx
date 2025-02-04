@@ -70,14 +70,14 @@ const BuyData = () => {
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        const phoneNumberPattern = /^\+\d{1,3}\d{10}$/; 
-    
+        const phoneNumberPattern = /^\+\d{1,3}\d{10}$/;
+
         if (!phoneNumberPattern.test(value)) {
             setNumberError('Please enter a valid phone number in the format +234XXXXXXXXXX');
         } else {
             setNumberError('');
         }
-    
+
         setNumber(value);
     };
 
@@ -186,7 +186,7 @@ const BuyData = () => {
                 isMobileView ? (
                     // JSX for screens below 768px
                     <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
-                        {showModal && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
+                        {(showModal || paymentSuccessfulModal) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
                             <p className='text-white font-[400] text-base font-poppins'>Buy Data</p>
@@ -228,20 +228,7 @@ const BuyData = () => {
 
 
                         </div>
-                        {/* {selectedService && (
-                            <div className='w-full p-4 mt-4 border-t border-gray-200 flex flex-col justify-center items-start'>
-                                <div className='flex flex-col  items-center'>
-                                    <p className='text-white font-[400] text-base font-poppins mb-3'>Selected Service:</p>
-                                    <div className="items-center flex flex-col gap-2">
-                                        <div className="card ">
-                                            <img src={selectedService.logoUrl} alt={selectedService.name} className="w-15 h-15 rounded-xl" />
 
-                                        </div>
-                                        <p className='text-white'>{selectedService.name}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )} */}
                         <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
                             <div>
                                 {/* <div>
@@ -305,7 +292,7 @@ const BuyData = () => {
                 ) : (
                     // JSX for screens above 768px
                     <div className='min-h-screen w-full gap-4 bg-black p-5 flex flex-col justify-between'>
-                        {showModal && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
+                        {(showModal || paymentSuccessfulModal) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
                         <div className='text-white font-[500] font-kavoon text-2xl'>Bold data</div>
                         <div className='flex justify-center items-center '>
                             <img src={DesktopImage} className='w-60 h-60 ' />
