@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { validationResult } from 'express-validator';
 import dotenv from 'dotenv';
 import axios from 'axios';
+import ApiError from './error.js';
 
 dotenv.config({});
 
@@ -14,6 +15,31 @@ export const requestLogger = (req, res, next) => {
   console.log('Body: ', req.body);
   console.log('...');
   next();
+};
+
+export const errorHandler = (err, req, res, next) => {
+  console.error('Error:', {
+    message: err.message,
+    stack: err.stack,
+    details: err.details || 'No additional details',
+  });
+
+  if (err instanceof ApiError) {
+    return res.status(err.code).json({
+      success: err.success,
+      status: 'error',
+      code: err.code,
+      message: err.message,
+      details: err.details || null, // Include additional error context if available
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    status: 'error',
+    code: 500,
+    message: 'Internal server error',
+  });
 };
 
 export const convertAccessTokenToIdToken = async (req, res, next) => {
@@ -142,46 +168,6 @@ export const userExtractor = async (req, res, next) => {
         .status(500)
         .json({ success: false, message: 'Internal Server Error' });
     }
-  }
-};
-
-export const fetchAccessToken = async (req, res, next) => {
-  try {
-    const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
-    const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
-
-    const body = {
-      grant_type: 'client_credentials',
-      client_id: CLIENT_ID,
-      client_assertion: CLIENT_ASSERTION,
-      client_assertion_type:
-        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-    };
-
-    console.log('Fetching Safe Haven Access Token...');
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-      body
-    );
-
-    const { access_token, expires_in, ibs_client_id } = response.data;
-
-    console.log('Access Token fetched:', access_token);
-
-    // Attach the token and related details to the req object
-    req.accessToken = {
-      access_token,
-      expires_in,
-      ibs_client_id,
-    };
-
-    next(); // Pass control to the next middleware or route handler
-  } catch (error) {
-    console.error(
-      'Error fetching access token:',
-      error.response?.data || error.message
-    );
-    return res.status(500).json;
   }
 };
 

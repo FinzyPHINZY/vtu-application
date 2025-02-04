@@ -7,25 +7,23 @@ import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import { generateOtpEmailTemplate } from '../utils/email.js';
 import sendEmail from '../services/emailService.js';
+import { getAuthorizationToken } from '../services/safeHavenAuth.js';
+import ApiError from '../utils/error.js';
+import { errorHandler } from '../utils/middleware.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const requestOtp = async (req, res) => {
+export const requestOtp = async (req, res, next) => {
   try {
     const { email } = req.body;
 
     if (!email || !isValidEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid email address',
-      });
+      throw new ApiError(401, false, 'Invalid email address');
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser && existingUser.isVerified) {
-      return res
-        .status(409)
-        .json({ success: false, message: 'Email already registered' });
+      throw new ApiError(409, false, 'Email already registered');
     }
 
     // generate a four digit otp
@@ -54,11 +52,8 @@ export const requestOtp = async (req, res) => {
       message: 'OTP sent successfully',
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Internal Server Error - Failed to send OTP',
-      error: error.message,
-    });
+    console.log('OTP request failed', error);
+    next(error);
   }
 };
 
@@ -69,26 +64,18 @@ export const verifyOtp = async (req, res) => {
     const otpRecord = await OTP.findOne({ email });
 
     if (!otpRecord) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Invalid Request - Not Found' });
+      throw new ApiError(401, false, 'Invalid Request - Not Found');
     }
 
     const isOtpCorrect = await bcrypt.compare(otp, otpRecord.codeHash);
 
     if (!isOtpCorrect) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid OTP',
-      });
+      throw new ApiError(400, false, 'Invalid OTP');
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      throw new ApiError(404, false, 'User not found');
     }
 
     otpRecord.verified = true;
@@ -104,12 +91,8 @@ export const verifyOtp = async (req, res) => {
       email,
     });
   } catch (error) {
-    console.error(error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal Server Error - Failed to verify OTP',
-      error: error.message,
-    });
+    console.error('OTP verification failed', error);
+    next(error);
   }
 };
 
@@ -118,18 +101,16 @@ export const completeSignUp = async (req, res) => {
     const { firstName, lastName, email, phoneNumber, password } = req.body;
 
     if (!firstName.length || !lastName.length) {
-      return res.status(400).json({
-        success: false,
-        message: 'First name and Last name must be provided',
-      });
+      throw new ApiError(
+        400,
+        false,
+        'First name and Last name must be provided'
+      );
     }
 
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      throw new ApiError(404, false, 'User not found');
     }
 
     existingUser.firstName = firstName;
@@ -154,30 +135,22 @@ export const completeSignUp = async (req, res) => {
     });
   } catch (error) {
     console.error('Error during Signup: ', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal Server error',
-    });
+    next(error);
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields',
-      });
+      throw new ApiError(400, false, 'Missing required fields');
     }
 
     const user = await User.findOne({ email });
 
     if (!user || !user.isVerified) {
-      return res
-        .status(401)
-        .json({ success: false, message: 'Invalid Credentials' });
+      throw new ApiError(401, false, 'Invalid Credentials');
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
@@ -185,28 +158,33 @@ export const login = async (req, res) => {
       user.failedLoginAttempts += 1;
       user.lastLoginAttempt = new Date();
       await user.save();
-      return res
-        .status(401)
-        .json({ success: false, message: 'Invalid Credentials' });
+
+      throw new ApiError(401, false, 'Invalid Credentials');
     }
 
-    //
+    const refreshToken = await getAuthorizationToken();
+
     const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
     const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
 
     const body = {
-      grant_type: 'client_credentials',
+      grant_type: 'refresh_token',
       client_id: CLIENT_ID,
       client_assertion: CLIENT_ASSERTION,
       client_assertion_type:
         'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+      refresh_token: refreshToken,
     };
 
-    console.log('generating safehaven token');
+    console.log('generating safe haven token');
     const response = await axios.post(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
       body
     );
+
+    if (response.data.error) {
+      throw new ApiError(403, false, response.data.error);
+    }
 
     console.log('successfully generated safe haven token');
 
@@ -248,11 +226,8 @@ export const login = async (req, res) => {
       expires_in,
     });
   } catch (error) {
+    next(error);
     console.error('Error during login', error.response);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal Server error',
-    });
   }
 };
 
@@ -265,39 +240,44 @@ export const googleLogin = async (req, res) => {
       $or: [{ googleId }, { email, authProvider: 'google' }],
     });
 
-    if (user) {
-      return res
-        .status(403)
-        .json({ success: false, message: 'user already exists' });
+    if (!user) {
+      // Create new user with Google credentials
+      user = await User.create({
+        email,
+        googleId,
+        isVerified: true,
+        isGoogleUser: true,
+        phoneNumber: null,
+        firstName: '',
+        lastName: '',
+        accountBalance: 0,
+        accountDetails: {
+          bankName: '',
+          accountName: '',
+          accountType: 'Current',
+          accountBalance: '0',
+          status: 'Pending',
+        },
+      });
+
+      console.log('this is user', user);
     }
 
-    user = await User.create({
-      email,
-      googleId,
-      isVerified: true,
-      isGoogleUser: true,
-      phoneNumber: null,
-      firstName: '',
-      lastName: '',
-      accountBalance: 0,
-      accountDetails: {
-        bankName: '',
-        accountName: '',
-        accountType: 'Current',
-        accountBalance: '0',
-        status: 'Pending',
-      },
-    });
-
-    const updatedUser = await user.save();
+    if (user && user.isGoogleUser !== true) {
+      throw new ApiError(400, false, 'Please login with EMAIL and PASSWORD');
+    }
 
     // Get Safe Haven token
+
+    const refreshToken = await getAuthorizationToken();
+
     const body = {
-      grant_type: 'client_credentials',
+      grant_type: 'refresh_token',
       client_id: process.env.SAFE_HAVEN_CLIENT_ID,
       client_assertion: process.env.SAFE_HAVEN_CLIENT_ASSERTION,
       client_assertion_type:
         'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+      refresh_token: refreshToken,
     };
 
     let safeHavenResponse;
@@ -337,45 +317,23 @@ export const googleLogin = async (req, res) => {
       expiresIn: '1d',
     });
 
-    console.log('data sent to frontend -->>>>', {
-      success: true,
-      message: 'Signed in successfully',
-      data: {
-        _id: updatedUser._id,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        accountBalance: updatedUser.accountBalance,
-        transactions: updatedUser.transactions,
-        hasSetTransactionPin: updatedUser.hasSetTransactionPin,
-        isVerified: updatedUser.isVerified,
-        status: updatedUser.status,
-        isGoogleUser: true,
-        accountDetails: updatedUser.accountDetails,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        phoneNumber: updatedUser.phoneNumber,
-      },
-      token,
-      expires_in,
-    });
-
     return res.status(200).json({
       success: true,
       message: 'Signed in successfully',
       data: {
-        _id: updatedUser._id,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        accountBalance: updatedUser.accountBalance,
-        transactions: updatedUser.transactions,
-        hasSetTransactionPin: updatedUser.hasSetTransactionPin,
-        isVerified: updatedUser.isVerified,
-        status: updatedUser.status,
+        _id: user._id,
+        email: user.email,
+        role: user.role,
+        accountBalance: user.accountBalance,
+        transactions: user.transactions,
+        hasSetTransactionPin: user.hasSetTransactionPin,
+        isVerified: user.isVerified,
+        status: user.status,
         isGoogleUser: true,
-        accountDetails: updatedUser.accountDetails,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        phoneNumber: updatedUser.phoneNumber,
+        accountDetails: user.accountDetails,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
       },
       token,
       expires_in,

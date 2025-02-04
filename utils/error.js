@@ -1,9 +1,10 @@
-class AppError extends Error {
-  constructor(statusCode, message) {
+class ApiError extends Error {
+  constructor(code, success, message, details = null) {
     super(message);
-    this.statusCode = statusCode;
-    this.isOperational = true;
+    this.success = success;
+    this.code = code;
+    this.details = details;
   }
 }
 
-export default AppError;
+export default ApiError;
