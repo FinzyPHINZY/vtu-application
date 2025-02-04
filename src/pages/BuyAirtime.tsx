@@ -70,11 +70,17 @@ const BuyAirtime = () => {
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
+        const phoneNumberPattern = /^\+\d{1,3}\d{10}$/; // Regex for +CCCXXXXXXXXXX format where CCC is the country code
+    
+        if (!phoneNumberPattern.test(value)) {
+            setNumberError('Please enter a valid phone number in the format +234XXXXXXXXXX');
+        } else {
+            setNumberError('');
+        }
+    
         setNumber(value);
-
-
-
     };
+    
 
     useEffect(() => {
         if (secondData) {
@@ -243,7 +249,7 @@ const BuyAirtime = () => {
                                         value={number}
                                         onChange={handleNumberChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='1234567890'
+                                        placeholder='+2348178909913'
                                     />
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 

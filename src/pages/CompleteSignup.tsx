@@ -103,10 +103,15 @@ const CompleteSignup = () => {
     };
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
+        const phoneNumberPattern = /^\+\d{1,3}\d{10}$/; 
+    
+        if (!phoneNumberPattern.test(value)) {
+            setNumberError('Please enter a valid phone number in the format +234XXXXXXXXXX');
+        } else {
+            setNumberError('');
+        }
+    
         setNumber(value);
-
-
-
     };
     const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -217,7 +222,7 @@ const CompleteSignup = () => {
                                         value={number}
                                         onChange={handleNumberChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='+2345678909'
+                                        placeholder='+2348126232067'
                                     />
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 
