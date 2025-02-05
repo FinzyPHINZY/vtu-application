@@ -2,11 +2,11 @@ import Transaction from '../models/Transaction.js';
 import User from '../models/User.js';
 import sendEmail from '../services/emailService.js';
 import { generateTransactionReceipt } from './email.js';
-import AppError from './error.js';
+import ApiError from './error.js';
 
 // Utility function to validate phone number format
 export const isValidPhoneNumber = (phoneNumber) => {
-  return /^\+?[1-9]\d{1,14}$/.test(phoneNumber);
+  return /^0\d{10}$/.test(phoneNumber);
 };
 
 export const isValidAccountNumber = (accountNumber) => {
@@ -17,11 +17,11 @@ export const isValidAccountNumber = (accountNumber) => {
 export const validateBalance = async (userId, amount) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new AppError(404, 'User not found');
+    throw new ApiError(404, 'User not found');
   }
 
   if (user.accountBalance < amount) {
-    throw new AppError(400, 'Insufficient account balance');
+    throw new ApiError(400, 'Insufficient account balance');
   }
 
   return user;
@@ -62,7 +62,7 @@ export const processTransaction = async (user, amount, transactionDetails) => {
     return user.transactions[user.transactions.length - 1];
   } catch (error) {
     console.error('Transaction processing failed:', error);
-    throw new Error(500, 'Failed to process transaction');
+    throw new ApiError(500, 'Failed to process transaction');
   }
 };
 

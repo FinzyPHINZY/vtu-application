@@ -107,77 +107,6 @@ export const verifyEntityValidation = [
     .withMessage('Entity number is required'),
 ];
 
-export const airtimeValidation = [
-  body('serviceCategoryId')
-    .isString()
-    .notEmpty()
-    .withMessage('Service category ID is required'),
-  body('amount')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive number'),
-  body('channel').optional().isString().default('WEB'),
-  body('phoneNumber')
-    .isString()
-    .matches(/^\+?[1-9]\d{1,14}$/)
-    .withMessage('Invalid phone number format'),
-  body('statusUrl').isURL().withMessage('Valid status URL is required'),
-];
-
-export const dataValidation = [
-  body('serviceCategoryId')
-    .isString()
-    .notEmpty()
-    .withMessage('Service category ID is required'),
-  body('bundleCode')
-    .isString()
-    .notEmpty()
-    .withMessage('Bundle code is required'),
-  body('amount')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive number'),
-  body('channel').isString().notEmpty().withMessage('Channel is required'),
-  body('phoneNumber')
-    .isString()
-    .matches(/^\+?[1-9]\d{1,14}$/)
-    .withMessage('Invalid phone number format'),
-  body('statusUrl').isURL().withMessage('Valid status URL is required'),
-];
-
-export const cableTVValidation = [
-  body('serviceCategoryId')
-    .isString()
-    .notEmpty()
-    .withMessage('Service category ID is required'),
-  body('bundleCode')
-    .isString()
-    .notEmpty()
-    .withMessage('Bundle code is required'),
-  body('amount')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive number'),
-  body('channel').isString().notEmpty().withMessage('Channel is required'),
-  body('cardNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Card number is required'),
-];
-
-export const utilityValidation = [
-  body('serviceCategoryId')
-    .isString()
-    .notEmpty()
-    .withMessage('Service category ID is required'),
-  body('meterNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Meter number is required'),
-  body('amount')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive number'),
-  body('channel').isString().notEmpty().withMessage('Channel is required'),
-  body('vendType').isString().notEmpty().withMessage('Vend type is required'),
-];
-
 export const transactionIdValidation = [
   param('id')
     .isString()
@@ -205,69 +134,22 @@ export const accountsQueryValidation = [
     .withMessage('isSubAccount must be a boolean'),
 ];
 
-export const airtimeTransactionValidation = [
-  body('serviceCategoryId')
+// Data purchase validation
+export const dataPurchaseValidation = [
+  body('network')
+    .isInt({ min: 1, max: 4 })
+    .withMessage('Invalid network provider ID'),
+  body('mobile_number')
+    .matches(/^0\d{10}$/)
+    .withMessage('Invalid phone number format. Must be in format 0XXXXXXXXXX'),
+  body('plan').isInt({ min: 1 }).withMessage('Invalid plan ID'),
+  body('Ported_number')
+    .isBoolean()
+    .withMessage('Ported_number must be a boolean'),
+  body('transactionPin')
     .isString()
-    .notEmpty()
-    .withMessage('Service category ID is required'),
-  body('amount')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive number'),
-  body('phoneNumber')
-    .isString()
-    .matches(/^\+?[1-9]\d{1,14}$/)
-    .withMessage('Invalid phone number format'),
-];
-
-export const dataTransactionValidation = [
-  body('serviceCategoryId')
-    .isString()
-    .notEmpty()
-    .withMessage('Service category ID is required'),
-  body('bundleCode')
-    .isString()
-    .notEmpty()
-    .withMessage('Bundle code is required'),
-  body('amount')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive number'),
-  body('phoneNumber')
-    .isString()
-    .matches(/^\+?[1-9]\d{1,14}$/)
-    .withMessage('Invalid phone number format'),
-];
-
-export const cableTVTransactionValidation = [
-  body('serviceCategoryId')
-    .isString()
-    .notEmpty()
-    .withMessage('Service category ID is required'),
-  body('bundleCode')
-    .isString()
-    .notEmpty()
-    .withMessage('Bundle code is required'),
-  body('amount')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive number'),
-  body('cardNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Card number is required'),
-];
-
-export const utilityTransactionValidation = [
-  body('serviceCategoryId')
-    .isString()
-    .notEmpty()
-    .withMessage('Service category ID is required'),
-  body('meterNumber')
-    .isString()
-    .notEmpty()
-    .withMessage('Meter number is required'),
-  body('amount')
-    .isInt({ min: 1 })
-    .withMessage('Amount must be a positive number'),
-  body('vendType').isString().notEmpty().withMessage('Vend type is required'),
+    .matches(/^\d{4}$/)
+    .withMessage('Transaction PIN must be 4 digits'),
 ];
 
 export const transactionPinValidation = [

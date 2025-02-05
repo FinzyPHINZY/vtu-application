@@ -6,12 +6,9 @@ import {
   validateRequest,
 } from '../utils/middleware.js';
 import {
-  airtimeTransactionValidation,
-  cableTVTransactionValidation,
-  dataTransactionValidation,
+  dataPurchaseValidation,
   transactionIdValidation,
   transactionPinValidation,
-  utilityTransactionValidation,
 } from '../utils/helpers.js';
 import * as TransactionController from '../controllers/transactionController.js';
 import {
@@ -23,64 +20,65 @@ const router = express.Router();
 router.use(tokenExtractor);
 router.use(userExtractor);
 
-router.post(
-  '/airtime',
-  validateHeaders,
-  requireTransactionPin,
-  [...airtimeTransactionValidation, transactionPinValidation],
-  validateRequest,
-  validateTransactionPin,
-  TransactionController.purchaseAirtime
-);
+// router.post(
+//   '/airtime',
+//   validateHeaders,
+//   requireTransactionPin,
+//   transactionPinValidation,
+//   validateRequest,
+//   validateTransactionPin,
+//   TransactionController.purchaseAirtime
+// );
 
 router.post(
   '/data',
   validateHeaders,
   requireTransactionPin,
-  [...dataTransactionValidation, transactionPinValidation],
+  dataPurchaseValidation,
+  transactionPinValidation,
   validateRequest,
   validateTransactionPin,
   TransactionController.purchaseData
 );
 
-router.post(
-  '/cable-tv',
-  validateHeaders,
-  requireTransactionPin,
-  [...cableTVTransactionValidation, transactionPinValidation],
-  validateRequest,
-  validateTransactionPin,
-  TransactionController.payCableTV
-);
+// router.post(
+//   '/cable-tv',
+//   validateHeaders,
+//   requireTransactionPin,
+//   [...cableTVTransactionValidation, transactionPinValidation],
+//   validateRequest,
+//   validateTransactionPin,
+//   TransactionController.payCableTV
+// );
 
-router.post(
-  '/utility',
-  validateHeaders,
-  requireTransactionPin,
-  [...utilityTransactionValidation, transactionPinValidation],
-  TransactionController.payUtilityBill
-);
+// router.post(
+//   '/utility',
+//   validateHeaders,
+//   requireTransactionPin,
+//   [...utilityTransactionValidation, transactionPinValidation],
+//   TransactionController.payUtilityBill
+// );
 
-router.post(
-  '/transfer',
-  validateHeaders,
-  requireTransactionPin,
-  transactionPinValidation,
-  TransactionController.transferFunds
-);
-// VAS Transaction endpoints
-router.get(
-  '/transactions',
-  // validateHeaders,
-  // validateRequest,
-  TransactionController.getTransactions
-);
-router.get(
-  '/transaction/:id',
-  validateHeaders,
-  transactionIdValidation,
-  validateRequest,
-  TransactionController.getTransactionById
-);
+// router.post(
+//   '/transfer',
+//   validateHeaders,
+//   requireTransactionPin,
+//   transactionPinValidation,
+//   TransactionController.transferFunds
+// );
+// // VAS Transaction endpoints
+// router.get(
+//   '/transactions',
+//   // validateHeaders,
+//   // validateRequest,
+//   TransactionController.getTransactions
+// );
+// router.get(
+//   '/transaction/:id',
+//   validateHeaders,
+//   transactionIdValidation,
+//   validateRequest,
+//   TransactionController.getTransactionById
+// );
 
 export default router;

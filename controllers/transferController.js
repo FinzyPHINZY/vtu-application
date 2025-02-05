@@ -159,21 +159,6 @@ export const executeTransfer = async (req, res, next) => {
 
     await sendTransactionReceipt(user, transactionDoc);
 
-    // Update user's account balance and add transaction record
-    // user.accountBalance -= amount;
-    // user.transactions.push({
-    //   reference: paymentReference,
-    //   type: 'debit',
-    //   amount,
-    //   status: 'pending',
-    //   metadata: {
-    //     transferType: 'bank_transfer',
-    //     beneficiaryAccount: beneficiaryAccountNumber,
-    //     beneficiaryBank: beneficiaryBankCode,
-    //     narration,
-    //   },
-    // });
-
     return res.status(200).json({
       success: true,
       message: 'Bank transfer completed successfully',

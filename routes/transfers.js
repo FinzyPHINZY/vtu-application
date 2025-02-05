@@ -12,7 +12,10 @@ import {
   statusValidation,
   transferValidation,
 } from '../utils/helpers.js';
-import { validateTransactionPin } from '../utils/transactionPin.js';
+import {
+  requireTransactionPin,
+  validateTransactionPin,
+} from '../utils/transactionPin.js';
 const router = express.Router();
 
 router.use(tokenExtractor);
@@ -39,6 +42,7 @@ router.post(
 router.post(
   '/',
   validateHeaders,
+  requireTransactionPin,
   transferValidation,
   validateRequest,
   validateTransactionPin,

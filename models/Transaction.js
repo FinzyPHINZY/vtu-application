@@ -12,7 +12,7 @@ const transactionSchema = new mongoose.Schema(
       enum: [
         'airtime',
         'data',
-        'transfer',
+        'bank_transfer',
         'deposit',
         'withdrawal',
         'electricity',

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import AppError from '../utils/error.js';
+import ApiError from '../utils/error.js';
 import {
   generateRandomReference,
   generateTransferReference,
@@ -105,23 +105,31 @@ export const purchaseAirtime = async (req, res) => {
   }
 };
 
-export const purchaseData = async (req, res) => {
+export const purchaseData = async (req, res, next) => {
   try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+    const { network, mobile_number, plan, Ported_number, amount } = req.body;
 
-    const { serviceCategoryId, bundleCode, amount, phoneNumber } = req.body;
+    // Validate request body
+    if (!network || !mobile_number || !plan || Ported_number === undefined) {
+      throw new ApiError(400, false, 'Missing required fields');
+    }
 
     // validate phone number
-    if (!isValidPhoneNumber(phoneNumber)) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Invalid phone number format' });
+    if (!isValidPhoneNumber(mobile_number)) {
+      throw new ApiError(
+        400,
+        false,
+        'Invalid phone number format. Must be in format 0XXXXXXXXXX'
+      );
+    }
+
+    // Validate network ID (assuming valid network IDs are 1-4)
+    if (![1, 2, 3, 4, 5].includes(network)) {
+      throw new ApiError(400, false, 'Invalid network provider ID');
     }
 
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
-
-    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
 
     // create reference
     const reference = generateRandomReference('DAT', user.firstName);
@@ -131,10 +139,10 @@ export const purchaseData = async (req, res) => {
       reference,
       serviceType: 'data',
       metadata: {
-        serviceCategoryId,
-        bundleCode,
-        phoneNumber,
-        debitAccountNumber,
+        network,
+        mobile_number,
+        plan,
+        Ported_number,
       },
     };
 
@@ -144,62 +152,78 @@ export const purchaseData = async (req, res) => {
       transactionDetails
     );
 
+    const token = process.env.DATASTATION_AUTH_TOKEN;
+
+    console.log('this s token', token);
+
     console.log('purchasing data');
 
-    // make purchase request to safe-haven endpoint
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/data`,
-      {
-        serviceCategoryId,
-        bundleCode,
-        amount,
-        channel: 'WEB',
-        debitAccountNumber,
-        phoneNumber,
-        statusUrl: `${process.env.API_BASE_URL}/webhook/transaction-status`,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
+    try {
+      // Make request to DataStation API
+      const response = await axios.post(
+        'https://datastationapi.com/api/data/',
+        {
+          network,
+          mobile_number,
+          plan,
+          Ported_number,
         },
-      }
-    );
+        {
+          timeout: 30000,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
+          },
+        }
+      );
 
-    const { data } = response.data;
+      // update transaction status
+      const transactionDoc = await Transaction.findById(transaction.toString());
+      transactionDoc.status = 'success';
 
-    // update transaction status
-    const transactionDoc = await Transaction.findById(transaction.toString());
-    transactionDoc.status = 'success';
+      await transactionDoc.save();
+      await user.save();
 
-    await transactionDoc.save();
-    await user.save();
+      // send receipt
+      await sendTransactionReceipt(user, transactionDoc);
 
-    // send receipt
-    await sendTransactionReceipt(user, transactionDoc);
+      console.log(`Data bundle purchase successful for user: ${req.user.id}`);
 
-    console.log(`Data bundle purchase successful for user: ${req.user.id}`);
+      return res.status(200).json({
+        success: true,
+        message: 'Data purchase successful',
+        data: {
+          reference: transaction.reference,
+          amount,
+          network,
+          mobile_number,
+          plan,
+          status: transaction.status,
+          timestamp: transaction.createdAt,
+        },
+      });
+    } catch (error) {
+      // Handle failed API call
+      console.error('DataStation API call failed:', error);
 
-    return res.status(200).json({
-      success: true,
-      message: 'Data bundle purchase successful',
-      data,
-    });
+      // Reverse the transaction
+      user.accountBalance += amount;
+      transaction.status = 'failed';
+      transaction.failureReason =
+        error.response?.data?.message || 'Provider API error';
+      await user.save();
+
+      throw new ApiError(
+        error.response?.status || 500,
+        false,
+        error.response?.data?.message || 'Data purchase failed',
+        error.response?.data
+      );
+    }
   } catch (error) {
     console.error('Failed to purchase data', error);
 
-    // Handle known errors
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    return res
-      .status(500)
-      .json({ success: false, message: 'Internal Server Error' });
+    next(error);
   }
 };
 
