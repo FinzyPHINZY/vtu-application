@@ -3,10 +3,11 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
-import { ArrowRight, CustomerSupport2, LeftArrowIcon, TransactionPin } from '../assets/svg'
+import { ArrowRight, LeftArrowIcon, TransactionPin } from '../assets/svg'
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { FaUserCircle } from "react-icons/fa";
+import { FcAbout } from "react-icons/fc";
 
 const Profile = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -53,9 +54,9 @@ const Profile = () => {
                         </div>
                         <div className="bg-[#1E1E1E] h-[35%] mt-3 px-5 pb-10 pt-8 rounded-[15px] flex flex-col justify-center items-center">
 
-                          
-                                <FaUserCircle   className='h-16 w-16 text-white' />
-                       
+
+                            <FaUserCircle className='h-16 w-16 text-white' />
+
                             <p className="text-white font-[500] text-xl font-poppins mt-3">{storedUser.firstName} {storedUser.lastName}</p>
                             <p className="text-white font-[300] text-base font-poppins mt-2">{storedUser.email}</p>
                         </div>
@@ -63,9 +64,9 @@ const Profile = () => {
 
                             <div className='flex justify-between items-center'>
                                 <div className='flex justify-start items-center gap-4'>
-                                    <CustomerSupport2 />
+                                    <FcAbout />
 
-                                    <p className='text-[#FFFFFF] font-[400] text-base font-poppins'>Customer care</p>
+                                    <p className='text-[#FFFFFF] font-[400] text-base font-poppins'>About Us</p>
 
                                 </div>
                                 <ArrowRight />
