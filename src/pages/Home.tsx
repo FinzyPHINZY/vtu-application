@@ -6,15 +6,17 @@ import { useNavigate } from 'react-router-dom';
 import MTN from '../assets/images/mtn.png';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-import { ArrowRight,
-     CableIcon, 
-     CancelIcon, 
-     DataIcon, 
-     DepositIcon, 
-     ElectricityIcon, 
+import {
+    ArrowRight,
+    CableIcon,
+    CancelIcon,
+    DataIcon,
+    DepositIcon,
+    ElectricityIcon,
     //  HiddenIcon, 
-     NotificationIcon, 
-     PhoneIcon, ProfileIcon, QuickServiceIcon, RoundedIcon, TransferIcon } from '../assets/svg';
+    NotificationIcon,
+    PhoneIcon, ProfileIcon, QuickServiceIcon, RoundedIcon, TransferIcon
+} from '../assets/svg';
 import { useFetchServicesQuery } from '../services/apiService';
 import '../App.css'
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -23,7 +25,7 @@ const Home = () => {
     const storedUser = useSelector((state: RootState) => state.user.user);
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const storedPin = useSelector((state: RootState) => state.user.pin);
-    const [accountBalanceHidden, setAccountBalanceHidden] = useState(false); 
+    const [accountBalanceHidden, setAccountBalanceHidden] = useState(false);
     console.log(storedUser, storedToken, 48)
     console.log(storedUser.hasSetTransactionPin)
     const [isMobileView, setIsMobileView] = useState(false);
@@ -77,20 +79,24 @@ const Home = () => {
 
                         <div className="bg-[#1E1E1E] h-[35%] px-5 py-8 rounded-[15px]">
                             <div className='flex justify-between items-center '>
-                                <p className='text-[#FFFFFF] font-[400] text-lg font-poppins'>Bold data</p>
-                                <div onClick={() => navigate('/profile')}>
-                                    <ProfileIcon />
+                                <div className='flex justify-start gap-2 items-center'>
+                                    <div onClick={() => navigate('/profile')}>
+                                        <ProfileIcon />
+                                    </div>
+                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Hi, {storedUser.firstName}</p>
                                 </div>
+                                <p className='text-[#FFFFFF] font-[400] text-lg font-poppins'>Bold data</p>
+
                             </div>
                             <div className='mt-10'>
                                 <p className='text-[#FFFFFFB0] font-[400] text-sm font-poppins text-center'> Total balance</p>
                                 <div className='flex justify-center items-center gap-1 mt-2'>
                                     <p className='text-[#FFFFFFB2] font-[400] text-base font-kavoon'>N</p>
                                     <p className='text-[#FFFFFF] px-2 font-[700] text-2xl font-poppins'>
-                                        {accountBalanceHidden ? '**' : storedUser.accountBalance}
+                                        {accountBalanceHidden ? '***' : storedUser.accountBalance}
                                     </p>
                                     <div onClick={toggleAccountBalance}>
-                                         {accountBalanceHidden ? <FaEyeSlash color="#FFFFFF" />  :  <FaEye color="#FFFFFF" />}
+                                        {accountBalanceHidden ? <FaEyeSlash color="#FFFFFF" /> : <FaEye color="#FFFFFF" />}
                                         {/* <HiddenIcon /> */}
                                     </div>
                                 </div>
@@ -196,8 +202,8 @@ const Home = () => {
                             <div className='flex justify-between items-center mb-5'>
 
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Transaction</p>
-                                {storedUser.transactions.length > 0 && 
-                                <p className='text-[#0D7CFF] font-[400] text-sm font-poppins' onClick={() => navigate("/transactions")}>See more</p>}
+                                {storedUser.transactions.length > 0 &&
+                                    <p className='text-[#0D7CFF] font-[400] text-sm font-poppins' onClick={() => navigate("/transactions")}>See more</p>}
 
                             </div>
                             {storedUser.transactions.length === 0 ? (
@@ -274,7 +280,7 @@ const Home = () => {
                         <p className='text-white font-[400]  font-poppins text-sm '>Account name:</p>
                         <p className='text-white font-[400]  font-poppins text-sm '>{storedUser.accountDetails.accountName}</p>
                     </div>
-                
+
                 </div>
             )}
         </div>

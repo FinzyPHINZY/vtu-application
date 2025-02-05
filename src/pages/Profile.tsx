@@ -6,7 +6,7 @@ import { FiFacebook } from "react-icons/fi";
 import { ArrowRight, CustomerSupport2, LeftArrowIcon, TransactionPin } from '../assets/svg'
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-import { CgProfile } from "react-icons/cg";
+import { FaUserCircle } from "react-icons/fa";
 
 const Profile = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -54,7 +54,7 @@ const Profile = () => {
                         <div className="bg-[#1E1E1E] h-[35%] mt-3 px-5 pb-10 pt-8 rounded-[15px] flex flex-col justify-center items-center">
 
                           
-                                <CgProfile  className='h-16 w-16 text-white' />
+                                <FaUserCircle   className='h-16 w-16 text-white' />
                        
                             <p className="text-white font-[500] text-xl font-poppins mt-3">{storedUser.firstName} {storedUser.lastName}</p>
                             <p className="text-white font-[300] text-base font-poppins mt-2">{storedUser.email}</p>
@@ -83,7 +83,7 @@ const Profile = () => {
                             </div>
                         </div>
 
-                        <p className='text-[#ED1C1C] text-center font-[400] text-sm font-poppins mt-5' onClick={() => navigate("/login")}>Log Out</p>
+                        <p className='text-[#D45A0E] text-center font-[400] text-sm font-poppins mt-5' onClick={() => navigate("/login")}>Log Out</p>
 
                     </div>
                 ) : (
