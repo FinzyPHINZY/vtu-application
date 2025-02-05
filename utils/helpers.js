@@ -311,3 +311,77 @@ export const generateTransferReference = () => {
   const randomValue = Math.floor(1000000 + Math.random() * 9000000); // Random 7-digit number
   return `${prefix}${randomValue}`;
 };
+
+export const nameEnquiryValidation = [
+  body('bankCode').isString().notEmpty().withMessage('Bank code is required'),
+  body('accountNumber')
+    .isString()
+    .matches(/^\d{10}$/)
+    .withMessage('Account number must be 10 digits'),
+];
+
+export const transferValidation = [
+  body('nameEnquiryReference')
+    .isString()
+    .notEmpty()
+    .withMessage('Name enquiry reference is required'),
+  body('debitAccountNumber')
+    .isString()
+    .matches(/^\d{10}$/)
+    .withMessage('Debit account number must be 10 digits'),
+  body('beneficiaryBankCode')
+    .isString()
+    .notEmpty()
+    .withMessage('Beneficiary bank code is required'),
+  body('beneficiaryAccountNumber')
+    .isString()
+    .matches(/^\d{10}$/)
+    .withMessage('Beneficiary account number must be 10 digits'),
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  body('saveBeneficiary')
+    .optional()
+    .isBoolean()
+    .withMessage('Save beneficiary must be a boolean'),
+  body('narration').isString().notEmpty().withMessage('Narration is required'),
+  body('paymentReference')
+    .isString()
+    .notEmpty()
+    .withMessage('Payment reference is required'),
+  body('transactionPin')
+    .isString()
+    .matches(/^\d{4}$/)
+    .withMessage('Transaction PIN must be 4 digits'),
+];
+
+export const statusValidation = [
+  body('sessionId').isString().notEmpty().withMessage('Session ID is required'),
+];
+
+export const historyValidation = [
+  query('accountId')
+    .isString()
+    .notEmpty()
+    .withMessage('Account ID is required'),
+  query('page')
+    .optional()
+    .isInt({ min: 0 })
+    .toInt()
+    .withMessage('Page must be a non-negative integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .toInt()
+    .withMessage('Limit must be between 1 and 100'),
+  query('fromDate')
+    .optional()
+    .isISO8601()
+    .withMessage('From date must be a valid date'),
+  query('toDate')
+    .optional()
+    .isISO8601()
+    .withMessage('To date must be a valid date'),
+  query('type').optional().isString().withMessage('Type must be a string'),
+  query('status').optional().isString().withMessage('Status must be a string'),
+];
