@@ -73,14 +73,26 @@ const CompleteSignup2 = () => {
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        const phoneNumberPattern = /^\+\d{1,3}\d{10}$/;
+        
+     
+        const cleanValue = value.startsWith('+') 
+            ? '+' + value.replace(/[+\D]/g, '')
+            : value.replace(/\D/g, '');
+            
+        console.log('Original value:', value);
+        console.log('Cleaned value:', cleanValue);
+        
 
-        if (!phoneNumberPattern.test(value)) {
-            setNumberError('Please enter a valid phone number in the format +234XXXXXXXXXX');
+        const phoneNumberPattern = /^(\+234|234|0)[1-9]\d{9}$/;
+        
+        if (!phoneNumberPattern.test(cleanValue)) {
+            console.log('Validation failed');
+            setNumberError('Please enter a valid phone number in either format:\n+234XXXXXXXXXX\nor\n234XXXXXXXXXX');
         } else {
+            console.log('Validation passed');
             setNumberError('');
         }
-
+        
         setNumber(value);
     };
 
@@ -98,7 +110,7 @@ const CompleteSignup2 = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (firstName && lastName && bvn && number && number.length >= 10) {
+        if (firstName && lastName && bvn && number) {
             setBvnError('');
             setNumberError("")
             setFirstNameError("")
@@ -148,7 +160,7 @@ const CompleteSignup2 = () => {
                         dispatch(setStatus(response.data.data.status));
                         // if (thirdResponse.data.success) {
                         // toast.success(thirdResponse.data.message);
-                        navigate('/login');
+                        navigate('/home');
                         //     } else {
                         //         toast.error("Sub-account creation failed. Please try again.");
                         //     }
@@ -232,7 +244,7 @@ const CompleteSignup2 = () => {
                                 }
 
 
-                                <div className={`${storedUser.isGoogleUser ? '': 'mt-8'}`}>
+                                <div className={`${storedUser.isGoogleUser ? 'mt-8': ''}`}>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>BVN Number</p>
                                     <input
                                         type='text'

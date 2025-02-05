@@ -70,14 +70,26 @@ const BuyAirtime = () => {
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        const phoneNumberPattern = /^\+\d{1,3}\d{10}$/; // Regex for +CCCXXXXXXXXXX format where CCC is the country code
+        
+     
+        const cleanValue = value.startsWith('+') 
+            ? '+' + value.replace(/[+\D]/g, '')
+            : value.replace(/\D/g, '');
+            
+        console.log('Original value:', value);
+        console.log('Cleaned value:', cleanValue);
+        
 
-        if (!phoneNumberPattern.test(value)) {
-            setNumberError('Please enter a valid phone number in the format +234XXXXXXXXXX');
+        const phoneNumberPattern = /^(\+234|234|0)[1-9]\d{9}$/;
+        
+        if (!phoneNumberPattern.test(cleanValue)) {
+            console.log('Validation failed');
+            setNumberError('Please enter a valid phone number in either format:\n+234XXXXXXXXXX\nor\n234XXXXXXXXXX');
         } else {
+            console.log('Validation passed');
             setNumberError('');
         }
-
+        
         setNumber(value);
     };
 

@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import { useResetPasswordMutation } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const ResetPassword = () => {
     const [isMobileView, setIsMobileView] = useState(false);
@@ -22,6 +22,8 @@ const ResetPassword = () => {
     const [confirmPasswordError, setConfirmPasswordError] = useState('');
     const [loading, setLoading] = useState(false);
     const [resetPassword] = useResetPasswordMutation();
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
     const storedToken = useSelector((state: RootState) => state.auth.token);
 
     useEffect(() => {
@@ -53,6 +55,18 @@ const ResetPassword = () => {
         navigate(-1);
     };
 
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setEmail(value);
+
+        if (validateEmail(value)) {
+            setEmailError('');
+        } else {
+            setEmailError('Please enter a valid email address.');
+        }
+    };
+
     const validatePassword = (password: string) => {
         const minLength = 8;
         const uppercaseRegex = /[A-Z]/;
@@ -78,16 +92,6 @@ const ResetPassword = () => {
         return true;
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setEmail(value);
-
-        if (validateEmail(value)) {
-            setEmailError('');
-        } else {
-            setEmailError('Please enter a valid email address.');
-        }
-    };
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -107,6 +111,14 @@ const ResetPassword = () => {
         } else {
             setConfirmPasswordError('');
         }
+    };
+
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
+
+    const toggleConfirmPasswordVisibility = () => {
+        setConfirmPasswordVisible(!confirmPasswordVisible);
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -164,25 +176,49 @@ const ResetPassword = () => {
                             </div>
                             <div className='mt-8'>
                                 <p className='text-white font-[500] text-base font-poppins mb-5'>Password</p>
-                                <input
-                                    type='password'
-                                    value={password}
-                                    onChange={handlePasswordChange}
-                                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                    placeholder='Enter your password'
-                                />
+                                <div
+                                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black
+                                                                                               flex justify-between items-center'>
+                                    <input
+                                        type={passwordVisible ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={handlePasswordChange}
+                                        className='w-[95%] text-white bg-black outline-none'
+                                        placeholder='Enter your password'
+                                    />
+
+                                    <span
+                                        className=' cursor-pointer'
+                                        onClick={togglePasswordVisibility}
+                                    >
+                                        {passwordVisible ? <FaEye color="#FFFFFF" /> : <FaEyeSlash color="#FFFFFF" />}
+                                    </span>
+                                </div>
                                 {passwordError && <p className='text-[#D45A0E] text-sm text-center'>{passwordError}</p>}
+
                             </div>
                             <div className='mt-8'>
                                 <p className='text-white font-[500] text-base font-poppins mb-5'>Confirm Password</p>
-                                <input
-                                    type='password'
-                                    value={confirmPassword}
-                                    onChange={handleConfirmPasswordChange}
-                                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                    placeholder='Confirm your password'
-                                />
+                                <div
+                                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black
+                                                               flex justify-between items-center'>
+                                    <input
+                                        type={confirmPasswordVisible ? 'text' : 'password'}
+                                        value={confirmPassword}
+                                        onChange={handleConfirmPasswordChange}
+                                        className='w-[95%] text-white bg-black outline-none'
+                                        placeholder='Enter your confirm password'
+                                    />
+
+                                    <span
+                                        className=' cursor-pointer'
+                                        onClick={toggleConfirmPasswordVisibility}
+                                    >
+                                        {confirmPasswordVisible ? <FaEye color="#FFFFFF" /> : <FaEyeSlash color="#FFFFFF" />}
+                                    </span>
+                                </div>
                                 {confirmPasswordError && <p className='text-[#D45A0E] text-sm text-center'>{confirmPasswordError}</p>}
+
                             </div>
 
                             <button
