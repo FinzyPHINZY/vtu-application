@@ -43,31 +43,26 @@ router.post(
   TransactionController.purchaseData
 );
 
-// router.post(
-//   '/cable-tv',
-//   validateHeaders,
-//   requireTransactionPin,
-//   [...cableTVTransactionValidation, transactionPinValidation],
-//   validateRequest,
-//   validateTransactionPin,
-//   TransactionController.payCableTV
-// );
+router.post(
+  '/cable-tv',
+  validateHeaders,
+  requireTransactionPin,
+  transactionPinValidation,
+  validateRequest,
+  validateTransactionPin,
+  TransactionController.payCableTV
+);
 
-// router.post(
-//   '/utility',
-//   validateHeaders,
-//   requireTransactionPin,
-//   [...utilityTransactionValidation, transactionPinValidation],
-//   TransactionController.payUtilityBill
-// );
+router.post(
+  '/utility',
+  validateHeaders,
+  requireTransactionPin,
+  transactionPinValidation,
+  validateRequest,
+  validateTransactionPin,
+  TransactionController.payUtilityBill
+);
 
-// router.post(
-//   '/transfer',
-//   validateHeaders,
-//   requireTransactionPin,
-//   transactionPinValidation,
-//   TransactionController.transferFunds
-// );
 // // VAS Transaction endpoints
 // router.get(
 //   '/transactions',

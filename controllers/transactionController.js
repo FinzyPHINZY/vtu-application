@@ -203,7 +203,7 @@ export const purchaseData = async (req, res, next) => {
     }
 
     // Validate network ID (assuming valid network IDs are 1-4)
-    if (![1, 2, 3, 4, 5].includes(network)) {
+    if (![1, 2, 3, 4].includes(network)) {
       throw new ApiError(400, false, 'Invalid network provider ID');
     }
 
@@ -230,10 +230,6 @@ export const purchaseData = async (req, res, next) => {
       amount,
       transactionDetails
     );
-
-    const token = process.env.DATASTATION_AUTH_TOKEN;
-
-    console.log('this s token', token);
 
     console.log('purchasing data');
 
@@ -272,13 +268,13 @@ export const purchaseData = async (req, res, next) => {
         success: true,
         message: 'Data purchase successful',
         data: {
-          reference: transaction.reference,
+          reference: transactionDoc.reference,
           amount,
           network,
           mobile_number,
           plan,
-          status: transaction.status,
-          timestamp: transaction.createdAt,
+          status: transactionDoc.status,
+          timestamp: transactionDoc.createdAt,
         },
       });
     } catch (error) {
@@ -288,8 +284,6 @@ export const purchaseData = async (req, res, next) => {
       // Reverse the transaction
       user.accountBalance += amount;
       transaction.status = 'failed';
-      transaction.failureReason =
-        error.response?.data?.message || 'Provider API error';
       await user.save();
 
       throw new ApiError(
@@ -306,16 +300,17 @@ export const purchaseData = async (req, res, next) => {
   }
 };
 
-export const payCableTV = async (req, res) => {
+export const payCableTV = async (req, res, next) => {
   try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+    const { cablename, cableplan, smart_card_number, amount } = req.body;
 
-    const { serviceCategoryId, bundleCode, amount, cardNumber } = req.body;
+    // Validate request body
+    if (!cablename || !cableplan || !smart_card_number) {
+      throw new ApiError(400, false, 'Missing required fields');
+    }
 
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
-
-    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
 
     // create external reference
     const reference = generateRandomReference('CAB_TV', user.firstName);
@@ -325,10 +320,9 @@ export const payCableTV = async (req, res) => {
       reference,
       serviceType: 'tvSubscription',
       metadata: {
-        serviceCategoryId,
-        bundleCode,
-        cardNumber,
-        debitAccountNumber,
+        cablename,
+        cableplan,
+        smart_card_number,
       },
     };
 
@@ -340,78 +334,73 @@ export const payCableTV = async (req, res) => {
 
     console.log('purchasing tv subscription');
 
-    // Make request to Safe Haven API
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/cable-tv`,
-      {
-        serviceCategoryId,
-        bundleCode,
-        amount,
-        channel: 'WEB',
-        debitAccountNumber,
-        cardNumber,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
+    try {
+      // Make request to Safe Haven API
+      const response = await axios.post(
+        `https://datastationapi.com/api/cablesub/`,
+        {
+          cablename,
+          cableplan,
+          smart_card_number,
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000,
+        }
+      );
 
-    if (response.data.statusCode === 400) {
-      return res.status(400).json({
-        success: false,
-        message: 'Failed to buy cable tv package. Please try again.',
+      const transactionDoc = await Transaction.findById(transaction.toString());
+      transactionDoc.status = 'success';
+
+      await transactionDoc.save();
+      await user.save();
+
+      // send receipt
+      await sendTransactionReceipt(user, transactionDoc);
+
+      console.log(`Cable TV Subscription successful`);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Cable Subscription purchase successful',
+        data: {
+          reference,
+          amount,
+          cablename,
+          cableplan,
+          status: transactionDoc.status,
+          timestamp: transactionDoc.createdAt,
+        },
       });
+    } catch (error) {
+      console.error('Cable Subscription Failed: ', error);
+
+      user.accountBalance += amount;
+      transaction.status = 'failed';
+      await user.save();
+
+      throw new ApiError(
+        error.response?.status || 500,
+        false,
+        error.response?.data?.message || 'Data purchase failed',
+        error.response?.data
+      );
     }
-
-    const { data } = response.data;
-
-    const transactionDoc = await Transaction.findById(transaction.toString());
-    transactionDoc.status = 'success';
-
-    await transactionDoc.save();
-    await user.save();
-
-    // send transaction receipt
-    await sendTransactionReceipt(user, transaction);
-
-    console.log(`Cable TV payment successful for user: ${req.user.id}`);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Cable TV payment successful',
-      data,
-    });
   } catch (error) {
-    console.error('Failed to Purchase TV Subscription', error);
-
-    // Handle known errors
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    return res
-      .status(500)
-      .json({ success: false, message: 'Internal Server Error' });
+    console.error('Failed to purchase cable tv subscription', error);
+    next(error);
   }
 };
 
-export const payUtilityBill = async (req, res) => {
+export const payUtilityBill = async (req, res, next) => {
   try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const { serviceCategoryId, meterNumber, amount, vendType } = req.body;
+    const { disco_name, meter_number, amount, meterType } = req.body;
 
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
-
-    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
 
     const reference = generateRandomReference('UTIL', user.firstName);
 
@@ -420,10 +409,9 @@ export const payUtilityBill = async (req, res) => {
       reference,
       serviceType: 'electricity',
       metadata: {
-        serviceCategoryId,
-        meterNumber,
-        vendType,
-        debitAccountNumber,
+        disco_name,
+        meter_number,
+        meterType,
       },
     };
 
@@ -435,165 +423,59 @@ export const payUtilityBill = async (req, res) => {
 
     console.log('paying utility bill');
 
-    // Make request to Safe Haven API
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/utility`,
-      {
-        serviceCategoryId,
-        meterNumber,
-        amount,
-        channel: 'WEB',
-        debitAccountNumber,
-        vendType,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
+    try {
+      const response = await axios.post(
+        'https://datastationapi.com/api/billpayment/',
+        { disco_name, meter_number, amount, meterType },
+        {
+          headers: {
+            Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
+            timeout: 30000,
+          },
+        }
+      );
+
+      const transactionDoc = await Transaction.findById(transaction.toString());
+      transactionDoc.status = 'success';
+
+      await transactionDoc.save();
+      await user.save();
+
+      await sendTransactionReceipt(user, transactionDoc);
+
+      console.log('Utility payment successful');
+
+      return res.status(200).json({
+        success: true,
+        message: 'Utility bill payment successful',
+        data: {
+          reference,
+          amount,
+          disco_name,
+          meter_number,
+          amount,
+          meterType,
+          status: transactionDoc.status,
+          timestamp: transactionDoc.createdAt,
         },
-      }
-    );
+      });
+    } catch (error) {
+      console.error('Utility bill payment failed: ', error);
 
-    const { data } = response.data;
+      user.accountBalance += amount;
+      transaction.status = 'failed';
+      await user.save();
 
-    // Update transaction status
-    const transactionDoc = await Transaction.findById(transaction.toString());
-    transactionDoc.status = 'success';
-
-    await transactionDoc.save();
-    await user.save();
-
-    // Send receipt
-    await sendTransactionReceipt(user, transactionDoc);
-
-    console.log(`Utility bill payment successful for user: ${req.user.id}`);
-
-    res.status(200).json({
-      success: true,
-      message: 'Utility bill payment successful',
-      data,
-    });
+      throw new ApiError(
+        error.response?.status || 500,
+        false,
+        error.response?.data?.message || 'Utility bill payment failed',
+        error.response?.data
+      );
+    }
   } catch (error) {
     console.error('Failed to pay utility bill', error);
-
-    // Handle known errors
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    return res
-      .status(500)
-      .json({ success: false, message: 'Internal Server Error' });
-  }
-};
-
-export const transferFunds = async (req, res) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const {
-      nameEnquiryReference,
-      beneficiaryBankCode,
-      beneficiaryAccountNumber,
-      amount,
-      saveBeneficiary,
-      narration,
-    } = req.body;
-
-    const paymentReference = generateTransferReference();
-
-    const payload = {
-      nameEnquiryReference,
-      beneficiaryBankCode,
-      beneficiaryAccountNumber,
-      amount,
-      saveBeneficiary,
-      narration,
-      paymentReference,
-    };
-
-    if (!isValidAccountNumber(beneficiaryAccountNumber)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid  beneficiary account number',
-      });
-    }
-
-    const user = await validateBalance(req.user.id, amount);
-
-    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
-
-    const reference = generateRandomReference('TRF', user.firstName);
-
-    const transactionDetails = {
-      reference,
-      serviceType: 'transfer',
-      metadata: {
-        beneficiaryAccountNumber,
-        beneficiaryBankCode,
-        nameEnquiryReference,
-        amount,
-        debitAccountNumber,
-      },
-    };
-
-    const transaction = await processTransaction(
-      user,
-      amount,
-      transactionDetails
-    );
-
-    console.log('making transfers');
-
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000, // 30 second timeout
-      }
-    );
-
-    const { data } = response.data;
-
-    const transactionDoc = await Transaction.findById(transaction.toString());
-    transactionDoc.status = 'success';
-
-    await transactionDoc.save();
-    await user.save();
-
-    // Send receipt
-    await sendTransactionReceipt(user, transactionDoc);
-
-    console.log(`Transfer to ${beneficiaryAccountNumber} successful`);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Fund transfer successful',
-      data,
-    });
-  } catch (error) {
-    console.log('Failed to transfer funds', error);
-
-    // Handle known errors
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    return res
-      .status('500')
-      .json({ success: false, message: 'Internal Server Error' });
+    next(error);
   }
 };
 
