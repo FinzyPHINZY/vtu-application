@@ -23,6 +23,12 @@ const CompleteSignup2 = () => {
     const navigate = useNavigate();
     const [bvn, setBvn] = useState('');
     const [bvnError, setBvnError] = useState('');
+    const [number, setNumber] = useState('');
+    const [numberError, setNumberError] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [firstNameError, setFirstNameError] = useState('');
+    const [lastNameError, setLastNameError] = useState('');
     const [initiateVerification] = useInitiateVerificationMutation();
     const [validateVerification] = useValidateVerificationMutation();
     const [createSubAccount] = useCreateSubAccountMutation();
@@ -53,6 +59,31 @@ const CompleteSignup2 = () => {
         navigate(-1);
     };
 
+    const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setFirstName(value);
+
+    };
+
+    const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setLastName(value);
+
+    };
+
+    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        const phoneNumberPattern = /^\+\d{1,3}\d{10}$/;
+
+        if (!phoneNumberPattern.test(value)) {
+            setNumberError('Please enter a valid phone number in the format +234XXXXXXXXXX');
+        } else {
+            setNumberError('');
+        }
+
+        setNumber(value);
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setBvn(value);
@@ -67,8 +98,11 @@ const CompleteSignup2 = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (bvn) {
+        if (firstName && lastName && bvn && number && number.length >= 10) {
             setBvnError('');
+            setNumberError("")
+            setFirstNameError("")
+            setLastNameError("")
             try {
 
                 setLoading(true);
@@ -94,9 +128,9 @@ const CompleteSignup2 = () => {
 
                         toast.success(secondResponse.data.message);
                         await createSubAccount({
-                            firstName: storedUser.firstName,
-                            lastName: storedUser.lastName,
-                            phoneNumber: storedUser.phoneNumber,
+                            firstName: storedUser.firstName || firstName,
+                            lastName: storedUser.lastName || lastName,
+                            phoneNumber: storedUser.phoneNumber || number,
                             emailAddress: storedUser.email,
                             externalReference: "AC_1240",
                             bvn,
@@ -130,10 +164,15 @@ const CompleteSignup2 = () => {
                 toast.error('There was an error. Please try again.');
             } finally {
                 setBvn("")
+                setNumber("")
+                setLastName("")
+                setFirstName("")
                 setLoading(false);
             }
         } else {
-
+            setNumberError('Please enter a valid phone number.');
+            setFirstNameError('Please provide your first name.');
+            setLastNameError('Please provide your last name.');
             setBvnError('Please enter your BVN.');
         }
     };
@@ -150,16 +189,61 @@ const CompleteSignup2 = () => {
                         </div>
                         <div className='text-white font-[600] text-lg font-poppins mt-10'>Verify your account</div>
                         <form className='mt-20' onSubmit={handleSubmit}>
-                            <p className='text-white font-[500] text-base font-poppins mb-5'>BVN Number</p>
-                            <input
-                                type='text'
-                                value={bvn}
-                                onChange={handleInputChange}
-                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                placeholder='22222222'
-                            />
-                            {bvnError && <p className='text-[#D45A0E] text-sm text-center'>{bvnError}</p>}
+                            <div>
+                                {storedUser.isGoogleUser &&
+                                    <>
+                                        <div >
+                                            <p className='text-white font-[500] text-base font-poppins mb-5'> First Name</p>
+                                            <input
+                                                type="text"
+                                                value={firstName}
+                                                onChange={handleFirstNameChange}
+                                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                                placeholder='Name'
+                                            />
+                                            {firstNameError && <p className='text-[#D45A0E] text-sm text-center'>{firstNameError}</p>}
 
+                                        </div>
+                                        <div className='mt-8'>
+                                            <p className='text-white font-[500] text-base font-poppins mb-5'>Last Name</p>
+                                            <input
+                                                type="text"
+                                                value={lastName}
+                                                onChange={handleLastNameChange}
+                                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                                placeholder='Name'
+                                            />
+                                            {lastNameError && <p className='text-[#D45A0E] text-sm text-center'>{lastNameError}</p>}
+
+                                        </div>
+                                        <div className='mt-8'>
+                                            <p className='text-white font-[500] text-base font-poppins mb-5'>Phone number</p>
+                                            <input
+                                                type="number"
+                                                value={number}
+                                                onChange={handleNumberChange}
+                                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                                placeholder='+2348126232067'
+                                            />
+                                            {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
+
+                                        </div>
+                                    </>
+                                }
+
+
+                                <div className={`${storedUser.isGoogleUser ? '': 'mt-8'}`}>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>BVN Number</p>
+                                    <input
+                                        type='text'
+                                        value={bvn}
+                                        onChange={handleInputChange}
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                        placeholder='22222222'
+                                    />
+                                    {bvnError && <p className='text-[#D45A0E] text-sm text-center'>{bvnError}</p>}
+                                </div>
+                            </div>
 
                             <button
                                 type="submit"
