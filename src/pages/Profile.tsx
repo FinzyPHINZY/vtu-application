@@ -7,7 +7,7 @@ import { ArrowRight, CustomerSupport2, LeftArrowIcon, TransactionPin } from '../
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { FaUserCircle } from 'react-icons/fa';
-import { FcAbout } from 'react-icons/fc';
+// import { FcAbout } from 'react-icons/fc';
 
 // Function to open Tawk.to chat widget
 const openTawkToChat = () => {
