@@ -13,21 +13,45 @@ import {
 } from '../utils/transaction.js';
 import Transaction from '../models/Transaction.js';
 
-export const purchaseAirtime = async (req, res) => {
+export const purchaseAirtime = async (req, res, next) => {
   try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+    const {
+      network,
+      amount,
+      mobile_number,
+      Ported_number,
+      airtime_type = 'VTU',
+    } = req.body;
 
-    const { serviceCategoryId, amount, phoneNumber } = req.body;
+    // Validate request body
+    if (!network || !amount || !mobile_number || Ported_number === undefined) {
+      throw new ApiError(400, false, 'Missing required fields');
+    }
 
-    if (!isValidPhoneNumber(phoneNumber)) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Invalid phone number format' });
+    // Validate amount range
+    if (amount < 50 || amount > 50000) {
+      throw new ApiError(
+        400,
+        false,
+        'Amount must be between 50 and 50000 Naira'
+      );
+    }
+
+    // Validate phone number format
+    if (!isValidPhoneNumber(mobile_number)) {
+      throw new ApiError(
+        400,
+        false,
+        'Invalid phone number format. Must be in format 08XXXXXXXXX'
+      );
+    }
+
+    // Validate network ID
+    if (![1, 2, 3, 4].includes(network)) {
+      throw new ApiError(400, false, 'Invalid network provider ID');
     }
 
     const user = await validateBalance(req.user.id, amount);
-
-    const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER; //user.accountNumber,
 
     const reference = generateRandomReference('AIR', user.firstName);
 
@@ -35,9 +59,10 @@ export const purchaseAirtime = async (req, res) => {
       reference,
       serviceType: 'airtime',
       metadata: {
-        serviceCategoryId,
-        phoneNumber,
-        debitAccountNumber,
+        network,
+        mobile_number,
+        airtime_type,
+        Ported_number,
       },
     };
 
@@ -49,59 +74,113 @@ export const purchaseAirtime = async (req, res) => {
 
     console.log('purchasing airtime');
 
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/pay/airtime`,
-      {
-        serviceCategoryId,
-        amount,
-        channel: 'WEB',
-        debitAccountNumber,
-        phoneNumber,
-        statusUrl: `${process.env.API_BASE_URL}/webhook/transaction-status`,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
+    try {
+      // Make request to DataStation API
+      const response = await axios.post(
+        'https://datastationapi.com/api/topup/',
+        {
+          network,
+          amount,
+          mobile_number,
+          Ported_number,
+          airtime_type,
         },
+        {
+          timeout: 30000,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
+          },
+        }
+      );
+
+      // Check transaction status
+      const statusResponse = await axios.get(
+        `https://datastationapi.com/api/data/${response.data.transaction_id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
+          },
+        }
+      );
+
+      // Send receipt
+      console.log(`Airtime purchase successful for user: ${req.user.id}`);
+
+      // Update transaction based on status
+      if (statusResponse.data.status === 'successful') {
+        transaction.status = 'success';
+        await user.save();
+
+        // Send receipt
+        await sendTransactionReceipt(user, transaction);
+
+        console.log(`Airtime purchase successful for user: ${req.user.id}`);
+
+        return res.status(200).json({
+          success: true,
+          message: 'Airtime purchase successful',
+          data: {
+            reference: transaction.reference,
+            amount,
+            network,
+            mobile_number,
+            status: transaction.status,
+            timestamp: transaction.createdAt,
+          },
+        });
+      } else if (statusResponse.data.status === 'failed') {
+        // Reverse the transaction
+        user.accountBalance += amount;
+        transaction.status = 'failed';
+        transaction.failureReason =
+          statusResponse.data.message || 'Transaction failed';
+        await user.save();
+
+        throw new ApiError(
+          400,
+          false,
+          'Airtime purchase failed',
+          statusResponse.data
+        );
+      } else {
+        // Transaction is still processing
+        return res.status(202).json({
+          success: true,
+          message: 'Airtime purchase is processing',
+          data: {
+            reference: transaction.reference,
+            transactionId: response.data.transaction_id,
+            amount,
+            network,
+            mobile_number,
+            status: 'pending',
+            timestamp: transaction.createdAt,
+          },
+        });
       }
-    );
+    } catch (error) {
+      // Handle failed API call
+      console.error('DataStation API call failed:', error);
 
-    const { data } = response.data;
+      // Reverse the transaction
+      user.accountBalance += amount;
+      transaction.status = 'failed';
+      transaction.failureReason =
+        error.response?.data?.message || 'Provider API error';
+      await user.save();
 
-    const transactionDoc = await Transaction.findById(transaction.toString());
-    transactionDoc.status = 'success';
-
-    await transactionDoc.save();
-    await user.save();
-
-    // Send receipt
-    await sendTransactionReceipt(user, transactionDoc);
-
-    console.log(`Airtime purchase successful for user: ${req.user.id}`);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Airtime purchase successful',
-      data,
-    });
-  } catch (error) {
-    console.log('Failed to purchase airtime', error.response);
-
-    // Handle known errors
-    if (error instanceof AppError) {
-      return res.status(error.statusCode).json({
-        success: false,
-        message: error.message,
-      });
+      throw new ApiError(
+        error.response?.status || 500,
+        false,
+        error.response?.data?.message || 'Airtime purchase failed',
+        error.response?.data
+      );
     }
-
-    return res.status(500).json({
-      success: false,
-      message: 'Internal Server Error',
-      error: error?.message,
-    });
+  } catch (error) {
+    console.error('Airtime purchase failed:', error);
+    next(error);
   }
 };
 

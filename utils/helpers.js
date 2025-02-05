@@ -152,6 +152,30 @@ export const dataPurchaseValidation = [
     .withMessage('Transaction PIN must be 4 digits'),
 ];
 
+// Airtime purchase validation
+export const airtimePurchaseValidation = [
+  body('network')
+    .isInt({ min: 1, max: 4 })
+    .withMessage('Invalid network provider ID'),
+  body('amount')
+    .isInt({ min: 50, max: 50000 })
+    .withMessage('Amount must be between 50 and 50000 Naira'),
+  body('mobile_number')
+    .matches(/^08\d{9}$/)
+    .withMessage('Invalid phone number format. Must be in format 08XXXXXXXXX'),
+  body('Ported_number')
+    .isBoolean()
+    .withMessage('Ported_number must be a boolean'),
+  body('airtime_type')
+    .optional()
+    .equals('VTU')
+    .withMessage('Only VTU airtime type is supported'),
+  body('transactionPin')
+    .isString()
+    .matches(/^\d{4}$/)
+    .withMessage('Transaction PIN must be 4 digits'),
+];
+
 export const transactionPinValidation = [
   body('transactionPin')
     .isString()

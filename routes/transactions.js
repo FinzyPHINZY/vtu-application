@@ -6,6 +6,7 @@ import {
   validateRequest,
 } from '../utils/middleware.js';
 import {
+  airtimePurchaseValidation,
   dataPurchaseValidation,
   transactionIdValidation,
   transactionPinValidation,
@@ -20,15 +21,16 @@ const router = express.Router();
 router.use(tokenExtractor);
 router.use(userExtractor);
 
-// router.post(
-//   '/airtime',
-//   validateHeaders,
-//   requireTransactionPin,
-//   transactionPinValidation,
-//   validateRequest,
-//   validateTransactionPin,
-//   TransactionController.purchaseAirtime
-// );
+router.post(
+  '/airtime',
+  validateHeaders,
+  requireTransactionPin,
+  airtimePurchaseValidation,
+  transactionPinValidation,
+  validateRequest,
+  validateTransactionPin,
+  TransactionController.purchaseAirtime
+);
 
 router.post(
   '/data',
