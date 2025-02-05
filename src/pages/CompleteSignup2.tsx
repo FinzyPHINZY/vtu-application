@@ -148,7 +148,7 @@ const CompleteSignup2 = () => {
                         dispatch(setStatus(response.data.data.status));
                         // if (thirdResponse.data.success) {
                         // toast.success(thirdResponse.data.message);
-                        navigate('/home');
+                        navigate('/login');
                         //     } else {
                         //         toast.error("Sub-account creation failed. Please try again.");
                         //     }
