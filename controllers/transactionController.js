@@ -1,17 +1,14 @@
 import axios from 'axios';
+import mongoose from 'mongoose';
+import Transaction from '../models/Transaction.js';
 import ApiError from '../utils/error.js';
+import { generateRandomReference } from '../utils/helpers.js';
 import {
-  generateRandomReference,
-  generateTransferReference,
-} from '../utils/helpers.js';
-import {
-  isValidAccountNumber,
   isValidPhoneNumber,
   processTransaction,
   sendTransactionReceipt,
   validateBalance,
 } from '../utils/transaction.js';
-import Transaction from '../models/Transaction.js';
 
 export const purchaseAirtime = async (req, res, next) => {
   try {
@@ -479,70 +476,25 @@ export const payUtilityBill = async (req, res, next) => {
   }
 };
 
-export const getTransactions = async (req, res) => {
+export const getTransactions = async (req, res, next) => {
   try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+    const userId = req.user.id;
 
-    const response = await axios.get(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/transactions`,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000,
-      }
-    );
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new ApiError(400, false, 'Invalid user ID');
+    }
 
-    const { data } = response;
+    const transactions = await Transaction.find({ user: userId })
+      .sort({ createdAt: -1 }) // Sorts by latest first
+      .lean(); // Optimizes query performance
 
-    console.log('VAS transactions fetched successfully');
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: 'Transactions fetched successfully',
-      data: data,
+      transactions,
     });
   } catch (error) {
-    console.error('Failed to fetch VAS transactions:', error);
-    return res
-      .status(500)
-      .json({ success: false, message: 'Failed to fetch transactions' });
-  }
-};
-
-export const getTransactionById = async (req, res) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const { id } = req.params;
-
-    const response = await axios.get(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/vas/transaction/${id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000,
-      }
-    );
-
-    const { data } = response;
-
-    console.log(`VAS transaction ${id} fetched successfully`);
-
-    return res.status(200).json({
-      success: true,
-      message: 'Transaction fetched successfully',
-      data: data.data,
-    });
-  } catch (error) {
-    console.error(`Failed to fetch VAS transaction ${req.params.id}:`, error);
-    return res
-      .status(500)
-      .json({ success: false, message: 'Failed to fetch transaction' });
+    console.error('Failed to fetch transactions', error);
+    next(error); // Pass error to middleware
   }
 };

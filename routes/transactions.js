@@ -1,4 +1,11 @@
 import express from 'express';
+
+import * as TransactionController from '../controllers/transactionController.js';
+import {
+  airtimePurchaseValidation,
+  dataPurchaseValidation,
+  transactionPinValidation,
+} from '../utils/helpers.js';
 import {
   tokenExtractor,
   userExtractor,
@@ -6,16 +13,10 @@ import {
   validateRequest,
 } from '../utils/middleware.js';
 import {
-  airtimePurchaseValidation,
-  dataPurchaseValidation,
-  transactionIdValidation,
-  transactionPinValidation,
-} from '../utils/helpers.js';
-import * as TransactionController from '../controllers/transactionController.js';
-import {
   requireTransactionPin,
   validateTransactionPin,
 } from '../utils/transactionPin.js';
+
 const router = express.Router();
 
 router.use(tokenExtractor);
@@ -64,18 +65,11 @@ router.post(
 );
 
 // // VAS Transaction endpoints
-// router.get(
-//   '/transactions',
-//   // validateHeaders,
-//   // validateRequest,
-//   TransactionController.getTransactions
-// );
-// router.get(
-//   '/transaction/:id',
-//   validateHeaders,
-//   transactionIdValidation,
-//   validateRequest,
-//   TransactionController.getTransactionById
-// );
+router.get(
+  '/transactions',
+  validateHeaders,
+  validateRequest,
+  TransactionController.getTransactions
+);
 
 export default router;
