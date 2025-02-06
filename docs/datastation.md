@@ -14,7 +14,7 @@ Authorization: Bearer <your_token>
 
 ## 1. Buy Airtime
 
-### **Endpoint:** `/api/v1/airtime`
+### **Endpoint:** `/api/transactions/airtime`
 
 **Method:** `POST`
 
@@ -58,7 +58,7 @@ Authorization: Bearer <your_token>
 
 ## 2. Buy Data Plan
 
-### **Endpoint:** `/api/v1/data`
+### **Endpoint:** `/api/transactions/data`
 
 **Method:** `POST`
 
@@ -102,7 +102,7 @@ Authorization: Bearer <your_token>
 
 ## 3. Fetch Transaction Status
 
-### **Endpoint:** `/api/v1/transactions/:transaction_id`
+### **Endpoint:** `/api/transactions/transactions/:transaction_id`
 
 **Method:** `GET`
 
@@ -134,33 +134,9 @@ Authorization: Bearer <your_token>
 
 ---
 
-## 4. Fetch User Balance
-
-### **Endpoint:** `/api/v1/user/balance`
-
-**Method:** `GET`
-
-### **Response:**
-
-#### Success:
-
-```json
-{
-  "success": true,
-  "balance": 9500
-}
-```
-
-#### Errors:
-
-- `401 UNAUTHORIZED`: Invalid or missing token.
-- `500 INTERNAL SERVER ERROR`: Server-side processing failure.
-
----
-
 ## 5. Fetch Available Data Plans
 
-### **Endpoint:** `/api/v1/data/plans`
+### **Endpoint:** `/api/transactions/data/plans`
 
 **Method:** `GET`
 
