@@ -13,6 +13,7 @@ import accountRoutes from './routes/account.js';
 import transactionRoutes from './routes/transactions.js';
 import transferRoutes from './routes/transfers.js';
 import { initialize } from './services/safeHavenAuth.js';
+import seedDatabase from './script.js';
 
 dotenv.config();
 
@@ -28,9 +29,11 @@ connectDB();
     console.log('Safe Haven Authentication initialized successfully');
   } catch (error) {
     console.error('Failed to initialize Safe Haven Authentication:', error);
-    process.exit(1);
+    // process.exit(1);
   }
 })();
+
+seedDatabase();
 
 // Middleware
 app.use(express.json());

@@ -9,6 +9,7 @@ import {
   sendTransactionReceipt,
   validateBalance,
 } from '../utils/transaction.js';
+import CablePlan from '../models/CablePlan.js';
 
 export const purchaseAirtime = async (req, res, next) => {
   try {
@@ -496,5 +497,23 @@ export const getTransactions = async (req, res, next) => {
   } catch (error) {
     console.error('Failed to fetch transactions', error);
     next(error); // Pass error to middleware
+  }
+};
+
+export const getCablePlans = async (req, res) => {
+  try {
+    const plans = await CablePlan.find().sort({ cablePlanID: 1 });
+
+    res.json({
+      success: true,
+      message: 'Cable plans retrieved successfully',
+      data: plans,
+    });
+  } catch (error) {
+    console.error('Failed to fetch cable plans:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
   }
 };
