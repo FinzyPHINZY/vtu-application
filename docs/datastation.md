@@ -203,5 +203,3 @@ Authorization: Bearer <your_token>
 - Ensure network IDs are correctly mapped.
 - Transactions are **non-reversible** once completed.
 - If a transaction fails, contact support with the transaction ID.
-
-This documentation provides a comprehensive reference for integrating VTU services into your system.
