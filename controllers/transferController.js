@@ -106,6 +106,7 @@ export const executeTransfer = async (req, res, next) => {
     const user = await validateBalance(req.user.id, amount);
 
     const reference = generateRandomReference('TRF', user.firstName);
+    console.log(reference);
 
     const payload = {
       nameEnquiryReference,
@@ -149,7 +150,7 @@ export const executeTransfer = async (req, res, next) => {
       }
     );
 
-    const { data } = response.data;
+    const { data } = response;
 
     const transactionDoc = await Transaction.findById(transaction.toString());
     transactionDoc.status = 'success';

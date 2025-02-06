@@ -251,10 +251,6 @@ export const transferValidation = [
     .isBoolean()
     .withMessage('Save beneficiary must be a boolean'),
   body('narration').isString().notEmpty().withMessage('Narration is required'),
-  body('paymentReference')
-    .isString()
-    .notEmpty()
-    .withMessage('Payment reference is required'),
   body('transactionPin')
     .isString()
     .matches(/^\d{4}$/)

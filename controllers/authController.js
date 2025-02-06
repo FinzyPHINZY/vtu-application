@@ -324,7 +324,6 @@ export const googleLogin = async (req, res) => {
         email: user.email,
         role: user.role,
         accountBalance: user.accountBalance,
-        transactions: user.transactions,
         hasSetTransactionPin: user.hasSetTransactionPin,
         isVerified: user.isVerified,
         status: user.status,
