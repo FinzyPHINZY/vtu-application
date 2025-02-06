@@ -22,6 +22,13 @@ const router = express.Router();
 router.use(tokenExtractor);
 router.use(userExtractor);
 
+router.get(
+  '/',
+  validateHeaders,
+  validateRequest,
+  TransactionController.getTransactions
+);
+
 router.post(
   '/airtime',
   validateHeaders,
@@ -65,11 +72,45 @@ router.post(
 );
 
 // // VAS Transaction endpoints
+
+// get cable plans
 router.get(
-  '/transactions',
+  '/cable-plans',
   validateHeaders,
   validateRequest,
-  TransactionController.getTransactions
+  TransactionController.getCablePlans
+);
+
+// get cable list
+router.get(
+  '/cable-list',
+  validateHeaders,
+  validateRequest,
+  TransactionController.getCableList
+);
+
+// get electricity providers
+router.get(
+  '/utility-providers',
+  validateHeaders,
+  validateRequest,
+  TransactionController.getElectricityCompanies
+);
+
+// get data plans
+router.get(
+  '/data-plans',
+  validateHeaders,
+  validateRequest,
+  TransactionController.fetchDataPlans
+);
+
+// get networks
+router.get(
+  '/networks',
+  validateHeaders,
+  validateRequest,
+  TransactionController.getNetworkList
 );
 
 export default router;

@@ -10,6 +10,10 @@ import {
   validateBalance,
 } from '../utils/transaction.js';
 import CablePlan from '../models/CablePlan.js';
+import CableList from '../models/CableList.js';
+import DataPlan from '../models/DataPlans.js';
+import ElectricityCompany from '../models/ElectricityCompanies.js';
+import NetworkList from '../models/Networklist.js';
 
 export const purchaseAirtime = async (req, res, next) => {
   try {
@@ -500,7 +504,7 @@ export const getTransactions = async (req, res, next) => {
   }
 };
 
-export const getCablePlans = async (req, res) => {
+export const getCablePlans = async (req, res, next) => {
   try {
     const plans = await CablePlan.find().sort({ cablePlanID: 1 });
 
@@ -511,9 +515,67 @@ export const getCablePlans = async (req, res) => {
     });
   } catch (error) {
     console.error('Failed to fetch cable plans:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal Server Error',
+
+    next(error);
+  }
+};
+
+export const getCableList = async (req, res, next) => {
+  try {
+    const data = await CableList.find().sort({ cable_id: 1 });
+
+    res.json({
+      success: true,
+      message: 'Cable list options retrieved successfully',
+      data: data,
     });
+  } catch (error) {
+    console.error('Failed to fetch cable plans:', error);
+    next(error);
+  }
+};
+
+export const getElectricityCompanies = async (req, res, next) => {
+  try {
+    const providers = await ElectricityCompany.find().sort({ disco_id: 1 });
+
+    res.json({
+      success: true,
+      message: 'Electricity providers retrieved successfully',
+      data: providers,
+    });
+  } catch (error) {
+    console.error('Failed to fetch cable plans:', error);
+    next(error);
+  }
+};
+
+export const fetchDataPlans = async (req, res, next) => {
+  try {
+    const plans = await DataPlan.find();
+
+    res.json({
+      success: true,
+      message: 'Data plans retrieved successfully',
+      data: plans,
+    });
+  } catch (error) {
+    console.error('Failed to fetch cable plans:', error);
+    next(error);
+  }
+};
+
+export const getNetworkList = async (req, res, next) => {
+  try {
+    const networks = await NetworkList.find().sort({ network_id: 1 });
+
+    res.json({
+      success: true,
+      message: 'Networks retrieved successfully',
+      data: networks,
+    });
+  } catch (error) {
+    console.error('Failed to fetch cable plans:', error);
+    next(error);
   }
 };

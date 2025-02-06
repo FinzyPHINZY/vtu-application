@@ -9,4 +9,6 @@ const dataPlanSchema = new mongoose.Schema({
   validity: { type: String, required: true },
 });
 
-export default mongoose.model('DataPlan', dataPlanSchema);
+const DataPlan = mongoose.model('DataPlan', dataPlanSchema);
+
+export default DataPlan;
