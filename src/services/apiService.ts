@@ -156,7 +156,7 @@ export const apiService = createApi({
     }),
     getAllTransactions: builder.query({
       query: ({token}) => ({
-        url: 'services/transactions',
+        url: 'transactions',
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,

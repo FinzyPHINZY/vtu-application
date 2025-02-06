@@ -3,7 +3,7 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { useNavigate } from 'react-router-dom';
-import MTN from '../assets/images/mtn.png';
+// import MTN from '../assets/images/mtn.png';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import {
@@ -20,6 +20,9 @@ import {
 import { useFetchServicesQuery } from '../services/apiService';
 import '../App.css'
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useGetAllTransactionsQuery } from '../services/apiService';
+import { FaLongArrowAltUp } from "react-icons/fa";
+import { FaLongArrowAltDown } from "react-icons/fa";
 
 const Home = () => {
     const storedUser = useSelector((state: RootState) => state.user.user);
@@ -33,6 +36,12 @@ const Home = () => {
     const [showModal, setShowModal] = useState(false);
     // const storedData = {token: storedToken}
     const { data: servicesData, error, isLoading } = useFetchServicesQuery({ token: storedToken });
+    const {
+        data: transactionsResponse,
+        isLoading: isLoading2,
+        error: error2
+    } = useGetAllTransactionsQuery({ token: storedToken });
+    const transactions = transactionsResponse?.transactions || [];
     useEffect(() => {
 
         const handleResize = () => {
@@ -63,7 +72,27 @@ const Home = () => {
     //     navigate('/otp');
     // };
 
-
+    type Transaction = {
+        _id: string;
+        reference: string;
+        serviceType: string;
+        type: string;
+        amount: number;
+        currency: string;
+        status: string;
+        metadata: {
+            serviceCategoryId?: string;
+            phoneNumber?: string;
+            debitAccountNumber?: string;
+            beneficiaryAccountNumber?: string;
+            beneficiaryBankCode?: string;
+            nameEnquiryReference?: string;
+        };
+        user: string;
+        createdAt: string;
+        updatedAt: string;
+        __v: number;
+    };
 
 
 
@@ -158,74 +187,83 @@ const Home = () => {
                                 <QuickServiceIcon />
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Quick service</p>
                             </div>
-                            <div className={`flex ${isLoading ? 'justify-center' : 'justify-between'} items-center py-3 mt-5`}>
-                                {servicesData && servicesData.data.map((servicedata: { identifier: string, _id: string }, index: number) => (
-                                    <div className=' flex flex-col justify-center items-center gap-2'
-                                        key={index}
-                                        onClick={() => {
-                                            switch (servicedata.identifier) {
-                                                case 'DATA':
-                                                    navigate('/data', { state: { data: servicedata._id } });
-                                                    break;
-                                                case 'AIRTIME':
-                                                    navigate('/airtime', { state: { data: servicedata._id } });
-                                                    break;
-                                                case 'UTILITY':
-                                                    navigate('/utility', { state: { data: servicedata._id } });
-                                                    break;
-                                                case 'CABLETV':
-                                                    navigate('/cable', { state: { data: servicedata._id } });
-                                                    break;
-                                                default:
-                                                    navigate('/');
-                                                    break;
-                                            }
-                                        }}
-                                    >
-                                        {servicedata.identifier === 'DATA' && <DataIcon />}
-                                        {servicedata.identifier === 'AIRTIME' && <PhoneIcon />}
-                                        {servicedata.identifier === 'CABLETV' && <CableIcon />}
-                                        {servicedata.identifier === 'UTILITY' && <ElectricityIcon />}
-                                        <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>{servicedata.identifier}</p>
-                                    </div>
-                                ))}
-                                {isLoading &&
-                                    <div className='flex justify-center items-center'>
-                                        <div className='loader'>
-                                            <div className="spinner"></div>
-                                        </div>
-                                    </div>}
+                            <div className={`flex  justify-between items-center py-3 mt-5`}>
 
+                                <div className=' flex flex-col justify-center items-center gap-2'
+                                    onClick={() => navigate('/data')}
+
+                                >
+                                    <DataIcon />
+
+                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Data</p>
+                                </div>
+
+                                <div className=' flex flex-col justify-center items-center gap-2'
+                                    onClick={() => navigate('/airtime')}
+
+                                >
+                                    <PhoneIcon />
+
+                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Airtime</p>
+                                </div>
+                                <div className=' flex flex-col justify-center items-center gap-2'
+                                    onClick={() => navigate('/cable')}
+
+                                >
+                                    <CableIcon />
+
+                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>CableTv</p>
+                                </div>
+
+                                <div className=' flex flex-col justify-center items-center gap-2'
+                                    onClick={() => navigate('/utility')}
+
+                                >
+                                    <ElectricityIcon />
+
+                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Utility</p>
+                                </div>
                             </div>
                         </div>
                         <div className="bg-[#1E1E1E] h-[20%] px-5 py-4 rounded-[15px] mt-3 mb-5">
                             <div className='flex justify-between items-center mb-5'>
 
                                 <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Transaction</p>
-                                {storedUser.transactions.length > 0 &&
+                                {transactions.length > 0 &&
                                     <p className='text-[#0D7CFF] font-[400] text-sm font-poppins' onClick={() => navigate("/transactions")}>See more</p>}
 
                             </div>
-                            {storedUser.transactions.length === 0 ? (
-                                <div className='flex justify-start items-center py-5'>
-                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>No transactions yet</p>
-                                </div>
-                            ) : (
-                                storedUser.transactions.slice(0, 3).map((transaction, index) => (
-                                    <div className='flex justify-between items-center py-5 border-[#FFFFFF21] border-b-[1px]' key={index}>
-                                        <div className='flex justify-start items-center gap-4'>
-                                            <img src={MTN} className='w-7 h-7 rounded-xl' />
-                                            <div>
-                                                <p className='text-white font-[400] text-sm font-poppins '>{transaction.type} - 0905681138</p>
-                                                <p className='text-[#FFFFFFA1] font-[400] text-sm font-poppins '>{transaction.currency} {transaction.amount}</p>
-                                            </div>
+                            <div className={`px-2 py-4 ${(isLoading2 || error2) ? 'justify-center flex items-center' : ''} `}>
+                                {isLoading2 ?
+                                    <div className='flex justify-center items-center'>
+                                        <div className='loader'>
+                                            <div className="spinner"></div>
                                         </div>
-                                        <p className='text-[#D45A0E] font-[400] text-sm font-poppins '>See more</p>
-                                    </div>
-                                ))
-                            )}
+                                    </div> :
+                                    transactions.length === 0 ? (
+                                        <div className='flex justify-start items-center py-5'>
+                                            <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>No transactions yet</p>
+                                        </div>
+                                    ) : (
+                                        transactions.slice(0, 3).map((transaction: Transaction, index: number) => (
+                                            <div className='flex justify-between items-center py-5 border-[#FFFFFF21] border-b-[1px]' key={index}>
+                                                <div className='flex justify-start items-center gap-4'>
+                                                    {/* <img src={MTN} className='w-7 h-7 rounded-xl' /> */}
 
+                                                    {transaction.type == "debit" && <FaLongArrowAltUp className='w-7 h-7 text-[#D45A0E]  ' />}
+                                                    {transaction.type == "credit" && <FaLongArrowAltDown className='w-7 h-7 text-[#D45A0E] ' />}
 
+                                                    <div>
+                                                        <p className='text-white font-[400] text-sm font-poppins '>{transaction.type} - 0905681138</p>
+                                                        <p className='text-[#FFFFFFA1] font-[400] text-sm font-poppins '>{transaction.currency} {transaction.amount}</p>
+                                                    </div>
+                                                </div>
+                                                <p className='text-[#D45A0E] font-[400] text-sm font-poppins ' onClick={() => navigate("/transactions")}>See more</p>
+                                            </div>
+                                        ))
+                                    )}
+
+                            </div>
                         </div>
                     </div>
                 ) : (
