@@ -269,3 +269,36 @@ export const loginLimiter = rateLimit({
     message: 'Too many login attempts, please try again later',
   },
 });
+
+export const checkGoogleUser = async (req, res, next) => {
+  try {
+    if (req.user?.isGoogleUser) {
+      const { firstName, lastName, phoneNumber } = req.body;
+
+      if (!firstName || !lastName || !phoneNumber) {
+        throw new ApiError(
+          400,
+          false,
+          'Please provide firstName, lastName and phoneNumber'
+        );
+      }
+
+      await User.findByIdAndUpdate(req.user.id, {
+        firstName,
+        lastName,
+        phoneNumber,
+      });
+
+      // Proceed to the next middleware/controller
+      return next();
+    }
+
+    next(); // If it's not a Google user, proceed without validation
+  } catch (error) {
+    console.error('Error in checkGoogleUser middleware:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+};

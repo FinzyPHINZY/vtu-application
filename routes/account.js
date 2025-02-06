@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  checkGoogleUser,
   tokenExtractor,
   userExtractor,
   validateHeaders,
@@ -20,6 +21,7 @@ router.use(userExtractor);
 router.post(
   '/subaccount',
   validateHeaders,
+  checkGoogleUser,
   subAccountValidation,
   validateRequest,
   accountController.createSubAccount
