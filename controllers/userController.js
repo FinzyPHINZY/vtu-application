@@ -6,9 +6,9 @@ import sendEmail from '../services/emailService.js';
 
 export const fetchUser = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.user;
 
-    const user = await User.findById(id);
+    const user = await User.findById(id).populate('transactions');
 
     if (!user) {
       return res
