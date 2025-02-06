@@ -22,9 +22,12 @@ Authorization: Bearer <your_token>
 
 ```json
 {
-  "mobile_number": "08123456789",
-  "amount": 500,
-  "network": 1
+  "network": 1,
+  "amount": 200,
+  "mobile_number": "08167817217",
+  "Ported_number": true,
+  "airtime_type": "VTU",
+  "transactionPin": "0000"
 }
 ```
 
@@ -33,6 +36,8 @@ Authorization: Bearer <your_token>
 - `mobile_number` (string, required): The recipient's phone number.
 - `amount` (number, required): The amount of airtime to purchase.
 - `network` (number, required): The network provider (1 = MTN, 2 = GLO, 3 = Airtel, 4 = 9Mobile).
+- `Ported_number` (boolean, required): Just leave it as true. Explanation not provided in documentation
+- `airtime_type` (string, required): 'VTU'
 
 ### **Response:**
 
@@ -42,8 +47,7 @@ Authorization: Bearer <your_token>
 {
   "success": true,
   "message": "Airtime purchase successful.",
-  "transaction_id": "12345",
-  "balance": 9500
+  "transaction_id": "12345"
 }
 ```
 
@@ -80,6 +84,8 @@ Authorization: Bearer <your_token>
 - `mobile_number` (string, required): The recipient's phone number.
 - `plan_id` (string, required): The data plan ID.
 - `network` (number, required): The network provider (1 = MTN, 2 = GLO, 3 = Airtel, 4 = 9Mobile).
+- `amount` (number, required): The amount of the plan to be bought. It has to be exact.
+- `Ported_number` (boolean, required): Just leave it as true. Explanation not provided in documentation
 
 ### **Response:**
 
@@ -89,8 +95,53 @@ Authorization: Bearer <your_token>
 {
   "success": true,
   "message": "Data purchase successful.",
-  "transaction_id": "67890",
-  "balance": 8500
+  "transaction_id": "67890"
+}
+```
+
+#### Errors:
+
+- `400 BAD REQUEST`: Invalid request body.
+- `401 UNAUTHORIZED`: Invalid or missing token.
+- `402 PAYMENT REQUIRED`: Insufficient balance.
+- `500 INTERNAL SERVER ERROR`: Server-side processing failure.
+
+---
+
+## 2. Buy Electricity
+
+### **Endpoint:** `/api/transactions/utility`
+
+**Method:** `POST`
+
+### **Request Body:**
+
+```json
+{
+  "disco_name": 10,
+  "amount": 5000,
+  "meter_number": "04252204906",
+  "meterType": "prepaid",
+  "transactionPin": "0000"
+}
+```
+
+### **Request Parameters:**
+
+- `disco_name` (string, required): The Id of the Disco company - Provided in the electricity companies endpoint.
+- `meterType` (string, required): PREPAID or POSTPAID.
+- `meter_number` (number, required): The meter number of the customer.
+- `amount` (number, required): The amount of the electricity to be bought.
+
+### **Response:**
+
+#### Success:
+
+```json
+{
+  "success": true,
+  "message": "Data purchase successful.",
+  "transaction_id": "67890"
 }
 ```
 
