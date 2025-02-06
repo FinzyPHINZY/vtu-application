@@ -28,7 +28,7 @@ connectDB();
     console.log('Safe Haven Authentication initialized successfully');
   } catch (error) {
     console.error('Failed to initialize Safe Haven Authentication:', error);
-    // process.exit(1);
+    process.exit(1);
   }
 })();
 
