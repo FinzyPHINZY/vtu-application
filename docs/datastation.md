@@ -66,9 +66,12 @@ Authorization: Bearer <your_token>
 
 ```json
 {
-  "mobile_number": "08123456789",
-  "plan_id": "mtn_1gb_30days",
-  "network": 1
+  "network": 1,
+  "mobile_number": "08167817217",
+  "plan": 213,
+  "Ported_number": true,
+  "transactionPin": "0000",
+  "amount": 2570
 }
 ```
 

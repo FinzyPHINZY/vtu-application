@@ -13,7 +13,6 @@ import accountRoutes from './routes/account.js';
 import transactionRoutes from './routes/transactions.js';
 import transferRoutes from './routes/transfers.js';
 import { initialize } from './services/safeHavenAuth.js';
-import seedDatabase from './script.js';
 
 dotenv.config();
 
@@ -32,8 +31,6 @@ connectDB();
     // process.exit(1);
   }
 })();
-
-seedDatabase();
 
 // Middleware
 app.use(express.json());
