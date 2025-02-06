@@ -108,7 +108,7 @@ Authorization: Bearer <your_token>
 
 ---
 
-## 2. Buy Electricity
+## 3. Buy Electricity
 
 ### **Endpoint:** `/api/transactions/utility`
 
@@ -132,6 +132,52 @@ Authorization: Bearer <your_token>
 - `meterType` (string, required): PREPAID or POSTPAID.
 - `meter_number` (number, required): The meter number of the customer.
 - `amount` (number, required): The amount of the electricity to be bought.
+
+### **Response:**
+
+#### Success:
+
+```json
+{
+  "success": true,
+  "message": "Data purchase successful.",
+  "transaction_id": "67890"
+}
+```
+
+#### Errors:
+
+- `400 BAD REQUEST`: Invalid request body.
+- `401 UNAUTHORIZED`: Invalid or missing token.
+- `402 PAYMENT REQUIRED`: Insufficient balance.
+- `500 INTERNAL SERVER ERROR`: Server-side processing failure.
+
+---
+
+## 4. Buy Cable-Tv
+
+### **Endpoint:** `/api/transactions/cable-tv`
+
+**Method:** `POST`
+
+### **Request Body:**
+
+```json
+{
+  "cablename": 1,
+  "cableplan": 16,
+  "smart_card_number": "8061717048",
+  "amount": 3300,
+  "transactionPin": "0000"
+}
+```
+
+### **Request Parameters:**
+
+- `cableplan` (string, required): The cablePlanID of the cable plan.
+- `cablename` (string, required): The cablename of the cable plan.
+- `smart_card_number` (number, required): The card number of the customer.
+- `amount` (number, required): The amount of the cable plan. it has to be exact.
 
 ### **Response:**
 
