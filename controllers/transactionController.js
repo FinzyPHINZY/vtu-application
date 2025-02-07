@@ -74,6 +74,9 @@ export const purchaseAirtime = async (req, res, next) => {
       transactionDetails
     );
 
+    const transactionDoc = await Transaction.find({ reference });
+    console.log(transactionDoc);
+
     console.log('purchasing airtime');
 
     try {
@@ -96,81 +99,38 @@ export const purchaseAirtime = async (req, res, next) => {
         }
       );
 
-      // Check transaction status
-      const statusResponse = await axios.get(
-        `https://datastationapi.com/api/data/${response.data.transaction_id}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
-          },
-        }
-      );
-
-      // Send receipt
       console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
       // Update transaction based on status
-      if (statusResponse.data.status === 'successful') {
-        transaction.status = 'success';
-        await user.save();
+      transactionDoc[0].status = 'success';
+      await transactionDoc.save();
+      await user.save();
 
-        // Send receipt
-        await sendTransactionReceipt(user, transaction);
+      // Send receipt
+      await sendTransactionReceipt(user, transaction);
 
-        console.log(`Airtime purchase successful for user: ${req.user.id}`);
+      console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
-        return res.status(200).json({
-          success: true,
-          message: 'Airtime purchase successful',
-          data: {
-            reference: transaction.reference,
-            amount,
-            network,
-            mobile_number,
-            status: transaction.status,
-            timestamp: transaction.createdAt,
-          },
-        });
-      } else if (statusResponse.data.status === 'failed') {
-        // Reverse the transaction
-        user.accountBalance += amount;
-        transaction.status = 'failed';
-        transaction.failureReason =
-          statusResponse.data.message || 'Transaction failed';
-        await user.save();
-
-        throw new ApiError(
-          400,
-          false,
-          'Airtime purchase failed',
-          statusResponse.data
-        );
-      } else {
-        // Transaction is still processing
-        return res.status(202).json({
-          success: true,
-          message: 'Airtime purchase is processing',
-          data: {
-            reference: transaction.reference,
-            transactionId: response.data.transaction_id,
-            amount,
-            network,
-            mobile_number,
-            status: 'pending',
-            timestamp: transaction.createdAt,
-          },
-        });
-      }
+      return res.status(200).json({
+        success: true,
+        message: 'Airtime purchase successful',
+        data: {
+          reference: transaction.reference,
+          amount,
+          network,
+          mobile_number,
+          status: transaction.status,
+          timestamp: transaction.createdAt,
+        },
+      });
     } catch (error) {
       // Handle failed API call
-      console.error('DataStation API call failed:', error);
+      console.error('DataStation API call failed:', error.response?.data);
 
       // Reverse the transaction
       user.accountBalance += amount;
-      transaction.status = 'failed';
-      transaction.failureReason =
-        error.response?.data?.message || 'Provider API error';
+      transactionDoc[0].status = 'failed';
+      await transactionDoc[0].save();
       await user.save();
 
       throw new ApiError(
@@ -233,6 +193,8 @@ export const purchaseData = async (req, res, next) => {
       transactionDetails
     );
 
+    const transactionDoc = await Transaction.findById(transaction.toString());
+
     console.log('purchasing data');
 
     try {
@@ -255,7 +217,6 @@ export const purchaseData = async (req, res, next) => {
       );
 
       // update transaction status
-      const transactionDoc = await Transaction.findById(transaction.toString());
       transactionDoc.status = 'success';
 
       await transactionDoc.save();
@@ -285,7 +246,8 @@ export const purchaseData = async (req, res, next) => {
 
       // Reverse the transaction
       user.accountBalance += amount;
-      transaction.status = 'failed';
+      transactionDoc.status = 'failed';
+      await transactionDoc.save();
       await user.save();
 
       throw new ApiError(
@@ -336,6 +298,8 @@ export const payCableTV = async (req, res, next) => {
 
     console.log('purchasing tv subscription');
 
+    const transactionDoc = await Transaction.findById(transaction.toString());
+
     try {
       // Make request to Safe Haven API
       const response = await axios.post(
@@ -354,7 +318,6 @@ export const payCableTV = async (req, res, next) => {
         }
       );
 
-      const transactionDoc = await Transaction.findById(transaction.toString());
       transactionDoc.status = 'success';
 
       await transactionDoc.save();
@@ -381,7 +344,8 @@ export const payCableTV = async (req, res, next) => {
       console.error('Cable Subscription Failed: ', error);
 
       user.accountBalance += amount;
-      transaction.status = 'failed';
+      transactionDoc.status = 'failed';
+      await transactionDoc.save();
       await user.save();
 
       throw new ApiError(
@@ -425,6 +389,8 @@ export const payUtilityBill = async (req, res, next) => {
 
     console.log('paying utility bill');
 
+    const transactionDoc = await Transaction.findById(transaction.toString());
+
     try {
       const response = await axios.post(
         'https://datastationapi.com/api/billpayment/',
@@ -437,7 +403,6 @@ export const payUtilityBill = async (req, res, next) => {
         }
       );
 
-      const transactionDoc = await Transaction.findById(transaction.toString());
       transactionDoc.status = 'success';
 
       await transactionDoc.save();
@@ -465,7 +430,9 @@ export const payUtilityBill = async (req, res, next) => {
       console.error('Utility bill payment failed: ', error);
 
       user.accountBalance += amount;
-      transaction.status = 'failed';
+      transactionDoc.status = 'failed';
+
+      await transactionDoc.save();
       await user.save();
 
       throw new ApiError(
