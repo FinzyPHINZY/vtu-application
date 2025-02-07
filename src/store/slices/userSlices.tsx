@@ -6,7 +6,6 @@ interface AccountDetails {
   accountType: string;
   accountBalance: string;
   status: string;
-  accountNumber: string;
   _id: string;
 }
 
@@ -15,13 +14,13 @@ interface User {
   email: string;
   role: string;
   accountBalance: number;
-  transactions: Record<string, string>[];
   hasSetTransactionPin: boolean;
   isVerified: boolean;
   status: string;
   isGoogleUser: boolean;
   firstName: string;
   lastName: string;
+  accountNumber: string;
   phoneNumber: string;
   accountDetails: AccountDetails;
 }
@@ -42,7 +41,6 @@ const initialState: UserState = {
     email: '',
     role: '',
     accountBalance: 0,
-    transactions: [],
     hasSetTransactionPin: false,
     isVerified: false,
     status: '',
@@ -50,12 +48,12 @@ const initialState: UserState = {
     firstName: '',
     lastName: '',
     phoneNumber: '',
+    accountNumber: '',
     accountDetails: {
       bankName: '',
       accountName: '',
       accountType: '',
       accountBalance: '',
-      accountNumber: '',
       status: '',
       _id: '',
     },
@@ -63,6 +61,7 @@ const initialState: UserState = {
   otp: '',
   email: '',
   pin: '',
+  
 };
 
 const userSlice = createSlice({

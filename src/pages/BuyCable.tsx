@@ -5,10 +5,10 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { LeftArrowIcon } from '../assets/svg'
 import {
-    useFetchServiceByIdQuery,
-    useFetchServiceCategoriesQuery,
+    useFetchCableListQuery,
+    useFetchCablePlansQuery,
     usePurchaseCableTV2Mutation,
-    // useVerifyPowerTVDataMutation,
+    useGetUserDetailsQuery,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -17,15 +17,22 @@ import { toast } from 'react-toastify';
 import { CancelIcon } from '../assets/svg'
 import SuccessIcon from '../assets/images/success.png'
 import BackgroundImage from '../assets/images/background.png'
+import STARTIMES from '../assets/images/STARTIMES.jpeg'
+import GOTV from '../assets/images/GOTV.png'
+import DSTV from '../assets/images/DSTV1.png'
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../store/slices/userSlices';
 
 
 const BuyCable = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    // const [selectedPackage, setSelectedPackage] = useState('');
-    // const [verified, setVerified] = useState("")
-    // const [packageError, setPackageError] = useState('');
+    const dispatch = useDispatch();
+    const [selectedPackage, setSelectedPackage] = useState('');
+    const [packageError, setPackageError] = useState('');
+    const [selectedCableList, setSelectedCableList] = useState<CableList | null>(null);
+    const [selectedCablePlan, setSelectedCablePlan] = useState<CablePlan | null>(null);
     const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
@@ -38,12 +45,13 @@ const BuyCable = () => {
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
-    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: "61e9857bbce8e444a4976641" });
-    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: "61e9857bbce8e444a4976641" });
+    const { data: cablePlans } = useFetchCablePlansQuery({ token: storedToken });
+    const { data: cableList } = useFetchCableListQuery({ token: storedToken });
+    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
     // const [verifyPowerTVData] = useVerifyPowerTVDataMutation();
     useEffect(() => {
-        console.log(serviceDataId, servicesByCategoryData, servicesByIdData,);
-    }, [serviceDataId, servicesByCategoryData, servicesByIdData,]);
+        console.log(serviceDataId, cableList, cablePlans);
+    }, [serviceDataId, cableList, cablePlans]);
 
     useEffect(() => {
 
@@ -68,12 +76,7 @@ const BuyCable = () => {
     const handleBack = () => {
         navigate('/home');
     };
-    // const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
-
-    // const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    //     setSelectedPackage(e.target.value);
-    //     setPackageError('');
-    // };
+ 
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setAmount(e.target.value);
@@ -96,17 +99,17 @@ const BuyCable = () => {
 
             setLoading(true);
             const response = await purchaseCableTV2({
-                serviceCategoryId: "61e9857bbce8e444a4976641",
-                bundleCode: "BUN456",
+                cablename: parseInt(localStorage.getItem('cableName') || '0', 10),
+                cableplan: parseInt(localStorage.getItem('cablePlan') || '0', 10),
                 amount: parseInt(amount, 10),
-                cardNumber: number,
-                debitAccountNumber: "0119017579",
+                smart_card_number: number,
                 transactionPin: storedPin,
                 token: storedToken
             });
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {
                 if (response.error && 'data' in response.error) {
@@ -122,9 +125,11 @@ const BuyCable = () => {
         } finally {
             setNumber("");
             setAmount("");
-            // setSelectedPackage("");
+            setSelectedPackage("");
             localStorage.setItem('amount', '');
             localStorage.setItem('number', '');
+            localStorage.setItem('cablePlan', '');
+            localStorage.setItem('cableName', '');
             setLoading(false);
             setShowModal(false)
         }
@@ -141,23 +146,32 @@ const BuyCable = () => {
 
     useEffect(() => {
         // Store amount and number in localStorage
+        localStorage.setItem('cableName', selectedCableList?.cable_id?.toString() || '');
+        localStorage.setItem('cablePlan', selectedCablePlan?.cablePlanID?.toString() || '');
         localStorage.setItem('amount', amount);
         localStorage.setItem('number', number);
-    }, [amount, number]);
+
+    }, [amount, number, selectedCableList?.cable_id, selectedCablePlan?.cablePlanID]);
 
     const handleCloseModal = async () => {
-        // if (!selectedPackage) {
-        //     setPackageError('Please select an email address.');
-        // }
+        if (!selectedPackage) {
+            setPackageError('Please select a cable plan.');
+        }
         if (!number) {
             setNumberError('Please enter a valid card number.');
         }
         if (!amount) {
             setAmountError('Please enter a valid amount');
         }
+        if (!selectedCableList) {
+            toast.error('Please your choice from the list of cables');
+        }
+        if (!selectedCablePlan) {
+            toast.error('Please your cable plan');
+        }
         setLoading(true);
         if (amount && number) {
-            // setPackageError('');
+            setPackageError('');
             setNumberError('');
             setAmountError('')
             navigate('/pin/cable/enter', { state: { service: "cabletv" } });
@@ -165,17 +179,57 @@ const BuyCable = () => {
             setLoading(false);
         } else {
             setNumberError('Please enter a valid card number');
-            // setPackageError('Please select your choice');
+            setPackageError('Please select a cable plan.');
             setAmountError('Please enter a valid amount.');
         }
     };
 
 
-    interface ServiceData {
-        logoUrl: string;
-        name: string;
-        identifier: string;
+    interface CableList {
+        _id: string;
+        cable_id: number;
+        cablename: string;
+        __v: number;
+        createdAt: string;
+        updatedAt: string;
     }
+
+    interface CablePlan {
+        _id: string;
+        cablePlanID: number;
+        cablename: string;
+        amount: number;
+        __v: number;
+        createdAt: string;
+        updatedAt: string;
+    }
+
+    const getFilteredCablePlans = (cablePlans: CablePlan[], selectedCableList: CableList | null) => {
+        if (!selectedCableList) return [];
+        return cablePlans.filter((plan: CablePlan) => plan.cablename.includes(selectedCableList.cablename));
+    };
+    
+    const getStartimesPlans = (cablePlans: CablePlan[], selectedCableList: CableList | null) => {
+        if (!selectedCableList) return [];
+        return cablePlans.filter((plan: CablePlan) => !plan.cablename.includes(selectedCableList.cablename));
+    };
+    
+    const packageOptions = getStartimesPlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename) || getFilteredCablePlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename);
+
+   
+
+    const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedPackageName = e.target.value;
+        setSelectedPackage(selectedPackageName);
+        
+        // Find the selected cable plan object
+        const selectedPlan = cablePlans.data.find((plan: CablePlan) => plan.cablename === selectedPackageName);
+        
+        // Set the selected cable plan
+        setSelectedCablePlan(selectedPlan || null);
+        setPackageError('');
+    };
+    
 
     // const handleItemClick = (servicedata: ServiceData) => {
     //     setSelectedService(servicedata);
@@ -216,27 +270,27 @@ const BuyCable = () => {
                             <div>       </div>
                         </div>
                         <p className='text-white mt-14 font-[400] text-sm font-poppins '>Select Service</p>
-                        <div className='flex justify-around items-center py-3 mt-5 '>
-                            {servicesByCategoryData && servicesByCategoryData.data.map((servicedata: ServiceData, index: number) => {
-                                console.log(servicedata.logoUrl, 40004);
+                        <div className='flex justify-between items-center py-3 mt-10 '>
+                            {cableList && cableList.data.map((inCableList: CableList, index: number) => {
+
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
-                                    // onClick={() => handleItemClick(servicedata)}
+                                        onClick={() => setSelectedCableList(inCableList)}
                                     >
-                                        {servicedata.identifier === 'DSTV' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {inCableList.cablename === 'GOTV' &&
+                                            <div className={`card ${selectedCableList === inCableList ? 'shadow-lg' : ''}`}>
+                                                <img src={GOTV} alt={inCableList.cablename} />
                                             </div>
                                         }
-                                        {servicedata.identifier === 'GOTV' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {inCableList.cablename === 'DSTV' &&
+                                            <div className={`card ${selectedCableList === inCableList ? 'shadow-lg' : ''}`}>
+                                                <img src={DSTV} alt={inCableList.cablename} />
                                             </div>
                                         }
-                                        {servicedata.identifier === 'STARTIMES' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {inCableList.cablename === 'STARTIMES' &&
+                                            <div className={`card ${selectedCableList === inCableList ? 'shadow-lg' : ''}`}>
+                                                <img src={STARTIMES} alt={inCableList.cablename} />
                                             </div>
                                         }
 
@@ -251,29 +305,7 @@ const BuyCable = () => {
 
                         <form className='mt-10 flex-grow flex flex-col justify-between pb-20' >
                             <div>
-                                {/* <div>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Select Package</p>
-                                    <div className="relative">
-                                        <select
-                                            value={selectedPackage}
-                                            onChange={handlePackageChange}
-                                            className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
-                                        >
-                                            <option value="" disabled>Select email</option>
-                                            {packageOptions.map((option, index) => (
-                                                <option key={index} value={option}>{option}</option>
-                                            ))}
-                                        </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4">
-                                            <svg className="w-4 h-4 fill-current text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path d="M10 12l-6-6h12l-6 6z" />
-                                            </svg>
-                                        </div>
-                                    </div>
 
-
-                                    {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
-                                </div> */}
 
                                 <div className=''>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Card number</p>
@@ -287,7 +319,7 @@ const BuyCable = () => {
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 
                                 </div>
-                                {/* {verified && <p className='text-[#4CAF50] font-[400] text-sm font-poppins mt-3'>{verified}</p>} */}
+
                                 <div className='mt-5'>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
                                     <input
@@ -298,7 +330,30 @@ const BuyCable = () => {
                                         placeholder='200'
                                     />
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
+                                    
+                                    <div>
+                                        <p className='text-white font-[500] text-base font-poppins mb-5'>Select Package</p>
+                                        <div className="relative">
+                                            <select
+                                                value={selectedPackage}
+                                                onChange={handlePackageChange}
+                                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
+                                            >
+                                                <option value="" disabled>Select email</option>
+                                                {packageOptions.map((option, index) => (
+                                                    <option key={index} value={option}>{option}</option>
+                                                ))}
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4">
+                                                <svg className="w-4 h-4 fill-current text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                                    <path d="M10 12l-6-6h12l-6 6z" />
+                                                </svg>
+                                            </div>
+                                        </div>
 
+
+                                        {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
+                                    </div>
                                 </div>
                             </div>
                             <button

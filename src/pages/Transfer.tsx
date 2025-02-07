@@ -11,17 +11,20 @@ import {
     useGetBankListQuery,
     useVerifyBankAccountMutation,
     useTransferFundsMutation,
-    //    useGetTransferStatusMutation
+    useGetUserDetailsQuery,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../store/slices/userSlices';
 
 const Transfer = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const dispatch = useDispatch();
     const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [accountNumber, setAccountNumber] = useState(() => localStorage.getItem('accountNumber') || '');
     const [accountNumberError, setAccountNumberError] = useState('');
@@ -37,7 +40,9 @@ const Transfer = () => {
     const [selectedPackage, setSelectedPackage] = useState('');
     const [packageError, setPackageError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
+    const storedPin = useSelector((state: RootState) => state.user.pin);
     const { data: bankListData, error, isLoading } = useGetBankListQuery({ token: storedToken });
+    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
     const [verifyBankAccount] = useVerifyBankAccountMutation();
     const [transferFunds] = useTransferFundsMutation();
     // const [transferStatus] = useGetTransferStatusMutation();
@@ -192,11 +197,13 @@ const Transfer = () => {
                 amount: parseInt(amount, 10),
                 saveBeneficiary: false,
                 narration: narration,
+                transactionPin: storedPin,
 
             });
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {
                 if (response.error && 'data' in response.error) {

@@ -5,10 +5,9 @@ import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { LeftArrowIcon } from '../assets/svg'
 import {
-    useFetchServiceByIdQuery,
-    useFetchServiceCategoriesQuery,
+    useFetchPowerProvidersQuery,
     usePurchaseUtilityBill2Mutation,
-    // useVerifyPowerTVDataMutation
+    useGetUserDetailsQuery,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -18,33 +17,37 @@ import { toast } from 'react-toastify';
 import { CancelIcon } from '../assets/svg'
 import SuccessIcon from '../assets/images/success.png'
 import BackgroundImage from '../assets/images/background.png'
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../store/slices/userSlices';
 
 const BuyElectricity = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    // const [selectedPackage, setSelectedPackage] = useState('');
-    // const [packageError, setPackageError] = useState('');
+    const dispatch = useDispatch();
+    const [selectedPackage, setSelectedPackage] = useState('');
+    const [packageError, setPackageError] = useState('');
+    const [selectedPowerProvider, setSelectedPowerProvider] = useState<PowerProvider | null>(null);
     const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
+    const [meterType, setMeterType] = useState<string>(() => localStorage.getItem('meterType') || '');
+    const [meterTypeError, setMeterTypeError] = useState('');
     const [numberError, setNumberError] = useState('');
     const [amountError, setAmountError] = useState('');
-    // const [verified, setVerified] = useState("")
-    // const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [purchaseUtilityBill2] = usePurchaseUtilityBill2Mutation();
-    // const [verifyPowerTVData] = useVerifyPowerTVDataMutation();
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
     const storedPin = useSelector((state: RootState) => state.user.pin);
-    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: "61e985a3bce8e444a4976643" });
-    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: "61e985a3bce8e444a4976643" });
+    const { data: powerProviders } = useFetchPowerProvidersQuery({ token: storedToken });
+        const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+
 
     useEffect(() => {
-        console.log(serviceDataId, servicesByCategoryData, servicesByIdData,);
-    }, [serviceDataId, servicesByCategoryData, servicesByIdData,]);
+        console.log(serviceDataId, powerProviders);
+    }, [serviceDataId, powerProviders]);
 
     useEffect(() => {
 
@@ -69,12 +72,26 @@ const BuyElectricity = () => {
     const handleBack = () => {
         navigate('/home');
     };
-    // const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
+    const packageOptions: PackageOption[] = powerProviders?.data.map((provider: PowerProvider) => ({
+        label: provider.name,
+        value: provider.disco_id
+    })) || [];
 
-    // const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    //     setSelectedPackage(e.target.value);
-    //     setPackageError('');
-    // };
+    const handleMeterTypeChange = (type: string) => {
+        setMeterType(type);
+    };
+
+    const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedValue = parseInt(e.target.value);
+        setSelectedPackage(e.target.value);
+        setPackageError('');
+
+        // Find the selected power provider object
+        const selectedProvider = powerProviders?.data.find((provider: PowerProvider) => provider.disco_id === selectedValue);
+
+        // Set the selected power provider
+        setSelectedPowerProvider(selectedProvider || null);
+    };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setAmount(e.target.value);
@@ -85,15 +102,8 @@ const BuyElectricity = () => {
         setNumber(value);
         // handleMeterNumberVerification();
 
-
-
     };
 
-    interface ServiceData {
-        logoUrl: string;
-        name: string;
-        identifier: string;
-    }
 
     // const handleItemClick = (servicedata: ServiceData) => {
     //     setSelectedService(servicedata);
@@ -106,11 +116,10 @@ const BuyElectricity = () => {
 
             setLoading(true);
             const response = await purchaseUtilityBill2({
-                serviceCategoryId: "61e985a3bce8e444a4976643",
-                meterNumber: number,
+                disco_name: parseInt(localStorage.getItem('DiscoName') || '0', 10),
+                meterType: "prepaid",
+                meter_number: number,
                 amount: parseInt(amount, 10),
-                vendType: "prepaid",
-                debitAccountNumber: "0119017579",
                 transactionPin: storedPin,
                 token: storedToken
 
@@ -118,6 +127,7 @@ const BuyElectricity = () => {
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {
                 if (response.error && 'data' in response.error) {
@@ -133,8 +143,10 @@ const BuyElectricity = () => {
             setAmount("");
             setNumber("");
             // setSelectedPackage("");
+            localStorage.setItem('DiscoName', '');
             localStorage.setItem('amount', '');
             localStorage.setItem('number', '');
+            localStorage.setItem('meterType', '');
             setLoading(false);
             setShowModal(false)
         }
@@ -151,59 +163,57 @@ const BuyElectricity = () => {
 
     useEffect(() => {
         // Store amount and number in localStorage
+        localStorage.setItem('DiscoName', selectedPowerProvider?.disco_id?.toString() || '');
         localStorage.setItem('amount', amount);
         localStorage.setItem('number', number);
-    }, [amount, number]);
+        localStorage.setItem('meterType', meterType);
+    }, [amount, number, selectedPowerProvider?.disco_id, meterType]);
 
 
     const handleCloseModal = async () => {
-        // if (!selectedPackage) {
-        //     setPackageError('Please select a package.');
-        // }
+        if (!selectedPackage) {
+            setPackageError('Please select a provider.');
+        }
         if (!number) {
             setNumberError('Please enter a valid meter number');
         }
         if (!amount) {
             setAmountError('Please enter the amount of units');
         }
+        if (!meterType) {
+            setMeterTypeError('Please select a meter type');
+        }
 
         setLoading(true);
-        if (number && amount) {
-            // setPackageError('');
+        if (number && amount && selectedPackage && meterType) {
+            setPackageError('');
             setNumberError('');
-            setAmountError("")
+            setAmountError("");
+            setMeterTypeError("")
             navigate('/pin/utility/enter', { state: { service: "utility" } });
 
             setLoading(false);
         } else {
             setAmountError('Please enter a valid amount.');
             setNumberError('Please enter a valid meter number');
-            // setPackageError('Please select your choice');
+            setPackageError('Please select a provider');
+            setMeterTypeError('Please select a meter type');
         }
     };
 
-    // const handleMeterNumberVerification = async () => {
-    //     try {
-    //         const response = await verifyPowerTVData({
-    //             token: storedToken,
-    //             serviceCategoryId: serviceDataId,
-    //             entityNumber: number
-    //         })
-    //         if (response.data.success) {
-    //             setVerified(response.data.message)
-    //         } else {
-    //             toast.error("Your meter number is not valid")
+    interface PowerProvider {
+        _id: string;
+        disco_id: number;
+        name: string;
+        __v: number;
+        createdAt: string;
+        updatedAt: string;
+    }
 
-    //             // setSelectedPackage("")
-    //         }
-
-
-    //     } catch {
-    //         toast.error("There was an error please try again");
-
-    //         // setSelectedPackage("")
-    //     }
-    // }
+    interface PackageOption {
+        label: string;
+        value: number;
+    }
 
     return (
         <div>
@@ -217,98 +227,28 @@ const BuyElectricity = () => {
                             <p className='text-white font-[400] text-base font-poppins'>Buy Electricity</p>
                             <div>       </div>
                         </div>
-                        <p className='text-white mt-14 font-[400] text-sm font-poppins '>Select Service</p>
+
                         {/* <div className='flex justify-between items-center py-3 mt-10 overflow-x-auto '> */}
-                        <div className='flex flex-col items-center justify-between gap-4 relative pt-5'>
-                            <div className='w-full p-4 overflow-x-scroll scroll whitespace-nowrap scroll-smooth scrollbar-hide ' >
-                                {servicesByCategoryData && servicesByCategoryData.data.map((servicedata: ServiceData, index: number) => {
-                                    console.log(servicedata.logoUrl, 40004);
-                                    return (
-                                        <div id="sliderItem"
-                                            // onClick={() => handleItemClick(servicedata)}
-                                            key={index}
-                                            className=' relative overflow-hidden shadow-md rounded-md hover:cursor-pointer inline-block hover:scale-105 ease-in-out duration-300 '>
-                                            <div className="  h-fit rounded-[15px]  p-4 max-sm:p-2 " >
 
-                                                {servicedata.identifier === 'BENIN' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-                                                {servicedata.identifier === 'EKO' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-                                                {servicedata.identifier === 'ABUJA' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-                                                {servicedata.identifier === 'ENUGU' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-                                                {servicedata.identifier === 'IBADAN' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-                                                {servicedata.identifier === 'IKEJA' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-                                                {servicedata.identifier === 'JOS' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-                                                {servicedata.name === 'KADUNA' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-
-                                                {servicedata.identifier === 'KANO' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-
-                                                {servicedata.identifier === 'PORTHARCOURT' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-
-                                                {servicedata.name === 'YOLA' &&
-                                                    <div className="card">
-                                                        <img src={servicedata.logoUrl} alt={servicedata.name} />
-                                                    </div>
-                                                }
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-
-                                {/* </div> */}
-                            </div>
-                        </div>
-
-                        {/* <div className='flex justify-between items-center py-3 border-b-[1px] border-[#FFFFFF21] mt-2 '>
-                            <div className='bg-[#2F2F2F] h-14 w-[42%] rounded-[10px] flex justify-center items-center'>
+                        <div className='flex justify-between items-center py-3 border-b-[1px] border-[#FFFFFF21] mt-2'>
+                            <div
+                                className={`bg-[#2F2F2F] h-14 w-[42%] rounded-[10px] flex justify-center items-center cursor-pointer ${meterType === 'Prepaid' ? 'bg-[#1F1F1F]' : ''}`}
+                                onClick={() => handleMeterTypeChange('prepaid')}
+                            >
                                 <p className='text-white font-poppins font-[400] text-base'>Prepaid</p>
                             </div>
-                            <div className='bg-[#2F2F2F] h-14 w-[42%] rounded-[10px] flex justify-center items-center'>
+                            <div
+                                className={`bg-[#2F2F2F] h-14 w-[42%] rounded-[10px] flex justify-center items-center cursor-pointer ${meterType === 'Postpaid' ? 'bg-[#1F1F1F]' : ''}`}
+                                onClick={() => handleMeterTypeChange('postpaid')}
+                            >
                                 <p className='text-white font-poppins font-[400] text-base'>Postpaid</p>
                             </div>
-                        </div> */}
+                        </div>
+                        {meterTypeError && <p className='text-[#D45A0E] text-sm text-center'>{meterTypeError}</p>}
 
                         <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
                             <div>
-                                {/* <div>
+                                <div>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Select Provider</p>
                                     <div className="relative">
                                         <select
@@ -316,11 +256,12 @@ const BuyElectricity = () => {
                                             onChange={handlePackageChange}
                                             className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
                                         >
-                                            <option value="" disabled>Select email</option>
-                                            {packageOptions.map((option, index) => (
-                                                <option key={index} value={option}>{option}</option>
+                                            <option value="" disabled>Select provider</option>
+                                            {packageOptions.map((option: PackageOption, index: number) => (
+                                                <option key={index} value={option.value.toString()}>{option.label}</option>
                                             ))}
                                         </select>
+
                                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4">
                                             <svg className="w-4 h-4 fill-current text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                                 <path d="M10 12l-6-6h12l-6 6z" />
@@ -330,7 +271,7 @@ const BuyElectricity = () => {
 
 
                                     {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
-                                </div> */}
+                                </div>
                                 <div className=''>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Meter number</p>
                                     <input

@@ -17,12 +17,13 @@ import {
     NotificationIcon,
     PhoneIcon, ProfileIcon, QuickServiceIcon, RoundedIcon, TransferIcon
 } from '../assets/svg';
-import { useFetchServicesQuery } from '../services/apiService';
 import '../App.css'
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { useGetAllTransactionsQuery } from '../services/apiService';
+import { useGetAllTransactionsQuery, useGetUserDetailsQuery, } from '../services/apiService';
 import { FaLongArrowAltUp } from "react-icons/fa";
 import { FaLongArrowAltDown } from "react-icons/fa";
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../store/slices/userSlices';
 
 const Home = () => {
     const storedUser = useSelector((state: RootState) => state.user.user);
@@ -33,14 +34,15 @@ const Home = () => {
     console.log(storedUser.hasSetTransactionPin)
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [showModal, setShowModal] = useState(false);
     // const storedData = {token: storedToken}
-    const { data: servicesData, error, isLoading } = useFetchServicesQuery({ token: storedToken });
     const {
         data: transactionsResponse,
         isLoading: isLoading2,
         error: error2
     } = useGetAllTransactionsQuery({ token: storedToken });
+    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
     const transactions = transactionsResponse?.transactions || [];
     useEffect(() => {
 
@@ -57,11 +59,7 @@ const Home = () => {
 
         return () => window.removeEventListener("resize", handleResize);
     }, []);
-
-    useEffect(() => {
-        console.log(servicesData, error, isLoading);
-    }, [servicesData, error, isLoading]);
-
+   
 
     const toggleAccountBalance = () => {
         setAccountBalanceHidden(!accountBalanceHidden);
@@ -112,7 +110,7 @@ const Home = () => {
                                     <div onClick={() => navigate('/profile')}>
                                         <ProfileIcon />
                                     </div>
-                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Hi, {storedUser.firstName}</p>
+                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Hi, {storedUser.firstName || storedUser.email}</p>
                                 </div>
                                 <p className='text-[#FFFFFF] font-[400] text-lg font-poppins'>Bold data</p>
 
@@ -301,7 +299,7 @@ const Home = () => {
                     <div className='flex justify-between items-center'>
 
                         <p className='text-white font-[500]  font-poppins text-base '>Deposit</p>
-                        <div onClick={() => setShowModal(false)}>
+                        <div onClick={() => {setShowModal(false); dispatch(setUserInfo(userDetails.data));}}>
                             <CancelIcon />
                         </div>
 

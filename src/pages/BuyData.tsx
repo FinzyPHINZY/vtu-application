@@ -4,39 +4,50 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { CancelIcon, LeftArrowIcon } from '../assets/svg'
-import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery, usePurchaseData2Mutation } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import '../App.css'
+import { useFetchNetworksQuery, 
+    useFetchDataPlansQuery,
+     usePurchaseData2Mutation,
+     useGetUserDetailsQuery, } from '../services/apiService';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 import SuccessIcon from '../assets/images/success.png'
 import BackgroundImage from '../assets/images/background.png'
+import MTN from '../assets/images/MTN.jpg'
+import AIRTEL from '../assets/images/Airtel.jpeg'
+import GLO from '../assets/images/GLO.jpg'
+import MOBILE from '../assets/images/9MOBILE.jpg'
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../store/slices/userSlices';
+
 
 const BuyData = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    // const [selectedPackage, setSelectedPackage] = useState('');
-    // const [packageError, setPackageError] = useState('');
+    const dispatch = useDispatch();
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
-    const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
-    const [amountError, setAmountError] = useState('');
+    // const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
+    // const [amountError, setAmountError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
-    // const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
+    const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
+    const [selectedDataPlan, setSelectedDataPlan] = useState<DataPlans | null>(null);
     const [loading, setLoading] = useState(false);
     const { data: serviceDataId, secondData } = location.state || {};
     const [showModal, setShowModal] = useState(false);
     const [purchaseData2] = usePurchaseData2Mutation();
-    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: "61e9854bbce8e444a497663e" });
-    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: "61e9854bbce8e444a497663e" });
+    const { data: fetchDataPlans } = useFetchDataPlansQuery({ token: storedToken });
+    const { data: fetchNetworks } = useFetchNetworksQuery({ token: storedToken });
+    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
 
     useEffect(() => {
-        console.log(serviceDataId, servicesByCategoryData, servicesByIdData,);
-    }, [serviceDataId, servicesByCategoryData, servicesByIdData,]);
+        console.log(serviceDataId, fetchDataPlans, fetchNetworks);
+    }, [serviceDataId, fetchDataPlans, fetchNetworks,]);
 
     useEffect(() => {
 
@@ -61,27 +72,22 @@ const BuyData = () => {
     const handleBack = () => {
         navigate('/home');
     };
-    // const packageOptions = ['example@gmail.com', 'example@yahoo.com', 'example@outlook.com'];
 
-    // const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    //     setSelectedPackage(e.target.value);
-    //     setPackageError('');
-    // };
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        
-       
-        const cleanValue = value.startsWith('+') 
+
+
+        const cleanValue = value.startsWith('+')
             ? '+' + value.replace(/[+\D]/g, '')
             : value.replace(/\D/g, '');
-            
+
         console.log('Original value:', value);
         console.log('Cleaned value:', cleanValue);
-        
-     
+
+
         const phoneNumberPattern = /^(\+234|234|0)[1-9]\d{9}$/;
-        
+
         if (!phoneNumberPattern.test(cleanValue)) {
             console.log('Validation failed');
             setNumberError('Please enter a valid phone number in either format:\n+234XXXXXXXXXX\nor\n234XXXXXXXXXX');
@@ -89,15 +95,15 @@ const BuyData = () => {
             console.log('Validation passed');
             setNumberError('');
         }
-        
+
         setNumber(value);
     };
 
 
-    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAmount(e.target.value);
-        setAmountError('');
-    };
+    // const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setAmount(e.target.value);
+    //     setAmountError('');
+    // };
 
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -107,17 +113,18 @@ const BuyData = () => {
 
             setLoading(true);
             const response = await purchaseData2({
-                serviceCategoryId: "61e9854bbce8e444a497663e",
-                bundleCode: "BUN123",
-                amount: parseInt(amount, 10),
-                phoneNumber: number,
-                debitAccountNumber: "0119017579",
+                amount: parseInt(localStorage.getItem('amount') || '0', 10),
+                mobile_number: number,
+                network: parseInt(localStorage.getItem('NetworkId') || '0', 10),
+                plan: parseInt(localStorage.getItem('DataId') || '0', 10),
+                Ported_number: true,
                 transactionPin: storedPin,
                 token: storedToken
             });
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {
                 if (response.error && 'data' in response.error) {
@@ -133,9 +140,10 @@ const BuyData = () => {
         } finally {
             // setSelectedPackage("");
             setNumber("");
-            setAmount("");
             localStorage.setItem('amount', '');
             localStorage.setItem('number', '');
+            localStorage.setItem('DataId', '');
+            localStorage.setItem('NetworkId', '');
             setLoading(false);
             setShowModal(false);
         }
@@ -151,47 +159,63 @@ const BuyData = () => {
 
     useEffect(() => {
         // Store amount and number in localStorage
-        localStorage.setItem('amount', amount);
+        localStorage.setItem('amount', selectedDataPlan?.amount?.toString() || '');
+        localStorage.setItem('DataId', selectedDataPlan?.data_id?.toString() || '');
+        localStorage.setItem('NetworkId', selectedNetwork?.network_id?.toString() || '');
         localStorage.setItem('number', number);
-    }, [amount, number]);
+    }, [selectedDataPlan?.amount, number, selectedDataPlan?.data_id, selectedNetwork?.network_id]);
 
     const handleCloseModal = async () => {
-        // if (!selectedPackage) {
-        //     setPackageError('Please select your choice.');
-        // }
+
         if (!number) {
             setNumberError('Please enter a valid phone number.');
         }
 
-        if (!amount) {
-            setAmountError('Please enter a valid amount');
+        if (!selectedNetwork) {
+            toast.error('Please click and select any network');
+        }
+
+        if (!selectedDataPlan) {
+            toast.error('Please select a data plan');
         }
         setLoading(true);
-        if (amount && number) {
+        if (selectedDataPlan?.amount && number) {
             // setPackageError('');
             setNumberError('');
-            setAmountError('')
             navigate('/pin/data/enter', { state: { service: "data" } });
 
             setLoading(false);
         } else {
             setNumberError('Please enter a valid phone number');
-            // setPackageError('Please select your choice');
-            setAmountError('Please enter a valid amount.');
+
 
         }
     };
 
 
-    interface ServiceData {
-        logoUrl: string;
-        name: string;
-        identifier: string;
+    interface Network {
+        _id: string;
+        network_id: number;
+        networkname: string;
+        __v: number;
+        createdAt: string;
+        updatedAt: string;
     }
 
-    // const handleItemClick = (servicedata: ServiceData) => {
-    //     setSelectedService(servicedata);
-    // };
+    interface DataPlans {
+        _id: string;
+        data_id: number;
+        network: string;
+        planType: string;
+        amount: number;
+        size: string;
+        validity: string;
+        __v: number;
+    }
+
+    const handleItemClick = (network: Network) => {
+        setSelectedNetwork(network);
+    };
 
     return (
         <div>
@@ -206,31 +230,31 @@ const BuyData = () => {
                             <div>       </div>
                         </div>
                         <div className='flex justify-between items-center py-3 mt-10 '>
-                            {servicesByCategoryData && servicesByCategoryData.data.map((servicedata: ServiceData, index: number) => {
-                                console.log(servicedata.logoUrl, 40004);
+                            {fetchNetworks && fetchNetworks.data.map((network: Network, index: number) => {
+
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
-                                    // onClick={() => handleItemClick(servicedata)}
+                                        onClick={() => handleItemClick(network)}
                                     >
-                                        {servicedata.identifier === 'MTN' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {network.networkname === 'MTN' &&
+                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                                <img src={MTN} alt={network.networkname} />
                                             </div>
                                         }
-                                        {servicedata.identifier === 'GLO' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {network.networkname === 'GLO' &&
+                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                                <img src={GLO} alt={network.networkname} />
                                             </div>
                                         }
-                                        {servicedata.identifier === 'AIRTEL' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {network.networkname === 'AIRTEL' &&
+                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                                <img src={AIRTEL} alt={network.networkname} />
                                             </div>
                                         }
-                                        {servicedata.identifier === 'ETISALAT' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {network.networkname === '9MOBILE' &&
+                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                                <img src={MOBILE} alt={network.networkname} />
                                             </div>
                                         }
 
@@ -244,29 +268,7 @@ const BuyData = () => {
 
                         <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
                             <div>
-                                {/* <div>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Select package</p>
-                                    <div className="relative">
-                                        <select
-                                            value={selectedPackage}
-                                            onChange={handlePackageChange}
-                                            className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
-                                        >
-                                            <option value="" disabled>Select email</option>
-                                            {packageOptions.map((option, index) => (
-                                                <option key={index} value={option}>{option}</option>
-                                            ))}
-                                        </select>
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4">
-                                            <svg className="w-4 h-4 fill-current text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                                <path d="M10 12l-6-6h12l-6 6z" />
-                                            </svg>
-                                        </div>
-                                    </div>
 
-
-                                    {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
-                                </div> */}
                                 <div className=''>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Phone number</p>
                                     <input
@@ -279,7 +281,7 @@ const BuyData = () => {
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 
                                 </div>
-                                <div className='mt-8'>
+                                {/* <div className='mt-8'>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
                                     <input
                                         type="number"
@@ -290,7 +292,44 @@ const BuyData = () => {
                                     />
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
 
+                                </div> */}
+                                <div className='flex justify-between flex-wrap items-center py-3 mt-10'>
+                                    {fetchDataPlans && selectedNetwork && fetchDataPlans.data
+                                        .filter((dataPlan: DataPlans) => dataPlan.network === selectedNetwork.networkname)
+                                        .map((dataPlan: DataPlans, index: number) => {
+                                            return (
+                                                <div className='flex flex-col justify-center items-center gap-2'
+                                                    key={index}
+                                                    onClick={() => setSelectedDataPlan(dataPlan)}>
+                                                    <div className="h-6 w-6 rounded-md shadow-md">
+                                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.amount}</p>
+                                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.size}</p>
+                                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.validity}</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                 </div>
+
+                                {/* <div className='flex justify-between flex-wrap items-center py-3 mt-10 '>
+                                    {fetchDataPlans && fetchDataPlans.data.map((dataPlan: DataPlans, index: number) => {
+
+                                        return (
+                                            <div className=' flex flex-col justify-center items-center gap-2'
+                                                key={index}
+                                            >
+                                                <div className="h-6 w-6 rounded-md shadow-md ">
+                                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'> {dataPlan.amount}</p>
+                                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'> {dataPlan.size}</p>
+                                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'> {dataPlan.validity}</p>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+
+
+
+                                </div> */}
                             </div>
                             <button
                                 onClick={handleCloseModal}
@@ -352,7 +391,7 @@ const BuyData = () => {
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>{amount}</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{localStorage.getItem('amount')}</p>
                     </div>
                     <button
 

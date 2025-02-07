@@ -11,6 +11,8 @@ import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { setPin as setUserPin } from '../store/slices/userSlices';
+import { setUserInfo } from '../store/slices/userSlices';
+
 
 
 const CreateTransactionPin = () => {
@@ -71,6 +73,7 @@ const CreateTransactionPin = () => {
                 if (response.data.success) {
                     toast.success(response.data.message);
                     dispatch(setUserPin(pin.join('')));
+                    dispatch(setUserInfo(response.data.data));
                     navigate('/home');
                 } else {
                     toast.error(response.data.message);

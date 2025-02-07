@@ -69,7 +69,7 @@ export const apiService = createApi({
       }),
     }),
     getAllAccounts: builder.query({
-      query: ({token}) => ({
+      query: ({ token }) => ({
         url: 'account',
         method: 'GET',
         headers: {
@@ -77,27 +77,45 @@ export const apiService = createApi({
         },
       }),
     }),
-    fetchServices: builder.query({
-      query: ({token}) => ({
-        url: 'services',
+    fetchNetworks: builder.query({
+      query: ({ token }) => ({
+        url: 'transactions/networks',
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }),
     }),
-    fetchServiceById: builder.query({
-      query: ({id, token}) => ({
-        url: `services/${id}/service`,
+    fetchDataPlans: builder.query({
+      query: ({ token }) => ({
+        url: `transactions/data-plans`,
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }),
     }),
-    fetchServiceCategories: builder.query({
-      query: ({id, token}) => ({
-        url: `services/${id}/service-categories`,
+    fetchCableList: builder.query({
+      query: ({  token }) => ({
+        url: `transactions/cable-list`,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    }),
+    fetchPowerProviders: builder.query({
+      query: ({  token }) => ({
+        url: `transactions/utility-providers`,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    }),
+    fetchCablePlans: builder.query({
+      query: ({  token }) => ({
+        url: `transactions/cable-plans`,
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -155,7 +173,7 @@ export const apiService = createApi({
       }),
     }),
     getAllTransactions: builder.query({
-      query: ({token}) => ({
+      query: ({ token }) => ({
         url: 'transactions',
         method: 'GET',
         headers: {
@@ -174,47 +192,47 @@ export const apiService = createApi({
       }),
     }),
     purchaseAirtime2: builder.mutation({
-      query: ({ serviceCategoryId, amount, token, phoneNumber, debitAccountNumber, transactionPin }) => ({
+      query: ({ network, mobile_number, airtime_type, Ported_number, amount, transactionPin, token }) => ({
         url: 'transactions/airtime',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { serviceCategoryId, amount, phoneNumber, debitAccountNumber, transactionPin },
+        body: { network, mobile_number, airtime_type, Ported_number, amount, transactionPin },
       }),
     }),
     purchaseData2: builder.mutation({
-      query: ({ serviceCategoryId, bundleCode, token, amount, phoneNumber, debitAccountNumber, transactionPin }) => ({
+      query: ({ network, mobile_number, plan, Ported_number, amount, transactionPin, token }) => ({
         url: 'transactions/data',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { serviceCategoryId, bundleCode, amount, phoneNumber, debitAccountNumber, transactionPin },
+        body: { network, mobile_number, plan, Ported_number, amount, transactionPin },
       }),
     }),
     purchaseCableTV2: builder.mutation({
-      query: ({ serviceCategoryId, bundleCode, token, amount, cardNumber, debitAccountNumber, transactionPin }) => ({
+      query: ({ cablename, cableplan, smart_card_number, amount, token, transactionPin }) => ({
         url: 'transactions/cable-tv',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { serviceCategoryId, bundleCode, amount, cardNumber, debitAccountNumber, transactionPin },
+        body: { cablename, cableplan, smart_card_number, amount, transactionPin },
       }),
     }),
     purchaseUtilityBill2: builder.mutation({
-      query: ({ serviceCategoryId, meterNumber, token, amount, vendType, debitAccountNumber, transactionPin }) => ({
+      query: ({ disco_name, meter_number, meterType, token, amount, transactionPin }) => ({
         url: 'transactions/utility',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { serviceCategoryId, meterNumber, amount, vendType, debitAccountNumber, transactionPin },
+        body: {  amount, disco_name, meter_number, meterType, transactionPin },
       }),
     }),
     getBankList: builder.query({
-      query: ({token}) => ({
+      query: ({ token }) => ({
         url: 'transfers/banks',
         method: 'GET',
         headers: {
@@ -243,13 +261,13 @@ export const apiService = createApi({
       }),
     }),
     transferFunds: builder.mutation({
-      query: ({ nameEnquiryReference, token, debitAccountNumber, beneficiaryBankCode, beneficiaryAccountNumber, amount, saveBeneficiary, narration }) => ({
+      query: ({ nameEnquiryReference, token, debitAccountNumber, beneficiaryBankCode, beneficiaryAccountNumber, amount, saveBeneficiary, narration, transactionPin }) => ({
         url: 'transactions/transfer',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { nameEnquiryReference, debitAccountNumber, beneficiaryBankCode, beneficiaryAccountNumber, amount, saveBeneficiary, narration },
+        body: { nameEnquiryReference, debitAccountNumber, beneficiaryBankCode, beneficiaryAccountNumber, amount, saveBeneficiary, narration, transactionPin },
       }),
     }),
     requestPasswordReset: builder.mutation({
@@ -282,11 +300,22 @@ export const apiService = createApi({
         body: { transactionPin },
       }),
     }),
-    // Add other endpoints here as needed
+    getUserDetails: builder.query({
+      query: ({ token }) => ({
+        url: 'user',
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        
+      }),
+    }),
+
   }),
 });
 
 export const { useRequestOtpMutation,
+ useGetUserDetailsQuery,
   useVerifyOtpMutation,
   useCompleteSignupMutation,
   useLoginMutation,
@@ -295,15 +324,17 @@ export const { useRequestOtpMutation,
   useGoogleLoginMutation,
   useGetAccountDetailsQuery,
   useGetAllAccountsQuery,
-  useFetchServicesQuery,
-  useFetchServiceByIdQuery,
-  useFetchServiceCategoriesQuery,
+  useFetchNetworksQuery,
+  useFetchDataPlansQuery,
+  useFetchCableListQuery,
   useVerifyPowerTVDataMutation,
   usePurchaseAirtimeMutation,
   usePurchaseDataMutation,
   usePurchaseCableTVMutation,
   usePayUtilityBillMutation,
+  useFetchPowerProvidersQuery,
   useGetAllTransactionsQuery,
+  useFetchCablePlansQuery,
   useCreateSubAccountMutation,
   usePurchaseAirtime2Mutation,
   usePurchaseData2Mutation,
@@ -316,5 +347,5 @@ export const { useRequestOtpMutation,
   useRequestPasswordResetMutation,
   useResetPasswordMutation,
   useSetTransactionPinMutation,
- } = apiService;
+} = apiService;
 

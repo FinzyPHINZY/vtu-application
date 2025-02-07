@@ -4,7 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { LeftArrowIcon } from '../assets/svg'
-import { useFetchServiceByIdQuery, useFetchServiceCategoriesQuery, usePurchaseAirtime2Mutation } from '../services/apiService';
+import { useFetchNetworksQuery,
+     usePurchaseAirtime2Mutation,
+    useGetUserDetailsQuery } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
@@ -12,30 +14,35 @@ import { toast } from 'react-toastify';
 import { CancelIcon } from '../assets/svg'
 import SuccessIcon from '../assets/images/success.png'
 import BackgroundImage from '../assets/images/background.png'
+import MTN from '../assets/images/MTN.jpg'
+import AIRTEL from '../assets/images/Airtel.jpeg'
+import GLO from '../assets/images/GLO.jpg'
+import MOBILE from '../assets/images/9MOBILE.jpg'
+import { useDispatch } from 'react-redux';
+import { setUserInfo } from '../store/slices/userSlices';
 
 const BuyAirtime = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const location = useLocation();
     const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [amountError, setAmountError] = useState('');
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
-    const storedToken = useSelector((state: RootState) => state.auth.token);
-    // const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
+    const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
     const [purchaseAirtime2] = usePurchaseAirtime2Mutation();
     const { data: serviceDataId, secondData } = location.state || {};
     const storedPin = useSelector((state: RootState) => state.user.pin);
+    const storedToken = useSelector((state: RootState) => state.auth.token);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
-
-
-    const { data: servicesByIdData } = useFetchServiceByIdQuery({ token: storedToken, id: "61e985180e69308aa37a7a94" });
-    const { data: servicesByCategoryData } = useFetchServiceCategoriesQuery({ token: storedToken, id: "61e985180e69308aa37a7a94" });
+    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const { data: fetchNetworks } = useFetchNetworksQuery({ token: storedToken });
     useEffect(() => {
-        console.log(serviceDataId, servicesByCategoryData, servicesByIdData,);
-    }, [serviceDataId, servicesByCategoryData, servicesByIdData,]);
+        console.log(serviceDataId, fetchNetworks);
+    }, [serviceDataId, fetchNetworks]);
 
 
 
@@ -70,18 +77,18 @@ const BuyAirtime = () => {
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        
-     
-        const cleanValue = value.startsWith('+') 
+
+
+        const cleanValue = value.startsWith('+')
             ? '+' + value.replace(/[+\D]/g, '')
             : value.replace(/\D/g, '');
-            
+
         console.log('Original value:', value);
         console.log('Cleaned value:', cleanValue);
-        
+
 
         const phoneNumberPattern = /^(\+234|234|0)[1-9]\d{9}$/;
-        
+
         if (!phoneNumberPattern.test(cleanValue)) {
             console.log('Validation failed');
             setNumberError('Please enter a valid phone number in either format:\n+234XXXXXXXXXX\nor\n234XXXXXXXXXX');
@@ -89,7 +96,7 @@ const BuyAirtime = () => {
             console.log('Validation passed');
             setNumberError('');
         }
-        
+
         setNumber(value);
     };
 
@@ -102,9 +109,10 @@ const BuyAirtime = () => {
 
     useEffect(() => {
         // Store amount and number in localStorage
+        localStorage.setItem('NetworkId', selectedNetwork?.network_id?.toString() || '');
         localStorage.setItem('amount', amount);
         localStorage.setItem('number', number);
-    }, [amount, number]);
+    }, [amount, number, selectedNetwork?.network_id]);
 
 
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
@@ -113,18 +121,18 @@ const BuyAirtime = () => {
         try {
             setLoading(true);
             const response = await purchaseAirtime2({
-                serviceCategoryId: "61e985180e69308aa37a7a94",
                 amount: parseInt(amount, 10),
-                channel: "WEB",
-                debitAccountNumber: "0119017579",
-                phoneNumber: number,
-                statusUrl: "https://finzyphinzy.vercel.app",
+                mobile_number: number,
+                network: parseInt(localStorage.getItem('NetworkId') || '0', 10),
+                airtime_type: "VTU",
+                Ported_number: true,
                 transactionPin: storedPin,
                 token: storedToken
             });
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {
                 if (response.error && 'data' in response.error) {
@@ -141,6 +149,7 @@ const BuyAirtime = () => {
             setNumber("");
             localStorage.setItem('amount', '');
             localStorage.setItem('number', '');
+            localStorage.setItem('NetworkId', '');
             setLoading(false);
             setShowModal(false)
         }
@@ -155,8 +164,11 @@ const BuyAirtime = () => {
             setNumberError('Please enter a valid phone number');
         }
 
+        if (!selectedNetwork) {
+            toast.error('Please click on any network and select it');
+        }
         setLoading(true);
-        if (amount && number) {
+        if (amount && number && selectedNetwork) {
             setAmountError('');
             setNumberError('');
 
@@ -168,15 +180,21 @@ const BuyAirtime = () => {
         }
     };
 
-    interface ServiceData {
-        logoUrl: string;
-        name: string;
-        identifier: string;
+
+    interface Network {
+        _id: string;
+        network_id: number;
+        networkname: string;
+        __v: number;
+        createdAt: string;
+        updatedAt: string;
     }
 
-    // const handleItemClick = (servicedata: ServiceData) => {
-    //     setSelectedService(servicedata);
-    // };
+
+
+    const handleItemClick = (network: Network) => {
+        setSelectedNetwork(network);
+    };
 
     return (
         <div>
@@ -184,38 +202,38 @@ const BuyAirtime = () => {
                 isMobileView ? (
                     // JSX for screens below 768px
                     <div className='min-h-screen w-full bg-black pt-7 px-16 max-sm:px-7 flex flex-col justify-between'>
-                       {(showModal || paymentSuccessfulModal) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
+                        {(showModal || paymentSuccessfulModal) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={handleBack} />
                             <p className='text-white font-[400] text-base font-poppins'>Buy Airtime</p>
                             <div>       </div>
                         </div>
                         <div className='flex justify-between items-center py-3 mt-10 '>
-                            {servicesByCategoryData && servicesByCategoryData.data.map((servicedata: ServiceData, index: number) => {
-                                console.log(servicedata.logoUrl, 40004);
+                            {fetchNetworks && fetchNetworks.data.map((network: Network, index: number) => {
+
                                 return (
                                     <div className=' flex flex-col justify-center items-center gap-2'
                                         key={index}
-                                    // onClick={() => handleItemClick(servicedata)}
+                                        onClick={() => handleItemClick(network)}
                                     >
-                                        {servicedata.identifier === 'MTN' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {network.networkname === 'MTN' &&
+                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                                <img src={MTN} alt={network.networkname} />
                                             </div>
                                         }
-                                        {servicedata.identifier === 'GLO' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {network.networkname === 'GLO' &&
+                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                                <img src={GLO} alt={network.networkname} />
                                             </div>
                                         }
-                                        {servicedata.identifier === 'AIRTEL' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {network.networkname === 'AIRTEL' &&
+                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                                <img src={AIRTEL} alt={network.networkname} />
                                             </div>
                                         }
-                                        {servicedata.identifier === 'ETISALAT' &&
-                                            <div className="card">
-                                                <img src={servicedata.logoUrl} alt={servicedata.name} />
+                                        {network.networkname === '9MOBILE' &&
+                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                                <img src={MOBILE} alt={network.networkname} />
                                             </div>
                                         }
 
@@ -229,7 +247,20 @@ const BuyAirtime = () => {
 
                         <form className='mt-20 flex-grow flex flex-col justify-between pb-20'>
                             <div>
-                                <div>
+
+                                <div >
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Phone number</p>
+                                    <input
+                                        type="number"
+                                        value={number}
+                                        onChange={handleNumberChange}
+                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                        placeholder='+2348178909913'
+                                    />
+                                    {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
+
+                                </div>
+                                <div className='mt-12'>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
 
                                     <input
@@ -242,17 +273,41 @@ const BuyAirtime = () => {
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
 
                                 </div>
-                                <div className='mt-12'>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Phone number</p>
-                                    <input
-                                        type="number"
-                                        value={number}
-                                        onChange={handleNumberChange}
-                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='+2348178909913'
-                                    />
-                                    {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
+                                <div className='flex justify-between flex-wrap items-center py-3 mt-10'>
 
+                                    <div className='flex flex-col justify-center items-center gap-2'
+
+                                        onClick={() => setAmount("100")}>
+                                        <div className="h-4 w-4 rounded-md shadow-md">
+                                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>100</p>
+
+                                        </div>
+                                    </div>
+                                    <div className='flex flex-col justify-center items-center gap-2'
+
+                                        onClick={() => setAmount("200")}>
+                                        <div className="h-4 w-4 rounded-md shadow-md">
+                                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>200</p>
+
+                                        </div>
+                                    </div>
+
+                                    <div className='flex flex-col justify-center items-center gap-2'
+
+                                        onClick={() => setAmount("500")}>
+                                        <div className="h-4 w-4 rounded-md shadow-md">
+                                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>500</p>
+
+                                        </div>
+                                    </div>
+                                    <div className='flex flex-col justify-center items-center gap-2'
+
+                                        onClick={() => setAmount("1000")}>
+                                        <div className="h-4 w-4 rounded-md shadow-md">
+                                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>1000</p>
+
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <button
@@ -271,7 +326,7 @@ const BuyAirtime = () => {
                     // JSX for screens above 768px
                     <div className='min-h-screen w-full gap-4 bg-black p-5 flex flex-col justify-between'>
                         {(showModal || paymentSuccessfulModal) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
-                     
+
                         <div className='text-white font-[500] font-kavoon text-2xl'>Bold data</div>
                         <div className='flex justify-center items-center '>
                             <img src={DesktopImage} className='w-60 h-60 ' />
