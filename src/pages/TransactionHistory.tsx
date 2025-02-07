@@ -360,12 +360,12 @@ const TransactionHistory = () => {
                     <div className='flex justify-between items-start'>
                         <div>             </div>
                         <div className='flex flex-col justify-center items-center gap-2'>
-                            <GrTransaction />
+                            <GrTransaction className='h-8 w-8 text-[white]' />
                             <p className='text-white font-[400] font-poppins text-sm '>{selectedTransaction.serviceType}</p>
                         </div>
 
                         <div onClick={() => { setShowModal(false); setSelectedTransaction(null) }}>
-                            <CancelIcon />
+                            <CancelIcon   />
                         </div>
                     </div>
                     {(selectedTransaction.serviceType == "airtime" || selectedTransaction.serviceType == "data") &&
