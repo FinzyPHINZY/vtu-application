@@ -53,11 +53,11 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'user'],
       default: 'user',
     },
-    accountBalance: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
+    // accountBalance: {
+    //   type: Number,
+    //   required: true,
+    //   default: 0,
+    // },
     accountNumber: {
       type: String,
       unique: true,

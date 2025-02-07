@@ -31,15 +31,7 @@ export const initiateVerification = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Verification initiated successfully',
-      data: {
-        _id: data._id,
-        clientId: data.clientId,
-        type: data.type,
-        amount: data.amount,
-        status: data.status,
-        debitAccountNumber: data.debitAccountNumber,
-        providerResponse: data.providerResponse,
-      },
+      data,
     });
   } catch (error) {
     console.error('Error initiating verification:', error);

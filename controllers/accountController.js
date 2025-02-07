@@ -59,6 +59,7 @@ export const createSubAccount = async (req, res) => {
 
     const { data } = response.data;
 
+    user.accountBalance = data.accountBalance;
     user.accountNumber = data.accountNumber;
     user.accountDetails = {
       bankName: data.bankName,
@@ -107,7 +108,7 @@ export const getAccountDetails = async (req, res) => {
       }
     );
 
-    const { data } = response.data;
+    const { data } = response;
 
     console.log(`Account details retrieved successfully for account ID: ${id}`);
 
