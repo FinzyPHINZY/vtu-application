@@ -1,7 +1,12 @@
 import axios from 'axios';
 import ApiError from '../utils/error.js';
 import { generateRandomReference } from '../utils/helpers.js';
-import { processTransaction, validateBalance } from '../utils/transaction.js';
+import {
+  processTransaction,
+  sendTransactionReceipt,
+  validateBalance,
+} from '../utils/transaction.js';
+import Transaction from '../models/Transaction.js';
 
 const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
 
@@ -137,36 +142,51 @@ export const executeTransfer = async (req, res, next) => {
 
     console.log('Processing transfer...');
 
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000, // 30 second timeout
-      }
-    );
-
-    const { data } = response;
-
     const transactionDoc = await Transaction.findById(transaction.toString());
-    transactionDoc.status = 'success';
 
-    await transactionDoc.save();
-    await user.save();
+    try {
+      const response = await axios.post(
+        `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            'Content-Type': 'application/json',
+            ClientID: ibs_client_id,
+          },
+          timeout: 30000, // 30 second timeout
+        }
+      );
 
-    await sendTransactionReceipt(user, transactionDoc);
+      const { data } = response;
 
-    return res.status(200).json({
-      success: true,
-      message: 'Bank transfer completed successfully',
-      data,
-    });
+      transactionDoc.status = 'success';
+
+      await transactionDoc.save();
+      await user.save();
+
+      await sendTransactionReceipt(user, transactionDoc);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Bank transfer completed successfully',
+        data,
+      });
+    } catch (error) {
+      console.error('Cable Subscription Failed: ', error);
+
+      transactionDoc.status = 'failed';
+      await transactionDoc.save();
+
+      throw new ApiError(
+        error.response?.status || 500,
+        false,
+        error.response?.data?.message || 'Transfer failed',
+        error.response?.data
+      );
+    }
   } catch (error) {
-    console.error('Funds Transfer Failed', error.response.data);
+    console.error('Funds Transfer Failed', error.response);
 
     next(error);
   }

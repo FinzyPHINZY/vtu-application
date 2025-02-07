@@ -41,7 +41,7 @@ export const createSubAccount = async (req, res) => {
       identityId,
       otp,
       callbackUrl: process.env.FRONTEND_BASE_URL,
-      autoSweep: true,
+      autoSweep: false,
       autoSweepDetails: { schedule: 'Instant' },
     };
 
@@ -129,7 +129,7 @@ export const getAccounts = async (req, res) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
 
-    const { page = 0, limit = 100, isSubAccount = false } = req.query;
+    const { page = 0, limit = 100, isSubAccount = true } = req.query;
 
     const response = await axios.get(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/accounts`,
