@@ -206,6 +206,20 @@ export const login = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Signed in successfully',
+      data: {
+        _id: user._id,
+        email: user.email,
+        role: user.role,
+        accountBalance: user.accountBalance,
+        hasSetTransactionPin: user.hasSetTransactionPin,
+        isVerified: user.isVerified,
+        status: user.status,
+        isGoogleUser: true,
+        accountDetails: user.accountDetails,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
+      },
       token,
       expires_in,
     });
