@@ -611,7 +611,7 @@ export const payCableTV = async (req, res, next) => {
       throw new ApiError(
         error.response?.status || 500,
         false,
-        error.response?.data?.message || 'Data purchase failed',
+        error.response?.data?.message || 'Cable Subscription failed',
         error.response?.data
       );
     }
