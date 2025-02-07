@@ -76,25 +76,7 @@ export const createSubAccount = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Sub-account created successfully',
-      data: {
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-        hasSetTransactionPin: user.hasSetTransactionPin,
-        isVerified: user.isVerified,
-        status: user.status,
-        isGoogleUser: user.isGoogleUser,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phoneNumber: user.phoneNumber,
-        accountNumber: data.accountNumber,
-        bankName: data.bankName,
-        accountName: data.accountName,
-        accountType: data.accountType,
-        accountNumber: data.accountNumber,
-        status: data.status,
-        createdAt: data.createdAt,
-      },
+      data,
     });
   } catch (error) {
     console.error(error);
