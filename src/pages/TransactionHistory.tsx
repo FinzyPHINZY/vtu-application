@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { CancelIcon, CustomerSupport, LeftArrowIcon, SearchIcon } from '../assets/svg';
-import MTN from '../assets/images/mtn.png';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { useGetAllTransactionsQuery } from '../services/apiService';
 import { FaLongArrowAltUp } from "react-icons/fa";
 import { FaLongArrowAltDown } from "react-icons/fa";
+import { GrTransaction } from "react-icons/gr";
 import '../App.css'
 
 const TransactionHistory = () => {
@@ -23,11 +23,15 @@ const TransactionHistory = () => {
         status: string;
         metadata: {
             serviceCategoryId?: string;
-            phoneNumber?: string;
+            mobile_number?: string;
             debitAccountNumber?: string;
-            beneficiaryAccountNumber?: string;
-            beneficiaryBankCode?: string;
+            beneficiaryAccount?: string;
+            beneficiaryBank?: string;
             nameEnquiryReference?: string;
+            smart_card_number?: string;
+            meter_number?: string;
+            meterType?: string;
+
         };
         user: string;
         createdAt: string;
@@ -46,9 +50,9 @@ const TransactionHistory = () => {
     };
     const openTawkToChat = () => {
         if (window.Tawk_API && window.Tawk_API.maximize) {
-          window.Tawk_API.maximize();
+            window.Tawk_API.maximize();
         }
-      };
+    };
 
     const years = Array.from({ length: 10 }, (_, i) => {
         const year = new Date().getFullYear() - i;
@@ -74,7 +78,7 @@ const TransactionHistory = () => {
     //     value: `${i + 1}`.padStart(2, '0'),
     //     label: `${i + 1}`
     // }));
-   
+
     const [selectedYear, setSelectedYear] = useState(() => {
         const currentYear = new Date().getFullYear().toString();
         return years.find(y => y.value === currentYear)?.label || '';
@@ -106,8 +110,8 @@ const TransactionHistory = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
-    
-    
+
+
     const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -157,7 +161,7 @@ const TransactionHistory = () => {
     //                      (selectedMonth === '' || transaction.createdAt.includes(`-${months.find(m => m.label === selectedMonth)?.label || 'Jan'}-`)) &&
     //                      (selectedDay === '' || transaction.createdAt.endsWith(`-${selectedDay}`));
     //     const searchMatch = searchQuery || (transaction.type || transaction.metadata.phoneNumber || transaction.amount.toString() || '').toLowerCase().includes(searchQuery.toLowerCase());
-        
+
     //     return  dateMatch && searchMatch;
     // });
 
@@ -166,31 +170,31 @@ const TransactionHistory = () => {
     //     const typeMatch = (transaction.type || '').toLowerCase().includes(searchMatch);
     //     const phoneNumberMatch = (transaction.metadata.phoneNumber || '').toLowerCase().includes(searchMatch);
     //     const amountMatch = transaction.amount.toString().includes(searchMatch);
-    
+
     //     return typeMatch || phoneNumberMatch || amountMatch;
     // });
 
     const filteredTransactions = transactions.filter((transaction: Transaction) => {
         const createdAt = new Date(transaction.createdAt);
-    
+
         // const selectedYearMatch = selectedYear === '' || createdAt.getFullYear().toString() === selectedYear;
-    
+
         // const selectedMonthMatch = selectedMonth === '' || createdAt.toLocaleString('en-US', { month: 'short' }) === selectedMonth;
-    
+
         // const selectedDayMatch = selectedDay === '' || createdAt.getDate().toString().padStart(2, '0') === selectedDay;
-    
+
         const dateMatch = createdAt.getDate().toString() == selectedDay && createdAt.toLocaleString('en-US', { month: 'short' }) == selectedMonth.slice(0, 3) && createdAt.getFullYear().toString() == selectedYear;
-    
+
         const searchMatch = searchQuery.toLowerCase();
         const typeMatch = (transaction.type || '').toLowerCase().includes(searchMatch);
-        const phoneNumberMatch = (transaction.metadata.phoneNumber || '').toLowerCase().includes(searchMatch);
+        const phoneNumberMatch = (transaction.metadata.mobile_number || '').toLowerCase().includes(searchMatch);
         const amountMatch = transaction.amount.toString().includes(searchMatch);
-       console.log(createdAt.getDate().toString() == selectedDay, createdAt.toLocaleString('en-US', { month: 'short' }) == selectedMonth.slice(0, 3), createdAt.getFullYear().toString() == selectedYear, transactions.length)
+        console.log(createdAt.getDate().toString() == selectedDay, createdAt.toLocaleString('en-US', { month: 'short' }) == selectedMonth.slice(0, 3), createdAt.getFullYear().toString() == selectedYear, transactions.length)
         return dateMatch && (typeMatch || phoneNumberMatch || amountMatch);
     });
-    
-    
-    
+
+
+
 
     return (
         <div>
@@ -293,25 +297,29 @@ const TransactionHistory = () => {
                                     <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>No transactions yet</p>
                                 </div>
                             ) : (
-                                filteredTransactions.map((transaction: Transaction, index: number) => (
-                                    <div
-                                        className='flex justify-between items-center py-5 border-[#FFFFFF21] border-b-[1px]'
-                                        key={index}
-                                        onClick={() => handleTransactionClick(transaction)}
-                                    >
-                                        <div className='flex justify-start items-center gap-4'>
-                                            
-                                            {transaction.type == "debit" && <FaLongArrowAltUp className='w-7 h-7 text-[#D45A0E]  ' /> }
-                                            {transaction.type == "credit" &&    <FaLongArrowAltDown className='w-7 h-7 text-[#D45A0E] ' /> }
-                                         
-                                            <div>
-                                                <p className='text-white font-[400] text-sm font-poppins '>{transaction.type} - {transaction.metadata.phoneNumber}</p>
-                                                <p className='text-[#FFFFFFA1] font-[400] text-sm font-poppins '>{transaction.currency} {transaction.amount}</p>
+                                filteredTransactions.map((transaction: Transaction, index: number) => {
+                                    console.log(transaction);
+                                    return (
+                                        <div
+                                            className='flex justify-between items-center py-5 border-[#FFFFFF21] border-b-[1px]'
+                                            key={index}
+                                            onClick={() => handleTransactionClick(transaction)}
+                                        >
+                                            <div className='flex justify-start items-center gap-4'>
+
+                                                {transaction.type == "debit" && <FaLongArrowAltUp className='w-7 h-7 text-[#D45A0E]  ' />}
+                                                {transaction.type == "credit" && <FaLongArrowAltDown className='w-7 h-7 text-[#D45A0E] ' />}
+
+                                                <div>
+                                                    <p className='text-white font-[400] text-sm font-poppins '>{transaction.type} - {transaction.serviceType}</p>
+                                                    <p className='text-[#FFFFFFA1] font-[400] text-sm font-poppins '>{transaction.currency} {transaction.amount}</p>
+                                                </div>
                                             </div>
+                                            <p className='text-[#D45A0E] font-[400] text-sm font-poppins '>See more</p>
                                         </div>
-                                        <p className='text-[#D45A0E] font-[400] text-sm font-poppins '>See more</p>
-                                    </div>
-                                ))
+                                    )
+                                })
+
                             )
 
                         }
@@ -348,29 +356,53 @@ const TransactionHistory = () => {
             )}
             {/* Modal Component */}
             {showModal && selectedTransaction && (
-                <div className='fixed inset-0 mx-2 bg-[#1E1E1E] h-[450px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'>
+                <div className='fixed inset-0 mx-2 bg-[#1E1E1E] h-[500px] py-5 px-10 flex z-50 justify-between m-auto rounded-[15px] flex-col'>
                     <div className='flex justify-between items-start'>
                         <div>             </div>
                         <div className='flex flex-col justify-center items-center gap-2'>
-                            <img src={MTN} className='w-16 h-16 rounded-xl' />
-                            <p className='text-white font-[400] font-poppins text-sm '>{selectedTransaction.serviceType} - {selectedTransaction.metadata.phoneNumber}</p>
+                            <GrTransaction />
+                            <p className='text-white font-[400] font-poppins text-sm '>{selectedTransaction.serviceType}</p>
                         </div>
 
-                        <div onClick={handleCloseModal}>
+                        <div onClick={() => { setShowModal(false); setSelectedTransaction(null) }}>
                             <CancelIcon />
                         </div>
                     </div>
-                    <div className='flex justify-between items-center mt-4'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.metadata.phoneNumber}</p>
-                    </div>
+                    {(selectedTransaction.serviceType == "airtime" || selectedTransaction.serviceType == "data") &&
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.metadata.mobile_number}</p>
+                        </div>}
+                    {(selectedTransaction.serviceType == "bank_transfer") &&
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>Beneficiary number:</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.metadata.beneficiaryAccount}</p>
+                        </div>}
+
+                    {(selectedTransaction.serviceType == "tvSubscription") &&
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>smart card number:</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.metadata.smart_card_number}</p>
+                        </div>}
+
+                    {(selectedTransaction.serviceType == "electricity") &&
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>meter number:</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.metadata.meter_number}</p>
+                        </div>}
+
+                    {(selectedTransaction.serviceType == "electricity") &&
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>meter type:</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.metadata.meterType}</p>
+                        </div>}
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>
                         <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.amount}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Transaction ID:</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.reference}</p>
+                        <p className='text-white font-[400]  font-poppins text-[12px] '>Transaction ID:</p>
+                        <p className='text-white font-[400]  font-poppins text-[12px] '>{selectedTransaction.reference}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Status:</p>

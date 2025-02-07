@@ -174,15 +174,19 @@ const BuyElectricity = () => {
     const handleCloseModal = async () => {
         if (!selectedPackage) {
             setPackageError('Please select a provider.');
+            return;
         }
         if (!number) {
             setNumberError('Please enter a valid meter number');
+            return;
         }
         if (!amount) {
             setAmountError('Please enter the amount of units');
+            return;
         }
         if (!meterType) {
             setMeterTypeError('Please select a meter type');
+            return;
         }
 
         setLoading(true);

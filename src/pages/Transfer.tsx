@@ -9,7 +9,6 @@ import FailedIcon from '../assets/images/failed.png'
 import BackgroundImage from '../assets/images/background.png'
 import {
     useGetBankListQuery,
-    useVerifyBankAccountMutation,
     useTransferFundsMutation,
     useGetUserDetailsQuery,
 } from '../services/apiService';
@@ -31,19 +30,18 @@ const Transfer = () => {
     const [amountError, setAmountError] = useState('');
     const [narration, setNarration] = useState(() => localStorage.getItem('narration') || '')
     const [narrationError, setNarrationError] = useState("")
-    const [verifiedAccountData, setVerifiedAccountData] = useState('');
+    // const [verifiedAccountData, setVerifiedAccountData] = useState('');
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [transferSuccessfulModal, setTransferSuccessfulModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
     const [transferFailedModal, setTransferFailedModal] = useState(false);
-    const [selectedPackage, setSelectedPackage] = useState('');
-    const [packageError, setPackageError] = useState('');
+    // const [selectedPackage, setSelectedPackage] = useState('');
+    // const [packageError, setPackageError] = useState('');
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const { data: bankListData, error, isLoading } = useGetBankListQuery({ token: storedToken });
     const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
-    const [verifyBankAccount] = useVerifyBankAccountMutation();
     const [transferFunds] = useTransferFundsMutation();
     // const [transferStatus] = useGetTransferStatusMutation();
     const { secondData } = location.state || {};
@@ -104,64 +102,70 @@ const Transfer = () => {
     };
 
 
-    interface Bank {
-        name: string;
-        code: string;
-    }
+    // interface Bank {
+    //     name: string;
+    //     code: string;
+    // }
 
-    interface BankListData {
-        data: Bank[];
-    }
- 
-    const packageOptions: Bank[] = (bankListData as BankListData)?.data.map((bank: Bank) => ({
-        name: bank.name,
-        code: bank.code
-    })) || [];
+    // interface BankListData {
+    //     data: Bank[];
+    // }
 
-    const handlePackageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedBank = packageOptions.find(bank => bank.name === e.target.value);
-        if (selectedBank) {
-            setSelectedPackage(selectedBank.code);
-            if (accountNumber) {
-                await handleVerifyAccount();
-            }
-        }
-        setPackageError('');
-    };
+    // const packageOptions: Bank[] = (bankListData as BankListData)?.data.map((bank: Bank) => ({
+    //     name: bank.name,
+    //     code: bank.code
+    // })) || [];
 
-    const handleVerifyAccount = async () => {
+    // const handlePackageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    //     const selectedBank = packageOptions.find(bank => bank.name === e.target.value);
+    //     if (selectedBank) {
+    //         setSelectedPackage(selectedBank.code);
+    //         if (accountNumber) {
+    //             await handleVerifyAccount();
+    //         }
+    //     }
+    //     setPackageError('');
+    // };
 
-        if (!selectedPackage) {
-            setPackageError('Please select a bank.');
-        }
-        if (!accountNumber) {
-            setAccountNumberError('Please enter a valid account number.');
-        }
-        if (accountNumber && selectedPackage) {
-            try {
-                const response = await verifyBankAccount({ token: storedToken, accountNumber, bankCode: selectedPackage });
-                if (response.data.success) {
-                    setVerifiedAccountData(response.data.message);
-                } else {
-                    toast.error('Something went wrong in verifying the account number');
-                }
-            } catch (err) {
-                console.error(err);
+    // const handleVerifyAccount = async () => {
 
-            }
-        } else {
-            setAccountNumberError('Invalid account number.');
-            setPackageError('Invalid bank code.');
-        }
-    }
+    //     if (!selectedPackage) {
+    //         setPackageError('Please select a bank.');
+    //     }
+    //     if (!accountNumber) {
+    //         setAccountNumberError('Please enter a valid account number.');
+    //     }
+    //     if (accountNumber && selectedPackage) {
+    //         try {
+    //             const response = await verifyBankAccount({ token: storedToken, accountNumber, bankCode: selectedPackage });
+    //             if (response.data.success) {
+    //                 setVerifiedAccountData(response.data.message);
+    //             } else {
+    //                 toast.error('Something went wrong in verifying the account number');
+    //             }
+    //         } catch (err) {
+    //             console.error(err);
+
+    //         }
+    //     } else {
+    //         setAccountNumberError('Invalid account number.');
+    //         setPackageError('Invalid bank code.');
+    //     }
+    // }
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!amount) {
             setAmountError('Please enter an amount.');
+            return
         }
-        if (amount) {
+        if (!accountNumber) {
+            setAccountNumberError('Please enter a valid account number.');
+            return
+        }
+        if (amount && accountNumber) {
             setAmountError('');
+            setAccountNumberError("")
             setNarrationError("")
             try {
 
@@ -182,17 +186,18 @@ const Transfer = () => {
     };
 
 
-    console.log(accountNumberError)
+ 
     const handleCloseModal = async () => {
 
         try {
 
             setLoading(true);
+            console.log(1)
             const response = await transferFunds({
                 debitAccountNumber: "0119017579",
                 token: storedToken,
                 nameEnquiryReference: "61e985180e69308aa37a7a94",
-                beneficiaryBankCode: selectedPackage,
+                beneficiaryBankCode: "999240",
                 beneficiaryAccountNumber: accountNumber,
                 amount: parseInt(amount, 10),
                 saveBeneficiary: false,
@@ -200,26 +205,32 @@ const Transfer = () => {
                 transactionPin: storedPin,
 
             });
-
+            console.log(2)
             if (response?.data?.success) {
+                console.log(3)
                 toast.success(response.data.message);
                 dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
+                console.log(4)
             } else {
+                console.log(5)
                 if (response.error && 'data' in response.error) {
+                    console.log(response.error)
                     console.log((response.error.data as { message: string }).message);
                     const errorMessage = (response.error.data as { message: string }).message
                     toast.error(errorMessage);
                 }
+                console.log(6)
             }
         } catch (error) {
-
+            console.log(7)
             console.error(error);
             toast.error((error as { data: { message: string } })?.data?.message);
             setTransferFailedModal(true);
+            console.log(8)
             // toast.error('Transaction failed. Please try again.');
         } finally {
-            setSelectedPackage("");
+            console.log(9)
             setAccountNumber("");
             setAmount("");
             setNarration("")
@@ -257,13 +268,13 @@ const Transfer = () => {
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
                                         placeholder='1711245709'
                                     />
-                                    {/* {accountNumberError && <p className='text-[#D45A0E] text-sm text-center'>{accountNumberError}</p>} */}
+                                    {accountNumberError && <p className='text-[#D45A0E] text-sm text-center'>{accountNumberError}</p>}
 
                                 </div>
-                                <div className='mt-8'>
+                                {/* <div className='mt-8'>
                                     <p className='text-white font-[500] text-base font-poppins mb-2'>Select Provider</p>
-                                    <div className="relative">
-                                        {/* <select
+                                    <div className="relative"> */}
+                                {/* <select
                                             value={selectedPackage}
                                             onChange={handlePackageChange}
                                             className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
@@ -273,8 +284,8 @@ const Transfer = () => {
                                                 <option key={index} value={option}>{option}</option>
                                             ))}
                                         </select> */}
-                                        {/* ? packageOptions.find(option => option.code === selectedPackage)?.name : '' */}
-                                        <select
+                                {/* ? packageOptions.find(option => option.code === selectedPackage)?.name : '' */}
+                                {/* <select
                                             value={selectedPackage}
                                             onChange={handlePackageChange}
                                             className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
@@ -293,9 +304,9 @@ const Transfer = () => {
 
 
                                     {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
-                                </div>
+                                </div> */}
 
-                                {verifiedAccountData && <p className='text-[#4CAF50] font-[400] text-sm font-poppins mt-3'>{verifiedAccountData}</p>}
+                                {/* {verifiedAccountData && <p className='text-[#4CAF50] font-[400] text-sm font-poppins mt-3'>{verifiedAccountData}</p>} */}
                                 <div className='mt-8'>
                                     <p className='text-white font-[500] text-base font-poppins mb-2'>Amount</p>
                                     <input

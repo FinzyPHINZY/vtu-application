@@ -114,7 +114,8 @@ const BuyAirtime = () => {
     useEffect(() => {
       
         console.log('number:', number);
-        localStorage.setItem('amount:', amount);
+        console.log('amount', amount);
+        localStorage.setItem('amount', amount);
         console.log('selectedNetwork:', selectedNetwork);
     
       
@@ -168,13 +169,16 @@ const BuyAirtime = () => {
     const handleCloseModal = async () => {
         if (!amount) {
             setAmountError('Please enter a valid amount.');
+            return
         }
         if (!number) {
             setNumberError('Please enter a valid phone number');
+            return
         }
 
         if (!selectedNetwork) {
             toast.error('Please click on any network and select it');
+             return
         }
         setLoading(true);
         if (amount && number ) {
@@ -217,7 +221,8 @@ const BuyAirtime = () => {
                             <p className='text-white font-[400] text-base font-poppins'>Buy Airtime</p>
                             <div>       </div>
                         </div>
-                        <div className='flex justify-between items-center py-3 mt-10 '>
+                        <p className='text-white font-[400] text-base font-poppins mt-10'>Select any network</p>
+                        <div className='flex justify-between items-center py-3 mt-2 '>
                             {fetchNetworks && fetchNetworks.data.map((network: Network, index: number) => {
 
                                 return (
@@ -264,7 +269,7 @@ const BuyAirtime = () => {
                                         value={number}
                                         onChange={handleNumberChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='+2348178909913'
+                                        placeholder='08178909913'
                                     />
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 

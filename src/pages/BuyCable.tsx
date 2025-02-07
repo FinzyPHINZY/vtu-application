@@ -36,7 +36,7 @@ const BuyCable = () => {
     const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
-    const [amountError, setAmountError] = useState('');
+    // const [amountError, setAmountError] = useState('');
     // const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
     const [loading, setLoading] = useState(false);
     const storedPin = useSelector((state: RootState) => state.user.pin);
@@ -78,10 +78,10 @@ const BuyCable = () => {
     };
  
 
-    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAmount(e.target.value);
-        setAmountError('');
-    };
+    // const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setAmount(e.target.value);
+    //     setAmountError('');
+    // };
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setNumber(value);
@@ -101,7 +101,7 @@ const BuyCable = () => {
             const response = await purchaseCableTV2({
                 cablename: parseInt(localStorage.getItem('cableName') || '0', 10),
                 cableplan: parseInt(localStorage.getItem('cablePlan') || '0', 10),
-                amount: parseInt(amount, 10),
+                amount: parseInt(localStorage.getItem('amount') || '0', 10),
                 smart_card_number: number,
                 transactionPin: storedPin,
                 token: storedToken
@@ -114,14 +114,14 @@ const BuyCable = () => {
             } else {
                 if (response.error && 'data' in response.error) {
                     console.log((response.error.data as { message: string }).message);
-                    const errorMessage = (response.error.data as { message: string }).message +  "1"
+                    const errorMessage = (response.error.data as { message: string }).message
                     toast.error(errorMessage);
                 }
             }
         } catch (error) {
 
             console.error(error);
-            toast.error((error as { data: { message: string } })?.data?.message+  "2");
+            toast.error((error as { data: { message: string } })?.data?.message);
         } finally {
             setNumber("");
             setAmount("");
@@ -147,9 +147,8 @@ const BuyCable = () => {
     useEffect(() => {
       
         console.log('number:', number);
-        console.log('amount:', amount);
-        localStorage.setItem('amount:', amount);
-        localStorage.setItem('number:', number);
+    
+        localStorage.setItem('number', number);
         console.log('selectedCableList:', selectedCableList);
         console.log('selectedCablePlan:', selectedCablePlan);
    
@@ -159,7 +158,7 @@ const BuyCable = () => {
         }
 
         if (selectedCablePlan) {
-
+            localStorage.setItem('amount', selectedCablePlan?.amount?.toString());
             localStorage.setItem('cablePlan', selectedCablePlan?.cablePlanID?.toString());
         } 
        
@@ -169,31 +168,33 @@ const BuyCable = () => {
     const handleCloseModal = async () => {
         if (!selectedPackage) {
             setPackageError('Please select a cable plan.');
+            return;
         }
         if (!number) {
             setNumberError('Please enter a valid card number.');
+            return;
         }
-        if (!amount) {
-            setAmountError('Please enter a valid amount');
-        }
+     
         if (!selectedCableList) {
             toast.error('Please your choice from the list of cables');
+            return;
         }
         if (!selectedCablePlan) {
             toast.error('Please your cable plan');
+            return;
         }
         setLoading(true);
-        if (amount && number) {
+        if (selectedCablePlan && number && selectedCableList) {
             setPackageError('');
             setNumberError('');
-            setAmountError('')
+        
             navigate('/pin/cable/enter', { state: { service: "cabletv" } });
 
             setLoading(false);
         } else {
             setNumberError('Please enter a valid card number');
             setPackageError('Please select a cable plan.');
-            setAmountError('Please enter a valid amount.');
+           
         }
     };
 
@@ -337,7 +338,7 @@ const BuyCable = () => {
                                 </div>
 
                                 <div className='mt-5'>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
+                                    {/* <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
                                     <input
                                         type="number"
                                         value={amount}
@@ -346,16 +347,16 @@ const BuyCable = () => {
                                         placeholder='200'
                                     />
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
-                                    
+                                     */}
                                     <div className='mt-5'>
-                                        <p className='text-white font-[500] text-base font-poppins mb-5'>Select Data Plan</p>
+                                        <p className='text-white font-[500] text-base font-poppins mb-5'>Select Cable Plan</p>
                                         <div className="relative">
                                             <select
                                                 value={selectedPackage}
                                                 onChange={handlePackageChange}
                                                 className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
                                             >
-                                                <option value="" disabled>Select data plan</option>
+                                                <option value="" disabled>Select Cable plan</option>
                                                 {packageOptions.map((option, index) => (
                                                     <option key={index} value={option}>{option}</option>
                                                 ))}

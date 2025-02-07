@@ -30,8 +30,9 @@ const Home = () => {
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const [accountBalanceHidden, setAccountBalanceHidden] = useState(false);
-    console.log(storedUser, storedToken, 48)
+    console.log(storedUser, storedToken, storedPin, 48)
     console.log(storedUser.hasSetTransactionPin)
+    console.log(storedUser.accountDetails.status)
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -110,7 +111,7 @@ const Home = () => {
                                     <div onClick={() => navigate('/profile')}>
                                         <ProfileIcon />
                                     </div>
-                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Hi, {storedUser.firstName || storedUser.email}</p>
+                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Hi, {storedUser.firstName}</p>
                                 </div>
                                 <p className='text-[#FFFFFF] font-[400] text-lg font-poppins'>Bold data</p>
 
@@ -146,7 +147,7 @@ const Home = () => {
                                     <NotificationIcon />
                                     <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Notification</p>
                                 </div>
-                                {(!storedUser.hasSetTransactionPin || storedPin != "") &&
+                                {(!storedUser.hasSetTransactionPin || storedPin == "") &&
                                     <div className='flex justify-between items-center mt-5'>
 
                                         <div className='flex justify-start items-center gap-4'>
@@ -252,7 +253,7 @@ const Home = () => {
                                                     {transaction.type == "credit" && <FaLongArrowAltDown className='w-7 h-7 text-[#D45A0E] ' />}
 
                                                     <div>
-                                                        <p className='text-white font-[400] text-sm font-poppins '>{transaction.type} - 0905681138</p>
+                                                        <p className='text-white font-[400] text-sm font-poppins '>{transaction.type} - {transaction.serviceType}</p>
                                                         <p className='text-[#FFFFFFA1] font-[400] text-sm font-poppins '>{transaction.currency} {transaction.amount}</p>
                                                     </div>
                                                 </div>
@@ -294,7 +295,7 @@ const Home = () => {
                 )}
             {/* Modal Component */}
             {showModal && (
-                <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[200px] py-5 px-10 z-50 flex justify-start flex-col'>
+                <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[150px] py-5 px-10 z-50 flex justify-start flex-col'>
 
                     <div className='flex justify-between items-center'>
 
@@ -304,10 +305,10 @@ const Home = () => {
                         </div>
 
                     </div>
-                    <div className='flex justify-between items-center mt-6'>
+                    {/* <div className='flex justify-between items-center mt-6'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Bank Name</p>
                         <p className='text-white font-[400]  font-poppins text-sm '>{storedUser.accountDetails.bankName || "Pending"}</p>
-                    </div>
+                    </div> */}
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Account number</p>
                         <p className='text-white font-[400]  font-poppins text-sm '>{storedUser.accountNumber || "Pending"}</p>

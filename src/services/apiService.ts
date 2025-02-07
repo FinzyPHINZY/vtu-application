@@ -262,7 +262,7 @@ export const apiService = createApi({
     }),
     transferFunds: builder.mutation({
       query: ({ nameEnquiryReference, token, debitAccountNumber, beneficiaryBankCode, beneficiaryAccountNumber, amount, saveBeneficiary, narration, transactionPin }) => ({
-        url: 'transactions/transfer',
+        url: 'transfers',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
