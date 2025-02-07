@@ -310,7 +310,7 @@ const Home = () => {
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Account number</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>{storedUser.accountDetails.accountNumber || "Pending"}</p>
+                        <p className='text-white font-[400]  font-poppins text-sm '>{storedUser.accountNumber || "Pending"}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Account name:</p>
