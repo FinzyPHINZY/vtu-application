@@ -114,14 +114,14 @@ const BuyCable = () => {
             } else {
                 if (response.error && 'data' in response.error) {
                     console.log((response.error.data as { message: string }).message);
-                    const errorMessage = (response.error.data as { message: string }).message
+                    const errorMessage = (response.error.data as { message: string }).message +  "1"
                     toast.error(errorMessage);
                 }
             }
         } catch (error) {
 
             console.error(error);
-            toast.error((error as { data: { message: string } })?.data?.message);
+            toast.error((error as { data: { message: string } })?.data?.message+  "2");
         } finally {
             setNumber("");
             setAmount("");
@@ -145,13 +145,26 @@ const BuyCable = () => {
     }, [secondData]);
 
     useEffect(() => {
-        // Store amount and number in localStorage
-        localStorage.setItem('cableName', selectedCableList?.cable_id?.toString() || '');
-        localStorage.setItem('cablePlan', selectedCablePlan?.cablePlanID?.toString() || '');
-        localStorage.setItem('amount', amount);
-        localStorage.setItem('number', number);
+      
+        console.log('number:', number);
+        console.log('amount:', amount);
+        localStorage.setItem('amount:', amount);
+        localStorage.setItem('number:', number);
+        console.log('selectedCableList:', selectedCableList);
+        console.log('selectedCablePlan:', selectedCablePlan);
+   
+        if (selectedCableList) {
+         
+            localStorage.setItem('cableName', selectedCableList?.cable_id?.toString());
+        }
 
-    }, [amount, number, selectedCableList?.cable_id, selectedCablePlan?.cablePlanID]);
+        if (selectedCablePlan) {
+
+            localStorage.setItem('cablePlan', selectedCablePlan?.cablePlanID?.toString());
+        } 
+       
+    }, [amount, number, selectedCableList?.cable_id, selectedCablePlan?.cablePlanID, selectedCableList, selectedCablePlan]);
+
 
     const handleCloseModal = async () => {
         if (!selectedPackage) {
@@ -214,9 +227,12 @@ const BuyCable = () => {
         return cablePlans.filter((plan: CablePlan) => !plan.cablename.includes(selectedCableList.cablename));
     };
     
-    const packageOptions = getStartimesPlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename) || getFilteredCablePlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename);
+    // const packageOptions = getStartimesPlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename) || getFilteredCablePlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename);
 
-   
+    const packageOptions = cablePlans && cablePlans.data 
+    ? (getStartimesPlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename) || getFilteredCablePlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename))
+    : [];
+
 
     const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedPackageName = e.target.value;
@@ -269,7 +285,7 @@ const BuyCable = () => {
                             <p className='text-white font-[400] text-base font-poppins'>Buy Cable</p>
                             <div>       </div>
                         </div>
-                        <p className='text-white mt-14 font-[400] text-sm font-poppins '>Select Service</p>
+                        <p className='text-white mt-14 font-[400] text-sm font-poppins '>Select Provider</p>
                         <div className='flex justify-between items-center py-3 mt-10 '>
                             {cableList && cableList.data.map((inCableList: CableList, index: number) => {
 
@@ -279,17 +295,17 @@ const BuyCable = () => {
                                         onClick={() => setSelectedCableList(inCableList)}
                                     >
                                         {inCableList.cablename === 'GOTV' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={GOTV} alt={inCableList.cablename} />
                                             </div>
                                         }
                                         {inCableList.cablename === 'DSTV' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={DSTV} alt={inCableList.cablename} />
                                             </div>
                                         }
                                         {inCableList.cablename === 'STARTIMES' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={STARTIMES} alt={inCableList.cablename} />
                                             </div>
                                         }
@@ -331,15 +347,15 @@ const BuyCable = () => {
                                     />
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
                                     
-                                    <div>
-                                        <p className='text-white font-[500] text-base font-poppins mb-5'>Select Package</p>
+                                    <div className='mt-5'>
+                                        <p className='text-white font-[500] text-base font-poppins mb-5'>Select Data Plan</p>
                                         <div className="relative">
                                             <select
                                                 value={selectedPackage}
                                                 onChange={handlePackageChange}
                                                 className='w-full h-16 border border-[#E0E0E0] rounded-[35px] pl-4 pr-10 text-white bg-black outline-none appearance-none'
                                             >
-                                                <option value="" disabled>Select email</option>
+                                                <option value="" disabled>Select data plan</option>
                                                 {packageOptions.map((option, index) => (
                                                     <option key={index} value={option}>{option}</option>
                                                 ))}

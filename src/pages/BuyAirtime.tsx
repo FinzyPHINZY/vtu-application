@@ -4,9 +4,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { LeftArrowIcon } from '../assets/svg'
-import { useFetchNetworksQuery,
-     usePurchaseAirtime2Mutation,
-    useGetUserDetailsQuery } from '../services/apiService';
+import {
+    useFetchNetworksQuery,
+    usePurchaseAirtime2Mutation,
+    useGetUserDetailsQuery
+} from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
@@ -26,6 +28,7 @@ const BuyAirtime = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const location = useLocation();
+    const [selectedAmount, setSelectedAmount] = useState<string>('');
     const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
     const [amountError, setAmountError] = useState('');
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
@@ -107,14 +110,20 @@ const BuyAirtime = () => {
         }
     }, [secondData]);
 
+
     useEffect(() => {
-        // Store amount and number in localStorage
-        localStorage.setItem('NetworkId', selectedNetwork?.network_id?.toString() || '');
-        localStorage.setItem('amount', amount);
+      
+        console.log('number:', number);
+        localStorage.setItem('amount:', amount);
+        console.log('selectedNetwork:', selectedNetwork);
+    
+      
+        if (selectedNetwork) {
+            localStorage.setItem('NetworkId', selectedNetwork.network_id.toString());
+        }
         localStorage.setItem('number', number);
-    }, [amount, number, selectedNetwork?.network_id]);
-
-
+    }, [amount, number, selectedNetwork?.network_id, selectedNetwork]);
+    
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
@@ -168,7 +177,7 @@ const BuyAirtime = () => {
             toast.error('Please click on any network and select it');
         }
         setLoading(true);
-        if (amount && number && selectedNetwork) {
+        if (amount && number ) {
             setAmountError('');
             setNumberError('');
 
@@ -217,22 +226,22 @@ const BuyAirtime = () => {
                                         onClick={() => handleItemClick(network)}
                                     >
                                         {network.networkname === 'MTN' &&
-                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={MTN} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === 'GLO' &&
-                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={GLO} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === 'AIRTEL' &&
-                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={AIRTEL} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === '9MOBILE' &&
-                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={MOBILE} alt={network.networkname} />
                                             </div>
                                         }
@@ -245,7 +254,7 @@ const BuyAirtime = () => {
 
                         </div>
 
-                        <form className='mt-20 flex-grow flex flex-col justify-between pb-20'>
+                        <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
                             <div>
 
                                 <div >
@@ -274,38 +283,44 @@ const BuyAirtime = () => {
 
                                 </div>
                                 <div className='flex justify-between flex-wrap items-center py-3 mt-10'>
-
-                                    <div className='flex flex-col justify-center items-center gap-2'
-
-                                        onClick={() => setAmount("100")}>
-                                        <div className="h-4 w-4 rounded-md shadow-md">
+                                    <div
+                                        className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '100' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                        onClick={() => {
+                                            setAmount('100');
+                                            setSelectedAmount('100');
+                                        }}>
+                                        <div className=" ">
                                             <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>100</p>
-
                                         </div>
                                     </div>
-                                    <div className='flex flex-col justify-center items-center gap-2'
-
-                                        onClick={() => setAmount("200")}>
-                                        <div className="h-4 w-4 rounded-md shadow-md">
+                                    <div
+                                        className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '200' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                        onClick={() => {
+                                            setAmount('200');
+                                            setSelectedAmount('200');
+                                        }}>
+                                        <div className="">
                                             <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>200</p>
-
                                         </div>
                                     </div>
-
-                                    <div className='flex flex-col justify-center items-center gap-2'
-
-                                        onClick={() => setAmount("500")}>
-                                        <div className="h-4 w-4 rounded-md shadow-md">
+                                    <div
+                                        className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '500' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                        onClick={() => {
+                                            setAmount('500');
+                                            setSelectedAmount('500');
+                                        }}>
+                                        <div className="">
                                             <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>500</p>
-
                                         </div>
                                     </div>
-                                    <div className='flex flex-col justify-center items-center gap-2'
-
-                                        onClick={() => setAmount("1000")}>
-                                        <div className="h-4 w-4 rounded-md shadow-md">
+                                    <div
+                                        className={`flex mt-2 flex-col rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '1000' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                        onClick={() => {
+                                            setAmount('1000');
+                                            setSelectedAmount('1000');
+                                        }}>
+                                        <div className="">
                                             <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>1000</p>
-
                                         </div>
                                     </div>
                                 </div>

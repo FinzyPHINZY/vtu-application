@@ -112,7 +112,7 @@ const Transfer = () => {
     interface BankListData {
         data: Bank[];
     }
-
+ 
     const packageOptions: Bank[] = (bankListData as BankListData)?.data.map((bank: Bank) => ({
         name: bank.name,
         code: bank.code

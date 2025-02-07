@@ -7,10 +7,12 @@ import { CancelIcon, LeftArrowIcon } from '../assets/svg'
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import '../App.css'
-import { useFetchNetworksQuery, 
+import {
+    useFetchNetworksQuery,
     useFetchDataPlansQuery,
-     usePurchaseData2Mutation,
-     useGetUserDetailsQuery, } from '../services/apiService';
+    usePurchaseData2Mutation,
+    useGetUserDetailsQuery,
+} from '../services/apiService';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 import SuccessIcon from '../assets/images/success.png'
@@ -99,7 +101,7 @@ const BuyData = () => {
         setNumber(value);
     };
 
-
+    console.log(selectedDataPlan?.amount.toString(), 50000)
     // const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     //     setAmount(e.target.value);
     //     setAmountError('');
@@ -158,13 +160,20 @@ const BuyData = () => {
     }, [secondData]);
 
     useEffect(() => {
-        // Store amount and number in localStorage
-        localStorage.setItem('amount', selectedDataPlan?.amount?.toString() || '');
-        localStorage.setItem('DataId', selectedDataPlan?.data_id?.toString() || '');
-        localStorage.setItem('NetworkId', selectedNetwork?.network_id?.toString() || '');
+        console.log('selectedDataPlan:', selectedDataPlan);
+        console.log('number:', number);
+        console.log('selectedNetwork:', selectedNetwork);
+    
+        if (selectedDataPlan) {
+            localStorage.setItem('amount', selectedDataPlan.amount.toString());
+            localStorage.setItem('DataId', selectedDataPlan.data_id.toString());
+        }
+        if (selectedNetwork) {
+            localStorage.setItem('NetworkId', selectedNetwork.network_id.toString());
+        }
         localStorage.setItem('number', number);
-    }, [selectedDataPlan?.amount, number, selectedDataPlan?.data_id, selectedNetwork?.network_id]);
-
+    }, [selectedDataPlan, number, selectedNetwork, selectedDataPlan?.data_id, selectedNetwork?.network_id]);
+    
     const handleCloseModal = async () => {
 
         if (!number) {
@@ -238,22 +247,22 @@ const BuyData = () => {
                                         onClick={() => handleItemClick(network)}
                                     >
                                         {network.networkname === 'MTN' &&
-                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={MTN} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === 'GLO' &&
-                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={GLO} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === 'AIRTEL' &&
-                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={AIRTEL} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === '9MOBILE' &&
-                                            <div className={`card ${selectedNetwork === network ? 'shadow-lg' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'border-2 border-white bg-[#333333]' : ''}`}>
                                                 <img src={MOBILE} alt={network.networkname} />
                                             </div>
                                         }
@@ -293,16 +302,18 @@ const BuyData = () => {
                                     {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
 
                                 </div> */}
-                                <div className='flex justify-between flex-wrap items-center py-3 mt-10'>
+                                <div className='flex justify-between flex-wrap items-center gap-4  mt-10'>
                                     {fetchDataPlans && selectedNetwork && fetchDataPlans.data
                                         .filter((dataPlan: DataPlans) => dataPlan.network === selectedNetwork.networkname)
                                         .map((dataPlan: DataPlans, index: number) => {
+                                            const isSelected = selectedDataPlan && selectedDataPlan.data_id === dataPlan.data_id;
                                             return (
-                                                <div className='flex flex-col justify-center items-center gap-2'
+                                                <div
+                                                    className={`flex flex-col rounded-xl border h-24 w-[30%] justify-center items-center gap-2 cursor-pointer ${isSelected ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
                                                     key={index}
                                                     onClick={() => setSelectedDataPlan(dataPlan)}>
-                                                    <div className="h-6 w-6 rounded-md shadow-md">
-                                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.amount}</p>
+                                                    <div className=" p-2 ">
+                                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>N{dataPlan.amount}</p>
                                                         <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.size}</p>
                                                         <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.validity}</p>
                                                     </div>

@@ -42,7 +42,7 @@ const BuyElectricity = () => {
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const { data: powerProviders } = useFetchPowerProvidersQuery({ token: storedToken });
-        const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
 
 
     useEffect(() => {
@@ -76,7 +76,7 @@ const BuyElectricity = () => {
         label: provider.name,
         value: provider.disco_id
     })) || [];
-
+    console.log(meterType, 44)
     const handleMeterTypeChange = (type: string) => {
         setMeterType(type);
     };
@@ -113,7 +113,7 @@ const BuyElectricity = () => {
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
         try {
-
+            console.log(localStorage.getItem('DiscoName'))
             setLoading(true);
             const response = await purchaseUtilityBill2({
                 disco_name: parseInt(localStorage.getItem('DiscoName') || '0', 10),
@@ -163,6 +163,7 @@ const BuyElectricity = () => {
 
     useEffect(() => {
         // Store amount and number in localStorage
+       
         localStorage.setItem('DiscoName', selectedPowerProvider?.disco_id?.toString() || '');
         localStorage.setItem('amount', amount);
         localStorage.setItem('number', number);
@@ -230,20 +231,21 @@ const BuyElectricity = () => {
 
                         {/* <div className='flex justify-between items-center py-3 mt-10 overflow-x-auto '> */}
 
-                        <div className='flex justify-between items-center py-3 border-b-[1px] border-[#FFFFFF21] mt-2'>
+                        <div className='flex justify-between items-center py-3 border-b-[1px] border-[#FFFFFF21] mt-10'>
                             <div
-                                className={`bg-[#2F2F2F] h-14 w-[42%] rounded-[10px] flex justify-center items-center cursor-pointer ${meterType === 'Prepaid' ? 'bg-[#1F1F1F]' : ''}`}
+                                className={`h-14 w-[42%] rounded-[10px] flex justify-center items-center cursor-pointer ${meterType === 'prepaid' ? 'bg-[#2F2F2F] border-2 border-[#FFFFFF]' : 'bg-[#D45A0E]'}`}
                                 onClick={() => handleMeterTypeChange('prepaid')}
                             >
                                 <p className='text-white font-poppins font-[400] text-base'>Prepaid</p>
                             </div>
                             <div
-                                className={`bg-[#2F2F2F] h-14 w-[42%] rounded-[10px] flex justify-center items-center cursor-pointer ${meterType === 'Postpaid' ? 'bg-[#1F1F1F]' : ''}`}
+                                className={`h-14 w-[42%] rounded-[10px] flex justify-center items-center cursor-pointer ${meterType === 'postpaid' ? 'bg-[#2F2F2F] border-2 border-[#FFFFFF]' : 'bg-[#D45A0E]'}`}
                                 onClick={() => handleMeterTypeChange('postpaid')}
                             >
                                 <p className='text-white font-poppins font-[400] text-base'>Postpaid</p>
                             </div>
                         </div>
+
                         {meterTypeError && <p className='text-[#D45A0E] text-sm text-center'>{meterTypeError}</p>}
 
                         <form className='mt-10 flex-grow flex flex-col justify-between pb-20'>
@@ -272,7 +274,7 @@ const BuyElectricity = () => {
 
                                     {packageError && <p className='text-[#D45A0E] text-sm text-center'>{packageError}</p>}
                                 </div>
-                                <div className=''>
+                                <div className='mt-5'>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>Meter number</p>
                                     <input
                                         type="number"
