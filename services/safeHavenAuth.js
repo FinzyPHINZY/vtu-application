@@ -6,7 +6,7 @@ import ApiError from '../utils/error.js';
  * @constant {Object}
  */
 const CONFIG = Object.freeze({
-  baseURL: 'https://api.sandbox.safehavenmfb.com',
+  baseURL: 'https://api.safehavenmfb.com/',
   maxRetries: 3,
   retryDelay: 1000,
   tokenRefreshInterval: 60000,
@@ -34,10 +34,14 @@ export const getToken = async (retryCount = 0) => {
       }
     );
 
-    const tokenData = response.data;
-    await saveToken(tokenData);
+    if (!response.data.access_token || !response.data.expires_in) {
+      console.error('Missing required token fields:', response.data);
+      throw new Error('Safe Haven API response is missing required fields');
+    }
+
+    await saveToken(response.data);
     console.log('Successfully obtained new Safe Haven token');
-    return tokenData;
+    return response.data;
   } catch (error) {
     console.error('Failed to get Safe Haven token:', error);
 
