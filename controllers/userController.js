@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import { generatePasswordResetEmailTemplate } from '../utils/email.js';
 import sendEmail from '../services/emailService.js';
+import ApiError from '../utils/error.js';
 
 export const fetchUser = async (req, res) => {
   try {
