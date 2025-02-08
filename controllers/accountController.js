@@ -61,13 +61,14 @@ export const createSubAccount = async (req, res) => {
 
     user.accountBalance = data.accountBalance;
     user.accountNumber = data.accountNumber;
+    // user.statu
     user.accountDetails = {
       bankName: data.bankName,
       accountName: data.accountName,
       accountType: data.accountType,
       accountBalance: data.accountBalance,
       accountId: data._id,
-      status: data.status,
+      status: user.status,
     };
 
     await user.save();
