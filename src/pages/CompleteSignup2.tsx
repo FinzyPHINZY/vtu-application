@@ -110,7 +110,8 @@ const CompleteSignup2 = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (firstName && lastName && bvn && number) {
+
+        if (storedUser.isGoogleUser ? (firstName && lastName && number && bvn) :  bvn ) {
             setBvnError('');
             setNumberError("")
             setFirstNameError("")

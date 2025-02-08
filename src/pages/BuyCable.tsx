@@ -296,17 +296,17 @@ const BuyCable = () => {
                                         onClick={() => setSelectedCableList(inCableList)}
                                     >
                                         {inCableList.cablename === 'GOTV' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'border-2 border-white bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'border-4 border-[white] bg-[#333333]' : ''}`}>
                                                 <img src={GOTV} alt={inCableList.cablename} />
                                             </div>
                                         }
                                         {inCableList.cablename === 'DSTV' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'border-2 border-white bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'border-4 border-[white] bg-[#333333]' : ''}`}>
                                                 <img src={DSTV} alt={inCableList.cablename} />
                                             </div>
                                         }
                                         {inCableList.cablename === 'STARTIMES' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'border-2 border-white bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'border-4 border-[white] bg-[#333333]' : ''}`}>
                                                 <img src={STARTIMES} alt={inCableList.cablename} />
                                             </div>
                                         }

@@ -119,6 +119,7 @@ const Login = () => {
             setEmailError('');
             setPasswordError('');
             setLoading(true);
+            console.log(email, password)
             try {
                 const response = await login({ email, password });
                 if (response.data.success) {
