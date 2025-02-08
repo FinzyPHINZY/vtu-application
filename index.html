@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -19,14 +18,40 @@
       s1.setAttribute('crossorigin', '*');
       s0.parentNode.insertBefore(s1, s0);
     })();
+
+    Tawk_API.onLoad = function() {
+      let tawkIcon = document.querySelector('.tawk-icon-class'); // Replace with the actual class or ID of the Tawk.to icon
+      if (tawkIcon) {
+        tawkIcon.style.position = 'fixed';
+        tawkIcon.style.cursor = 'move';
+        let offsetX = 0, offsetY = 0, mouseX, mouseY;
+
+        tawkIcon.addEventListener('mousedown', (e) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+          offsetX = e.offsetX;
+          offsetY = e.offsetY;
+          document.addEventListener('mousemove', moveAt);
+          document.addEventListener('mouseup', removeListeners);
+        }, false);
+
+        function moveAt(e) {
+          tawkIcon.style.left = (e.clientX - offsetX) + 'px';
+          tawkIcon.style.top = (e.clientY - offsetY) + 'px';
+        }
+
+        function removeListeners() {
+          document.removeEventListener('mousemove', moveAt);
+          document.removeEventListener('mouseup', removeListeners);
+        }
+      }
+    };
   </script>
   <!--End of Tawk.to Script-->
   <title>Bold Data</title>
 </head>
-
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
-
 </html>

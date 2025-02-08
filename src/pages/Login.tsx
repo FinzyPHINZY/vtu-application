@@ -145,6 +145,60 @@ const Login = () => {
         }
     };
 
+    useEffect(() => {
+        const checkExist = setInterval(() => {
+          const tawkIframe = document.querySelector("iframe[title='chat widget']");
+          if (tawkIframe) {
+            clearInterval(checkExist);
+            makeDraggable(tawkIframe as HTMLIFrameElement);
+          }
+        }, 1000);
+    
+        interface Position {
+          x: number;
+          y: number;
+        }
+
+        function makeDraggable(element: HTMLIFrameElement): void {
+          element.style.position = "fixed";
+          element.style.cursor = "grab";
+        
+          if (localStorage.getItem("tawkPosition")) {
+            const position: Position = JSON.parse(localStorage.getItem("tawkPosition") as string);
+            element.style.left = position.x + "px";
+            element.style.top = position.y + "px";
+          } else {
+            element.style.right = "20px";
+            element.style.bottom = "20px";
+          }
+        
+          let offsetX: number, offsetY: number, isDragging: boolean = false;
+        
+          element.addEventListener("mousedown", (e: MouseEvent) => {
+            isDragging = true;
+            offsetX = e.clientX - element.getBoundingClientRect().left;
+            offsetY = e.clientY - element.getBoundingClientRect().top;
+            element.style.cursor = "grabbing";
+          });
+        
+          document.addEventListener("mousemove", (e: MouseEvent) => {
+            if (!isDragging) return;
+            const x = e.clientX - offsetX;
+            const y = e.clientY - offsetY;
+        
+            element.style.left = x + "px";
+            element.style.top = y + "px";
+        
+            localStorage.setItem("tawkPosition", JSON.stringify({ x, y }));
+          });
+        
+          document.addEventListener("mouseup", () => {
+            isDragging = false;
+            element.style.cursor = "grab";
+          });
+        }
+      }, []);
+    
     return (
         <div>
             {

@@ -98,9 +98,9 @@ const SplashScreen = () => {
                                 <img src={More} className='w-15 h-15 rounded-xl' />
                             </div>
                             <p className='text-2xl text-center font-[700]  font-mochiy-pop-one mt-7 text-white'> Simplify your life with quick, secure, and convenient bill payments all in one place. </p>
-                            <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>TWith Bold Data. you can easily pay for airtime, data, cable TV subscriptions, and utility bills. With just a few clicks, manage your everyday payments and stay on top of your bills without any hassle. </p>
+                            <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>With Bold Data and just a just a few clicks, you can manage your everyday payments and stay on top of your bills without any hassle. </p>
                             <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>   </p>
-                           
+                            
                         </div>
                         <div className='mb-16'>
                             <div className='bg-white h-16 mb-5 rounded-[35px] flex justify-center items-center gap-8 max-sm:gap-6 ' onClick={() => login()}>
@@ -121,6 +121,19 @@ const SplashScreen = () => {
                                 <p className='text-white font-[300]  font-poppins text-base'>Continue with email</p>
                             </div>
                             <p className='text-white font-[200] font-poppins text-sm text-center' onClick={() => navigate("/login")}>Login</p>
+                            <div className="flex justify-center items-center gap-4 mt-20">
+                                <p className='text-white font-[400]  font-poppins text-sm text-center '>Follow us on</p>
+                                <div className='flex justify-center items-center gap-4 '>
+                                    <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
+                                        <FaInstagram className='text-white' />
+                                    </a>
+                                    <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
+                                        <FiFacebook className='text-white' />
+                                    </a>
+
+
+                                </div>
+                            </div>
                         </div>
                     </div>
                 ) : (
