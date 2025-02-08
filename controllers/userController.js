@@ -133,7 +133,19 @@ export const requestPasswordReset = async (req, res) => {
 
 export const resetPassword = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, otp } = req.body;
+
+    const otpRecord = await OTP.findOne({ email });
+
+    if (!otpRecord) {
+      throw new ApiError(401, false, 'Invalid Request - Not Found');
+    }
+
+    const isOtpCorrect = await bcrypt.compare(otp, otpRecord.codeHash);
+
+    if (!isOtpCorrect) {
+      throw new ApiError(400, false, 'Invalid OTP');
+    }
 
     const user = await User.findOne({ email });
     if (!user || !user.isVerified) {
