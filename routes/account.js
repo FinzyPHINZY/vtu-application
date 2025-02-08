@@ -35,6 +35,14 @@ router.post(
   accountController.createVirtualAccount
 );
 
+// get virtual account
+router.get(
+  '/virtual/account/:id',
+  validateHeaders,
+  validateRequest,
+  accountController.getVirtualAccount
+);
+
 // get virtual transaction status
 router.get(
   '/virtual/:virtualAccountId',

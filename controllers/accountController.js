@@ -2,6 +2,7 @@ import axios from 'axios';
 import User from '../models/User.js';
 import { generateRandomReference } from '../utils/helpers.js';
 import ApiError from '../utils/error.js';
+import Transaction from '../models/Transaction.js';
 
 export const createSubAccount = async (req, res, next) => {
   try {
@@ -141,6 +142,25 @@ export const createVirtualAccount = async (req, res, next) => {
 export const getVirtualAccount = async (req, res, next) => {
   try {
     const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+
+    const { id } = req.params;
+
+    const response = await axios.get(
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/virtual-accounts/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          'Content-Type': 'application/json',
+          ClientID: ibs_client_id,
+        },
+      }
+    );
+
+    const { data } = response.data;
+
+    return res
+      .status(200)
+      .json({ success: true, message: 'fetched account successfully', data });
   } catch (error) {
     console.error(error.response || error.message);
 
@@ -154,6 +174,11 @@ export const getVirtualTransaction = async (req, res, next) => {
 
     const { virtualAccountId } = req.params;
 
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      throw new ApiError(404, false, 'User not found', user);
+    }
+
     if (!virtualAccountId) {
       throw new ApiError(400, false, 'Missing virtualAccountId in request');
     }
@@ -162,8 +187,10 @@ export const getVirtualTransaction = async (req, res, next) => {
       virtualAccountId,
     });
 
+    console.log(queryParams);
+
     const response = await axios.get(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/virtual-accounts/${queryParams.toString()}/transaction`,
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/virtual-accounts/${virtualAccountId}/transaction`,
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -173,7 +200,37 @@ export const getVirtualTransaction = async (req, res, next) => {
       }
     );
 
+    console.log('response', response.data);
+
     const { data } = response.data;
+
+    if (!data) {
+      throw new ApiError(400, false, response.data.message, response.data);
+    }
+
+    if (data.status === 'Completed') {
+      const existingTransaction = await Transaction.findOne({
+        reference: data.externalReference,
+      });
+
+      if (!existingTransaction) {
+        const transaction = await Transaction.create({
+          reference: data.externalReference,
+          serviceType: 'deposit',
+          amount: data.amount,
+          type: 'credit',
+          status: 'success',
+          user: user._id,
+        });
+
+        user.transactions.push(transaction._id);
+
+        user.accountBalance += data.amount;
+
+        await transaction.save();
+        await user.save();
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -205,12 +262,8 @@ export const virtualAccountStatus = async (req, res, next) => {
       }
     );
 
-
+    console.log('resonse', response.data);
     const { data } = response.data;
-
-
-    
-    console.log(response.data);
 
     return res.status(200).json({
       success: true,
