@@ -135,6 +135,10 @@ export const resetPassword = async (req, res, next) => {
   try {
     const { email, password, otp } = req.body;
 
+    if (!otp) {
+      throw new ApiError(404, false, 'Please provide OTP');
+    }
+
     const otpRecord = await OTP.findOne({ email });
 
     if (!otpRecord) {
