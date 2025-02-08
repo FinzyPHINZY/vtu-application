@@ -27,6 +27,30 @@ router.post(
   accountController.createSubAccount
 );
 
+// create virtual account
+router.post(
+  '/virtual',
+  validateHeaders,
+  validateRequest,
+  accountController.createVirtualAccount
+);
+
+// get virtual transaction status
+router.get(
+  '/virtual/:virtualAccountId',
+  validateHeaders,
+  validateRequest,
+  accountController.getVirtualTransaction
+);
+
+//  virtual account status
+router.post(
+  '/virtual/status',
+  validateHeaders,
+  validateRequest,
+  accountController.virtualAccountStatus
+);
+
 // get specific account
 router.get(
   '/:id',
@@ -38,7 +62,7 @@ router.get(
 
 // get all accounts
 router.get(
-  '/',
+  '/accounts',
   validateHeaders,
   accountsQueryValidation,
   validateRequest,

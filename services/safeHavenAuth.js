@@ -6,7 +6,7 @@ import ApiError from '../utils/error.js';
  * @constant {Object}
  */
 const CONFIG = Object.freeze({
-  baseURL: 'https://api.safehavenmfb.com/',
+  baseURL: process.env.SAFE_HAVEN_API_BASE_URL,
   maxRetries: 3,
   retryDelay: 1000,
   tokenRefreshInterval: 60000,
