@@ -149,6 +149,10 @@ export const login = async (req, res, next) => {
 
     const user = await User.findOne({ email });
 
+    if (!user) {
+      throw new ApiError(404, false, 'User not found');
+    }
+
     if (!user || !user.isVerified) {
       throw new ApiError(401, false, 'Invalid Credentials');
     }

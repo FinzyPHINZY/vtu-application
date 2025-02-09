@@ -3,3 +3,4 @@ node_modules
 privatekey.pem
 publickey.cer
 .env*
+seed data
