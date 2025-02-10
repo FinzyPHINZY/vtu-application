@@ -52,12 +52,12 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/pin/create" element={<CreateTransactionPin />} />
           <Route path="/pin/data/enter" element={<UseTransactionPin />} />
-           <Route path="/pin/airtime/enter" element={<UseTransactionPin2 />} />
-           <Route path="/pin/utility/enter" element={<UseTransactionPin3 />} />
-           <Route path="/pin/cable/enter" element={<UseTransactionPin4 />} />
-           <Route path="/pin/transfer/enter" element={<UseTransactionPin5 />} />
+          <Route path="/pin/airtime/enter" element={<UseTransactionPin2 />} />
+          <Route path="/pin/utility/enter" element={<UseTransactionPin3 />} />
+          <Route path="/pin/cable/enter" element={<UseTransactionPin4 />} />
+          <Route path="/pin/transfer/enter" element={<UseTransactionPin5 />} />
           <Route path="/account/complete-registration" element={<CompleteSignup />} />
-          <Route path="/verification/complete" element={<CompleteSignup2 />} />
+          <Route path="/verification/initiate" element={<CompleteSignup2 />} />
           <Route path="/verification/validate" element={<CompleteSignup3 />} />
           <Route path="/otp/reset" element={<ResetPasswordOTP />} />
         </Routes>

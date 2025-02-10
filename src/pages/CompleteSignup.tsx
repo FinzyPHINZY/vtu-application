@@ -235,7 +235,7 @@ const CompleteSignup = () => {
                                         value={number}
                                         onChange={handleNumberChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='+2348126232067'
+                                        placeholder='08126232067'
                                     />
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 

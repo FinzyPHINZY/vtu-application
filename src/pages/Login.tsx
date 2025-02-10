@@ -129,11 +129,11 @@ const Login = () => {
                     dispatch(loginUser(response.data.token));
                     navigate('/home');
                 } else {
-                    toast.error("Something went wrong. Please try again.");
+                    toast.error(response.data.message);
                 }
-            } catch (err) {
-                console.error(err);
-                toast.error('Failed to login. Please try again.');
+            } catch (error) {
+                console.log(error);
+                toast.error("Failed to login. Please try again.");
             } finally {
                 setLoading(false);
                 setEmail("")

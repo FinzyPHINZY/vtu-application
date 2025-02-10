@@ -33,23 +33,23 @@ export const apiService = createApi({
       }),
     }),
     initiateVerification: builder.mutation({
-      query: ({ type, async, number, debitAccountNumber, token }) => ({
+      query: ({  number,  token }) => ({
         url: 'verification/initiate',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { type, async, number, debitAccountNumber },
+        body: {  number,  },
       }),
     }),
     validateVerification: builder.mutation({
-      query: ({ type, otp, identityId, token }) => ({
+      query: ({  otp, identityId, token }) => ({
         url: 'verification/validate',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { type, otp, identityId },
+        body: {  otp, identityId },
       }),
     }),
     googleLogin: builder.mutation({
@@ -96,7 +96,7 @@ export const apiService = createApi({
       }),
     }),
     fetchCableList: builder.query({
-      query: ({  token }) => ({
+      query: ({ token }) => ({
         url: `transactions/cable-list`,
         method: 'GET',
         headers: {
@@ -105,7 +105,7 @@ export const apiService = createApi({
       }),
     }),
     fetchPowerProviders: builder.query({
-      query: ({  token }) => ({
+      query: ({ token }) => ({
         url: `transactions/utility-providers`,
         method: 'GET',
         headers: {
@@ -114,7 +114,7 @@ export const apiService = createApi({
       }),
     }),
     fetchCablePlans: builder.query({
-      query: ({  token }) => ({
+      query: ({ token }) => ({
         url: `transactions/cable-plans`,
         method: 'GET',
         headers: {
@@ -182,13 +182,13 @@ export const apiService = createApi({
       }),
     }),
     createSubAccount: builder.mutation({
-      query: ({ firstName, lastName, phoneNumber, token, emailAddress, externalReference, bvn, identityId, identityNumber, identityType, otp, callbackUrl, autoSweep, autoSweepDetails }) => ({
+      query: ({  phoneNumber, token, emailAddress, identityId, identityNumber, identityType, otp, }) => ({
         url: 'account/subaccount',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { firstName, lastName, phoneNumber, emailAddress, externalReference, bvn, identityId, identityNumber, identityType, otp, callbackUrl, autoSweep, autoSweepDetails },
+        body: {  phoneNumber, emailAddress, identityId, identityNumber, identityType, otp, },
       }),
     }),
     purchaseAirtime2: builder.mutation({
@@ -228,7 +228,7 @@ export const apiService = createApi({
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: {  amount, disco_name, meter_number, meterType, transactionPin },
+        body: { amount, disco_name, meter_number, meterType, transactionPin },
       }),
     }),
     getBankList: builder.query({
@@ -307,7 +307,17 @@ export const apiService = createApi({
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        
+
+      }),
+    }),
+    createVirtualAccount: builder.mutation({
+      query: ({ token, amount}) => ({
+        url: 'account/virtual',
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: { amount },
       }),
     }),
 
@@ -315,7 +325,8 @@ export const apiService = createApi({
 });
 
 export const { useRequestOtpMutation,
- useGetUserDetailsQuery,
+  useCreateVirtualAccountMutation,
+  useGetUserDetailsQuery,
   useVerifyOtpMutation,
   useCompleteSignupMutation,
   useLoginMutation,

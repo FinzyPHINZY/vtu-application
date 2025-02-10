@@ -157,6 +157,7 @@ const BuyAirtime = () => {
         } finally {
             setAmount("");
             setNumber("");
+            setSelectedAmount("")
             localStorage.setItem('amount', '');
             localStorage.setItem('number', '');
             localStorage.setItem('NetworkId', '');
@@ -231,22 +232,22 @@ const BuyAirtime = () => {
                                         onClick={() => handleItemClick(network)}
                                     >
                                         {network.networkname === 'MTN' &&
-                                            <div className={`card ${selectedNetwork === network ? 'border-4 border-white bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'bg-[#333333] opacity-50' : ''}`}>
                                                 <img src={MTN} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === 'GLO' &&
-                                            <div className={`card ${selectedNetwork === network ? 'border-4 border-white bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'bg-[#333333] opacity-50' : ''}`}>
                                                 <img src={GLO} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === 'AIRTEL' &&
-                                            <div className={`card ${selectedNetwork === network ? 'border-4 border-white bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'bg-[#333333] opacity-50' : ''}`}>
                                                 <img src={AIRTEL} alt={network.networkname} />
                                             </div>
                                         }
                                         {network.networkname === '9MOBILE' &&
-                                            <div className={`card ${selectedNetwork === network ? 'border-4 border-white bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedNetwork === network ? 'bg-[#333333] opacity-50' : ''}`}>
                                                 <img src={MOBILE} alt={network.networkname} />
                                             </div>
                                         }

@@ -6,14 +6,12 @@ import { FiFacebook } from "react-icons/fi";
 import { LeftArrowIcon } from '../assets/svg'
 import {
     useInitiateVerificationMutation,
-    useValidateVerificationMutation,
-    useCreateSubAccountMutation
 } from '../services/apiService';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-import { setStatus } from '../store/slices/userSlices';
+import { setBVN } from '../store/slices/userSlices';
 import { useDispatch } from 'react-redux';
 
 const CompleteSignup2 = () => {
@@ -23,15 +21,8 @@ const CompleteSignup2 = () => {
     const navigate = useNavigate();
     const [bvn, setBvn] = useState('');
     const [bvnError, setBvnError] = useState('');
-    const [number, setNumber] = useState('');
-    const [numberError, setNumberError] = useState('');
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [firstNameError, setFirstNameError] = useState('');
-    const [lastNameError, setLastNameError] = useState('');
+
     const [initiateVerification] = useInitiateVerificationMutation();
-    const [validateVerification] = useValidateVerificationMutation();
-    const [createSubAccount] = useCreateSubAccountMutation();
     const [loading, setLoading] = useState(false);
     const storedToken = useSelector((state: RootState) => state.auth.token);
     // const debitAccountNumber = process.env.REACT_APP_DEBIT_ACCOUNT_NUMBER;
@@ -56,45 +47,12 @@ const CompleteSignup2 = () => {
 
 
     const handleBack = () => {
-        navigate(-1);
+        navigate("/home");
     };
 
-    const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setFirstName(value);
 
-    };
 
-    const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setLastName(value);
-
-    };
-
-    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        
-     
-        const cleanValue = value.startsWith('+') 
-            ? '+' + value.replace(/[+\D]/g, '')
-            : value.replace(/\D/g, '');
-            
-        console.log('Original value:', value);
-        console.log('Cleaned value:', cleanValue);
-        
-
-        const phoneNumberPattern = /^(\+234|234|0)[1-9]\d{9}$/;
-        
-        if (!phoneNumberPattern.test(cleanValue)) {
-            console.log('Validation failed');
-            setNumberError('Please enter a valid phone number in either format:\n+234XXXXXXXXXX\nor\n234XXXXXXXXXX');
-        } else {
-            console.log('Validation passed');
-            setNumberError('');
-        }
-        
-        setNumber(value);
-    };
+   
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -103,7 +61,7 @@ const CompleteSignup2 = () => {
         if (bvn) {
             setBvnError('');
         } else {
-            setBvnError('Please enter a valid email address.');
+            setBvnError('Please enter a valid bvn number.');
         }
     };
 
@@ -111,63 +69,27 @@ const CompleteSignup2 = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (storedUser.isGoogleUser ? (firstName && lastName && number && bvn) :  bvn ) {
+        if (bvn ) {
             setBvnError('');
-            setNumberError("")
-            setFirstNameError("")
-            setLastNameError("")
+        
             try {
 
                 setLoading(true);
                 const response = await initiateVerification({
-                    type: "BVN",
-                    async: false,
+                   
                     number: bvn,
-                    debitAccountNumber: "0119017579",
+      
                     token: storedToken
                 });
 
                 if (response.data.success) {
                     console.log(response.data.data._id, 400);
                     toast.success(response.data.message);
-                    const secondResponse = await validateVerification({
-                        type: "BVN",
-                        otp: "456756",
-                        identityId: response.data.data._id,
-                        token: storedToken
-                    });
+                    localStorage.setItem('identityId', response.data.data._id);
+                    dispatch(setBVN(bvn))
+                    navigate('/verification/validate');
 
-                    if (secondResponse.data) {
-
-                        toast.success(secondResponse.data.message);
-                        await createSubAccount({
-                            firstName: storedUser.firstName || firstName,
-                            lastName: storedUser.lastName || lastName,
-                            phoneNumber: storedUser.phoneNumber || number,
-                            emailAddress: storedUser.email,
-                            externalReference: "AC_1240",
-                            bvn,
-                            identityId: response.data.data._id,
-                            identityNumber: bvn,
-                            identityType: "BVN",
-                            otp: "456756",
-                            callbackUrl: "https://finzyphinzy.vercel.app",
-                            autoSweep: false,
-                            autoSweepDetails: {
-                                "schedule": "Instant"
-                            },
-                            token: storedToken
-                        });
-                        dispatch(setStatus(response.data.data.status));
-                        // if (thirdResponse.data.success) {
-                        // toast.success(thirdResponse.data.message);
-                        navigate('/home');
-                        //     } else {
-                        //         toast.error("Sub-account creation failed. Please try again.");
-                        //     }
-                    } else {
-                        toast.error("validation verification failed. Please try again.");
-                    }
+               
                 } else {
                     toast.error("verification initiation failed. Please try again.");
                 }
@@ -177,15 +99,10 @@ const CompleteSignup2 = () => {
                 toast.error('There was an error. Please try again.');
             } finally {
                 setBvn("")
-                setNumber("")
-                setLastName("")
-                setFirstName("")
                 setLoading(false);
             }
         } else {
-            setNumberError('Please enter a valid phone number.');
-            setFirstNameError('Please provide your first name.');
-            setLastNameError('Please provide your last name.');
+          
             setBvnError('Please enter your BVN.');
         }
     };
@@ -203,47 +120,7 @@ const CompleteSignup2 = () => {
                         <div className='text-white font-[600] text-lg font-poppins mt-10'>Verify your account</div>
                         <form className='mt-20' onSubmit={handleSubmit}>
                             <div>
-                                {storedUser.isGoogleUser &&
-                                    <>
-                                        <div >
-                                            <p className='text-white font-[500] text-base font-poppins mb-5'> First Name</p>
-                                            <input
-                                                type="text"
-                                                value={firstName}
-                                                onChange={handleFirstNameChange}
-                                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                                placeholder='Name'
-                                            />
-                                            {firstNameError && <p className='text-[#D45A0E] text-sm text-center'>{firstNameError}</p>}
-
-                                        </div>
-                                        <div className='mt-8'>
-                                            <p className='text-white font-[500] text-base font-poppins mb-5'>Last Name</p>
-                                            <input
-                                                type="text"
-                                                value={lastName}
-                                                onChange={handleLastNameChange}
-                                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                                placeholder='Name'
-                                            />
-                                            {lastNameError && <p className='text-[#D45A0E] text-sm text-center'>{lastNameError}</p>}
-
-                                        </div>
-                                        <div className='mt-8'>
-                                            <p className='text-white font-[500] text-base font-poppins mb-5'>Phone number</p>
-                                            <input
-                                                type="number"
-                                                value={number}
-                                                onChange={handleNumberChange}
-                                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                                placeholder='+2348126232067'
-                                            />
-                                            {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
-
-                                        </div>
-                                    </>
-                                }
-
+                            
 
                                 <div className={`${storedUser.isGoogleUser ? 'mt-8': ''}`}>
                                     <p className='text-white font-[500] text-base font-poppins mb-5'>BVN Number</p>

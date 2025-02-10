@@ -218,20 +218,35 @@ const BuyCable = () => {
         updatedAt: string;
     }
 
-    const getFilteredCablePlans = (cablePlans: CablePlan[], selectedCableList: CableList | null) => {
+    // const getFilteredCablePlans = (cablePlans: CablePlan[], selectedCableList: CableList | null) => {
+    //     if (!selectedCableList) return [];
+    //     return cablePlans.filter((plan: CablePlan) => plan.cablename.includes(selectedCableList.cablename));
+    // };
+
+    const getFilteredCablePlans2 = (cablePlans: CablePlan[], selectedCableList: CableList | null) => {
         if (!selectedCableList) return [];
-        return cablePlans.filter((plan: CablePlan) => plan.cablename.includes(selectedCableList.cablename));
+        return cablePlans.filter((plan: CablePlan) => {
+            if (selectedCableList.cablename === 'DSTV') {
+                return plan.cablename.includes('DStv');
+            }
+
+            if (selectedCableList.cablename === 'GOTV') {
+                return plan.cablename.includes('GOtv');
+            }
+            return !plan.cablename.includes('GOtv') && !plan.cablename.includes('DStv');
+        });
     };
     
-    const getStartimesPlans = (cablePlans: CablePlan[], selectedCableList: CableList | null) => {
-        if (!selectedCableList) return [];
-        return cablePlans.filter((plan: CablePlan) => !plan.cablename.includes(selectedCableList.cablename));
-    };
+    
+    // const getStartimesPlans = (cablePlans: CablePlan[], selectedCableList: CableList | null) => {
+    //     if (!selectedCableList) return [];
+    //     return cablePlans.filter((plan: CablePlan) => !plan.cablename.includes(selectedCableList.cablename));
+    // };
     
     // const packageOptions = getStartimesPlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename) || getFilteredCablePlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename);
 
     const packageOptions = cablePlans && cablePlans.data 
-    ? (getStartimesPlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename) || getFilteredCablePlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename))
+    ? ( getFilteredCablePlans2(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename))
     : [];
 
 
@@ -287,7 +302,7 @@ const BuyCable = () => {
                             <div>       </div>
                         </div>
                         <p className='text-white mt-14 font-[400] text-sm font-poppins '>Select Provider</p>
-                        <div className='flex justify-between items-center py-3 mt-10 '>
+                        <div className='flex justify-between items-center py-3 px-5 mt-5 '>
                             {cableList && cableList.data.map((inCableList: CableList, index: number) => {
 
                                 return (
@@ -296,17 +311,17 @@ const BuyCable = () => {
                                         onClick={() => setSelectedCableList(inCableList)}
                                     >
                                         {inCableList.cablename === 'GOTV' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'border-4 border-[white] bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'bg-[#333333] opacity-50' : ''}`}>
                                                 <img src={GOTV} alt={inCableList.cablename} />
                                             </div>
                                         }
                                         {inCableList.cablename === 'DSTV' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'border-4 border-[white] bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'bg-[#333333] opacity-50' : ''}`}>
                                                 <img src={DSTV} alt={inCableList.cablename} />
                                             </div>
                                         }
                                         {inCableList.cablename === 'STARTIMES' &&
-                                            <div className={`card ${selectedCableList === inCableList ? 'border-4 border-[white] bg-[#333333]' : ''}`}>
+                                            <div className={`card ${selectedCableList === inCableList ? 'bg-[#333333] opacity-50' : ''}`}>
                                                 <img src={STARTIMES} alt={inCableList.cablename} />
                                             </div>
                                         }
