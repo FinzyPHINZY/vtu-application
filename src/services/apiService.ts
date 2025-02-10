@@ -310,6 +310,26 @@ export const apiService = createApi({
 
       }),
     }),
+    getVirtualAccount: builder.query({
+      query: ({ token, id }) => ({
+        url: `account/virtual/account/${id}`,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+
+      }),
+    }),
+    getVirtualTransaction: builder.query({
+      query: ({ token, id }) => ({
+        url: `account/virtual/${id}`,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+
+      }),
+    }),
     createVirtualAccount: builder.mutation({
       query: ({ token, amount}) => ({
         url: 'account/virtual',
@@ -325,6 +345,8 @@ export const apiService = createApi({
 });
 
 export const { useRequestOtpMutation,
+  useGetVirtualAccountQuery,
+  useGetVirtualTransactionQuery,
   useCreateVirtualAccountMutation,
   useGetUserDetailsQuery,
   useVerifyOtpMutation,
