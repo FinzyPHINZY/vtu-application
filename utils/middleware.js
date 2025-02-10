@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import rateLimit from 'express-rate-limit';
 // import { AllowedIPs } from './constants.js';
-import { validationResult } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import ApiError from './error.js';
@@ -118,7 +118,6 @@ export const userExtractor = async (req, res, next) => {
 
     req.user = { ...user.toObject(), ...decodedToken };
 
-    console.log(req.user);
     next();
   } catch (error) {
     console.error('JWT Verification Error:', error.message);
@@ -266,3 +265,39 @@ export const checkGoogleUser = async (req, res, next) => {
     });
   }
 };
+
+// Rate limiting for payee lookup
+export const lookupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 requests per 15 minutes per IP
+  message: {
+    success: false,
+    message: 'Too many lookup requests, please try again later',
+  },
+});
+
+// Rate limiting for transfers
+export const transferLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 transfers per hour per IP
+  message: {
+    success: false,
+    message: 'Transfer limit exceeded, please try again later',
+  },
+});
+
+// Validation middleware
+export const lookupValidation = [
+  body('email').isEmail().normalizeEmail().withMessage('Invalid email format'),
+];
+
+export const transferValidation = [
+  body('payeeId').isMongoId().withMessage('Invalid payee ID'),
+  body('amount')
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be greater than 0'),
+  body('transactionPin')
+    .isString()
+    .matches(/^\d{4}$/)
+    .withMessage('Transaction PIN must be 4 digits'),
+];

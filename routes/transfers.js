@@ -1,11 +1,14 @@
 import express from 'express';
 import {
+  lookupLimiter,
+  lookupValidation,
   tokenExtractor,
   userExtractor,
   validateHeaders,
   validateRequest,
 } from '../utils/middleware.js';
 import * as TransferController from '../controllers/transferController.js';
+import * as InternalTransferController from '../controllers/internalTransferController.js';
 import {
   historyValidation,
   nameEnquiryValidation,
@@ -65,6 +68,25 @@ router.get(
   historyValidation,
   validateRequest,
   TransferController.getTransferHistory
+);
+
+// internal transfers
+router.post(
+  '/lookup',
+  validateHeaders,
+  lookupLimiter,
+  lookupValidation,
+  validateRequest,
+  InternalTransferController.lookupPayee
+);
+
+router.post(
+  '/transfer',
+  validateHeaders,
+  requireTransactionPin,
+  validateRequest,
+  validateTransactionPin,
+  InternalTransferController.transfer
 );
 
 export default router;

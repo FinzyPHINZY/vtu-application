@@ -111,7 +111,9 @@ TODO:
 - Enhance and Streamline Transactions workflow. Provide necessary endpoints✅
 - Display Safehaven response data from power/tv number verification.✅
 
-- Update Deposit functionality (using Virtual Accounts).
+```
+- Update Deposit functionality (using Virtual Accounts) ✅
 - Fix timeout token issue.
 - 504 gateway error for requests while creating virtual accounts.
 - improve transfer functionality - using email instead of account number
+```
