@@ -74,40 +74,6 @@ export const convertAccessTokenToIdToken = async (req, res, next) => {
   }
 };
 
-// export const tokenExtractor = (req, res, next) => {
-//   const authorization = req.get('authorization');
-
-//   if (authorization && authorization.startsWith('Bearer ')) {
-//     req.token = authorization.replace('Bearer ', '');
-//   } else {
-//     req.token = null;
-//   }
-
-//   next();
-// };
-
-// export const userExtractor = async (req, res, next) => {
-//   if (!req.token) {
-//     return res.status(400).json({ success: false, message: 'Invalid Token' });
-//   }
-
-//   const decodedToken = jwt.verify(req.token, process.env.JWT_SECRET);
-
-//   if (!decodedToken.id) {
-//     return res.status(401).json({ success: false, message: 'Invalid token' });
-//   }
-
-//   const user = await User.findById({ _id: decodedToken.id });
-
-//   if (user) {
-//     req.user = { user, ...decodedToken };
-//   } else {
-//     req.user = null;
-//   }
-
-//   next();
-// };
-
 export const tokenExtractor = (req, res, next) => {
   try {
     const authorization = req.get('authorization');
@@ -151,6 +117,8 @@ export const userExtractor = async (req, res, next) => {
     }
 
     req.user = { ...user.toObject(), ...decodedToken };
+
+    console.log(req.user);
     next();
   } catch (error) {
     console.error('JWT Verification Error:', error.message);
@@ -206,18 +174,15 @@ export const otpRateLimiter = rateLimit({
   },
 });
 
-// export const ipWhitelistMiddleware = (req, res, next) => {
-//   const clientIP = req.ip || req.connection.remoteAddress;
-
-//   if (AllowedIPs.includes(clientIP)) {
-//     return next();
-//   }
-
-//   return res.status(403).json({
-//     statusCode: 403,
-//     message: 'Forbidden: Your IP is not allowed to access this resource.',
-//   });
-// };
+// Rate limiting for virtual account creation
+export const virtualAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 requests per hour per IP
+  message: {
+    success: false,
+    message: 'Too many virtual account requests, please try again later',
+  },
+});
 
 export const validateRequest = (req, res, next) => {
   const errors = validationResult(req);

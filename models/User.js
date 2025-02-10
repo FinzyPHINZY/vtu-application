@@ -5,7 +5,6 @@ const accountDetailsSchema = new mongoose.Schema({
   accountId: String,
   accountName: String,
   accountType: String,
-  accountBalance: String,
   status: String,
 });
 
@@ -53,11 +52,11 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'user'],
       default: 'user',
     },
-    // accountBalance: {
-    //   type: Number,
-    //   required: true,
-    //   default: 0,
-    // },
+    accountBalance: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
     accountNumber: {
       type: String,
       unique: true,

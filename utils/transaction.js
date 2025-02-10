@@ -80,3 +80,112 @@ export const sendTransactionReceipt = async (user, transaction) => {
     // Not throwing this error as this is not critical
   }
 };
+
+const updateAccountBalance = async ({
+  userId,
+  accountNumber,
+  transferAmount,
+  transactionReference,
+}) => {
+  // Start a session for transaction atomicity
+  const session = await User.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      // Validate transfer amount
+      if (!transferAmount || transferAmount <= 0) {
+        throw new ApiError(400, 'Invalid transfer amount');
+      }
+
+      // Find user by either userId or accountNumber
+      const query = userId ? { _id: userId } : { accountNumber };
+      const user = await User.findOne(query).session(session);
+
+      if (!user) {
+        throw new ApiError(404, 'User account not found');
+      }
+
+      // Check for duplicate transaction
+      const existingTransaction = user.transactions.find(
+        (t) => t.reference === transactionReference
+      );
+      if (existingTransaction) {
+        throw new ApiError(409, 'Transaction already processed', {
+          transactionReference,
+          status: existingTransaction.status,
+        });
+      }
+
+      // Store previous balance for transaction record
+      const previousBalance = user.accountBalance;
+
+      // Update balance using MongoDB's atomic operations
+      const updatedUser = await User.findOneAndUpdate(
+        query,
+        {
+          $inc: { accountBalance: transferAmount },
+          $push: {
+            transactions: {
+              reference: transactionReference,
+              type: 'credit',
+              amount: transferAmount,
+              previousBalance,
+              newBalance: previousBalance + transferAmount,
+              status: 'success',
+              metadata: {
+                transferType: 'incoming_transfer',
+                timestamp: new Date(),
+              },
+            },
+          },
+        },
+        {
+          new: true,
+          session,
+          runValidators: true,
+        }
+      );
+
+      if (!updatedUser) {
+        throw new ApiError(500, 'Failed to update account balance');
+      }
+
+      // Get the newly added transaction
+      const transaction = updatedUser.transactions.find(
+        (t) => t.reference === transactionReference
+      );
+
+      logger.info(
+        `Account balance updated successfully for user: ${updatedUser._id}`,
+        {
+          transactionReference,
+          previousBalance,
+          newBalance: updatedUser.accountBalance,
+        }
+      );
+
+      return {
+        accountBalance: updatedUser.accountBalance,
+        transactionStatus: 'success',
+        transactionReference,
+        transaction,
+      };
+    });
+  } catch (error) {
+    logger.error('Failed to update account balance:', error);
+
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    if (error.name === 'MongoError' && error.code === 11000) {
+      throw new ApiError(409, 'Duplicate transaction reference');
+    }
+
+    throw new ApiError(500, 'Failed to process transfer', {
+      originalError: error.message,
+    });
+  } finally {
+    await session.endSession();
+  }
+};

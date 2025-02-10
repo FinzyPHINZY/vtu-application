@@ -91,6 +91,16 @@ export const createVirtualAccount = async (req, res, next) => {
 
     const { amount } = req.body;
 
+    // Validate amount
+    if (!amount || amount <= 0) {
+      throw new ApiError(
+        400,
+        false,
+        'Amount must be a positive number',
+        `Amount: ${amount}`
+      );
+    }
+
     const user = await User.findById(req.user.id);
     if (!user) {
       throw new ApiError(404, false, 'User not found', user);
@@ -125,7 +135,37 @@ export const createVirtualAccount = async (req, res, next) => {
       }
     );
 
+    console.log('this is response', response.data);
+
+    if (response.data.statusCode !== 200) {
+      throw new ApiError(
+        response.data.statuscode,
+        false,
+        'Failed to create virtual account',
+        response.data
+      );
+    }
+
     const { data } = response.data;
+
+    const transaction = await Transaction.create({
+      reference: externalReference,
+      type: 'credit',
+      serviceType: 'deposit',
+      amount: data.amount,
+      status: 'pending',
+      metadata: {
+        virtualAccountId: data._id,
+        accountNumber: data.accountNumber,
+        bankName: data.bankName,
+        expiresAt: data.expiryDate,
+      },
+      user: user._id, // Associate transaction with user
+    });
+
+    // Push the transaction _id to the user's transactions array
+    user.transactions.push(transaction._id);
+    await user.save();
 
     return res.status(200).json({
       success: true,
@@ -174,20 +214,37 @@ export const getVirtualTransaction = async (req, res, next) => {
 
     const { virtualAccountId } = req.params;
 
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      throw new ApiError(404, false, 'User not found', user);
-    }
-
     if (!virtualAccountId) {
       throw new ApiError(400, false, 'Missing virtualAccountId in request');
     }
 
-    const queryParams = new URLSearchParams({
-      virtualAccountId,
-    });
+    const user = await User.findOne({ _id: req.user.id }).populate(
+      'transactions'
+    );
 
-    console.log(queryParams);
+    if (!user) {
+      throw new ApiError(404, false, 'Virtual account transaction not found');
+    }
+
+    const transaction = user.transactions.find(
+      (t) => t.metadata.virtualAccountId === virtualAccountId
+    );
+
+    if (!transaction) {
+      throw new ApiError(404, false, 'Transaction not found');
+    }
+
+    if (transaction.status === 'success') {
+      return res.status(200).json({
+        success: true,
+        message: 'Transaction already processed',
+        data: {
+          status: transaction.status,
+          amount: transaction.amount,
+          reference: transaction.reference,
+        },
+      });
+    }
 
     const response = await axios.get(
       `${process.env.SAFE_HAVEN_API_BASE_URL}/virtual-accounts/${virtualAccountId}/transaction`,
@@ -200,8 +257,6 @@ export const getVirtualTransaction = async (req, res, next) => {
       }
     );
 
-    console.log('response', response.data);
-
     const { data } = response.data;
 
     if (!data) {
@@ -209,27 +264,12 @@ export const getVirtualTransaction = async (req, res, next) => {
     }
 
     if (data.status === 'Completed') {
-      const existingTransaction = await Transaction.findOne({
-        reference: data.externalReference,
-      });
+      transaction.status = 'success';
 
-      if (!existingTransaction) {
-        const transaction = await Transaction.create({
-          reference: data.externalReference,
-          serviceType: 'deposit',
-          amount: data.amount,
-          type: 'credit',
-          status: 'success',
-          user: user._id,
-        });
+      user.accountBalance += data.amount;
 
-        user.transactions.push(transaction._id);
-
-        user.accountBalance += data.amount;
-
-        await transaction.save();
-        await user.save();
-      }
+      await transaction.save();
+      await user.save();
     }
 
     return res.status(200).json({
@@ -262,7 +302,6 @@ export const virtualAccountStatus = async (req, res, next) => {
       }
     );
 
-    console.log('resonse', response.data);
     const { data } = response.data;
 
     return res.status(200).json({

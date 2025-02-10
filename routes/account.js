@@ -5,6 +5,7 @@ import {
   userExtractor,
   validateHeaders,
   validateRequest,
+  virtualAccountLimiter,
 } from '../utils/middleware.js';
 import {
   accountIdValidation,
@@ -31,6 +32,7 @@ router.post(
 router.post(
   '/virtual',
   validateHeaders,
+  virtualAccountLimiter,
   validateRequest,
   accountController.createVirtualAccount
 );
