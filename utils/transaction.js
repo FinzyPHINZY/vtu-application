@@ -102,7 +102,7 @@ const updateAccountBalance = async ({
       const user = await User.findOne(query).session(session);
 
       if (!user) {
-        throw new ApiError(404, 'User account not found');
+        throw new ApiError(404, false, 'User account not found');
       }
 
       // Check for duplicate transaction
@@ -110,7 +110,7 @@ const updateAccountBalance = async ({
         (t) => t.reference === transactionReference
       );
       if (existingTransaction) {
-        throw new ApiError(409, 'Transaction already processed', {
+        throw new ApiError(409, false, 'Transaction already processed', {
           transactionReference,
           status: existingTransaction.status,
         });
@@ -147,7 +147,7 @@ const updateAccountBalance = async ({
       );
 
       if (!updatedUser) {
-        throw new ApiError(500, 'Failed to update account balance');
+        throw new ApiError(500, false, 'Failed to update account balance');
       }
 
       // Get the newly added transaction
@@ -179,10 +179,10 @@ const updateAccountBalance = async ({
     }
 
     if (error.name === 'MongoError' && error.code === 11000) {
-      throw new ApiError(409, 'Duplicate transaction reference');
+      throw new ApiError(409, false, 'Duplicate transaction reference');
     }
 
-    throw new ApiError(500, 'Failed to process transfer', {
+    throw new ApiError(500, false, 'Failed to process transfer', {
       originalError: error.message,
     });
   } finally {
