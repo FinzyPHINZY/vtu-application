@@ -23,7 +23,8 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import {
     useGetAllTransactionsQuery,
     useGetUserDetailsQuery,
-    useCreateVirtualAccountMutation
+    useCreateVirtualAccountMutation,
+    useGetVirtualTransactionMutation,
 } from '../services/apiService';
 import { FaLongArrowAltUp } from "react-icons/fa";
 import { FaLongArrowAltDown } from "react-icons/fa";
@@ -37,7 +38,7 @@ const Home = () => {
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const [accountBalanceHidden, setAccountBalanceHidden] = useState(false);
-
+    const [getVirtualTransaction] = useGetVirtualTransactionMutation();
     console.log(storedUser, storedToken, storedPin, 48)
     console.log(storedUser.hasSetTransactionPin)
     console.log(storedUser.accountDetails.status)
@@ -46,6 +47,7 @@ const Home = () => {
     const dispatch = useDispatch();
     const [showModal, setShowModal] = useState(false);
     const [showModal2, setShowModal2] = useState(false);
+    const [sessionId, setSessionId] = useState("");
     const [amount, setAmount] = useState('')
     const [selectedAmount, setSelectedAmount] = useState<string>('');
     const [loading, setLoading] = useState(false);
@@ -55,27 +57,61 @@ const Home = () => {
     const [amountToPay, setAmountToPay] = useState('');
     const [timeLeft, setTimeLeft] = useState(600);
     const { data: userDetails, refetch: refetchUserDetails } = useGetUserDetailsQuery({ token: storedToken });
+  
+
     useEffect(() => {
-        if (showModal2) {
-            const timer = setInterval(() => {
-                setTimeLeft(prevTime => (prevTime > 0 ? prevTime - 1 : 0));
-            }, 1000);
-
-            if (timeLeft === 0) {
-                setShowModal2(false);
-                refetchUserDetails();
-                dispatch(setUserInfo(userDetails.data))
-            }
-
-            return () => clearInterval(timer);
-        }
-    }, [showModal2, timeLeft, refetchUserDetails, dispatch, userDetails?.data]);
-
-    const closeModal2 = () => {
+        let attempt = 0;
+        const timer = setInterval(() => {
+            setTimeLeft(prevTime => (prevTime > 0 ? prevTime - 1 : 0));
+        }, 1000);
+    
+        const interval = setInterval(() => {
+          
+                const fetchTransaction = async () => {
+                    if (attempt < 10) {
+                        attempt++;
+                        const response = await getVirtualTransaction({ token: storedToken, id: sessionId });
+                        if (response?.data?.status === 'Completed') {
+                            clearInterval(interval);
+                            toast.success(response.data.message);
+                            refetchUserDetails();
+                            dispatch(setUserInfo(userDetails.data));
+                            return
+                        } else if (response?.data?.status === 'Pending') {
+                            toast.info('Payment is still pending. Please wait...');
+                        } else if (response?.data?.status === 'error' && response?.data?.code === 400) {
+                            clearInterval(interval);
+                            toast.error('No transaction found. Please try again.');
+                        }
+                    } else {
+                        clearInterval(interval);
+                        toast.error('No transaction found. Please try again.');
+                    }
+                };
+                fetchTransaction();
+         
+        }, 180000); // 3 minutes in milliseconds
+    
+        return () => {
+            clearInterval(timer);
+            clearInterval(interval);
+        };
+    }, [showModal2, timeLeft, sessionId, storedToken, getVirtualTransaction, refetchUserDetails, dispatch, userDetails]);
+    
+    const closeModal2 = async () => {
         setShowModal2(false);
-        refetchUserDetails();
-        dispatch(setUserInfo(userDetails.data))
+        const response = await getVirtualTransaction({ token: storedToken, id: sessionId });
+        if (response?.data?.status === 'Completed') {
+            toast.success(response.data.message);
+            refetchUserDetails();
+        } else if (response?.data?.status === 'Pending') {
+            toast.info('Payment is still pending. Please wait...');
+        } else if (response?.data?.status === 'error' && response?.data?.code === 400) {
+            toast.error('No transaction found. Please try again.');
+        }
+        dispatch(setUserInfo(userDetails.data));
     };
+    
 
 
     const formatTime = (time: number) => {
@@ -126,8 +162,7 @@ const Home = () => {
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (!amount) {
-
-            return
+            return;
         }
         try {
             setLoading(true);
@@ -135,19 +170,24 @@ const Home = () => {
                 amount: parseInt(amount, 10),
                 token: storedToken
             });
-
+    
             if (response?.data?.success) {
                 toast.success(response.data.message);
                 setAccountName(response.data.data.accountName);
-                setAccountNumber(response.data.data.accountNumber)
-                setBankName("SAFE HAVEN")
-                setAmountToPay(response.data.data.amount)
+                setAccountNumber(response.data.data.accountNumber);
+                setBankName("SAFE HAVEN MFB");
+                setAmountToPay(response.data.data.amount);
+                setSessionId(response.data._id);
                 setShowModal2(true);
             } else {
-                if (response.error && 'data' in response.error) {
-                    console.log((response.error.data as { message: string }).message);
-                    const errorMessage = (response.error.data as { message: string }).message
-                    toast.error(errorMessage);
+                if (response.error) {
+                    if ('status' in response.error && response.error.status === 504) {
+                        toast.error("Gateway error. Please log back in, and try again.");
+                    } else if ('data' in response.error) {
+                        console.log((response.error.data as { message: string }).message);
+                        const errorMessage = (response.error.data as { message: string }).message;
+                        toast.error(errorMessage);
+                    }
                 }
             }
         } catch (error) {
@@ -155,12 +195,12 @@ const Home = () => {
             toast.error((error as { data: { message: string } })?.data?.message);
         } finally {
             setAmount("");
-            setSelectedAmount("")
+            setSelectedAmount("");
             setLoading(false);
-            setShowModal(false)
+            setShowModal(false);
         }
-
     };
+    
 
     type Transaction = {
         _id: string;
@@ -202,7 +242,7 @@ const Home = () => {
                                     <div onClick={() => navigate('/profile')}>
                                         <ProfileIcon />
                                     </div>
-                                    <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Hi, {storedUser.firstName}</p>
+                                    <p className={`text-[#FFFFFF] font-[400] ${storedUser.firstName ? 'text-sm' : 'text-[12px]'} font-poppins`}>Hi, {storedUser.firstName}</p>
                                 </div>
                                 <p className='text-[#FFFFFF] font-[400] text-lg font-poppins'>Bold data</p>
 
@@ -212,7 +252,7 @@ const Home = () => {
                                 <div className='flex justify-center items-center gap-1 mt-2'>
                                     <p className='text-[#FFFFFFB2] font-[400] text-base font-kavoon'>N</p>
                                     <p className='text-[#FFFFFF] px-2 font-[700] text-2xl font-poppins'>
-                                        {accountBalanceHidden ? '***' : storedUser.accountDetails.accountBalance}
+                                        {accountBalanceHidden ? '***' : storedUser.accountBalance}
                                     </p>
                                     <div onClick={toggleAccountBalance}>
                                         {accountBalanceHidden ? <FaEyeSlash color="#FFFFFF" /> : <FaEye color="#FFFFFF" />}
@@ -238,7 +278,7 @@ const Home = () => {
                                     <NotificationIcon />
                                     <p className='text-[#FFFFFF] font-[400] text-sm font-poppins'>Notification</p>
                                 </div>
-                                {(!storedUser.hasSetTransactionPin || storedPin == "") &&
+                                {(!storedUser.hasSetTransactionPin) &&
                                     <div className='flex justify-between items-center mt-5'>
 
                                         <div className='flex justify-start items-center gap-4'>
@@ -339,7 +379,7 @@ const Home = () => {
                                             <div className='flex justify-between items-center py-5 border-[#FFFFFF21] border-b-[1px]' key={index}>
                                                 <div className='flex justify-start items-center gap-4'>
                                                     {/* <img src={MTN} className='w-7 h-7 rounded-xl' /> */}
-                                                    {transaction.status == "failed" ?  <IoMdClose className='text-[#D45A0E] h-6 w-6'/> :
+                                                    {transaction.status == "failed" ? <IoMdClose className='text-[#D45A0E] h-6 w-6' /> :
                                                         transaction.type == "debit" ? <FaLongArrowAltUp className='w-7 h-7 text-[#D45A0E]  ' />
                                                             : <FaLongArrowAltDown className='w-7 h-7 text-[#D45A0E] ' />
                                                     }
@@ -348,7 +388,7 @@ const Home = () => {
                                                     <div>
                                                         <p className='text-white font-[400] text-sm font-poppins '>{transaction.type} - {transaction.serviceType}</p>
                                                         <p className='text-[#FFFFFFA1] font-[400] text-sm font-poppins '>{transaction.currency} {transaction.amount}</p>
-                                                        <p className={`${transaction.status == "failed" ? "text-red-500" :"text-[#47BF4C]"} font-[400] text-sm font-poppins `}>Transaction {transaction.status}</p>
+                                                        <p className={`${transaction.status == "failed" ? "text-red-500" : "text-[#47BF4C]"} font-[400] text-sm font-poppins `}>Transaction {transaction.status}</p>
                                                     </div>
                                                 </div>
                                                 <p className='text-[#D45A0E] font-[400] text-sm font-poppins ' onClick={() => navigate("/transactions")}>See more</p>

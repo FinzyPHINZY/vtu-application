@@ -188,7 +188,7 @@ const TransactionHistory = () => {
 
         const searchMatch = searchQuery.toLowerCase();
         const typeMatch = (transaction.type || '').toLowerCase().includes(searchMatch);
-        const phoneNumberMatch = (transaction.metadata.mobile_number || '').toLowerCase().includes(searchMatch);
+        const phoneNumberMatch = (transaction?.metadata?.mobile_number || '').toLowerCase().includes(searchMatch);
         const amountMatch = transaction.amount.toString().includes(searchMatch);
         console.log(createdAt.getDate().toString() == selectedDay, createdAt.toLocaleString('en-US', { month: 'short' }) == selectedMonth.slice(0, 3), createdAt.getFullYear().toString() == selectedYear, transactions.length)
         return dateMatch && (typeMatch || phoneNumberMatch || amountMatch);
@@ -371,11 +371,11 @@ const TransactionHistory = () => {
                             <CancelIcon   />
                         </div>
                     </div>
-                    {(selectedTransaction.serviceType == "airtime" || selectedTransaction.serviceType == "data") &&
+                    {/* {(selectedTransaction.serviceType == "airtime" || selectedTransaction.serviceType == "data") &&
                         <div className='flex justify-between items-center mt-4'>
                             <p className='text-white font-[400]  font-poppins text-sm '>Phone number:</p>
                             <p className='text-white font-[400]  font-poppins text-sm '>{selectedTransaction.metadata.mobile_number}</p>
-                        </div>}
+                        </div>} */}
                     {(selectedTransaction.serviceType == "bank_transfer") &&
                         <div className='flex justify-between items-center mt-4'>
                             <p className='text-white font-[400]  font-poppins text-sm '>Beneficiary number:</p>

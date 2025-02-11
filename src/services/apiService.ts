@@ -251,23 +251,23 @@ export const apiService = createApi({
       }),
     }),
     getTransferStatus: builder.mutation({
-      query: ({ sessionId, token }) => ({
-        url: 'transfers/status',
+      query: ({ email, token }) => ({
+        url: 'transfers/lookup',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { sessionId },
+        body: { email },
       }),
     }),
     transferFunds: builder.mutation({
-      query: ({ nameEnquiryReference, token, debitAccountNumber, beneficiaryBankCode, beneficiaryAccountNumber, amount, saveBeneficiary, narration, transactionPin }) => ({
-        url: 'transfers',
+      query: ({  token, amount,  transactionPin,  payeeId }) => ({
+        url: 'transfers/transfer',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { nameEnquiryReference, debitAccountNumber, beneficiaryBankCode, beneficiaryAccountNumber, amount, saveBeneficiary, narration, transactionPin },
+        body: { payeeId,  amount,  transactionPin },
       }),
     }),
     requestPasswordReset: builder.mutation({
@@ -320,7 +320,7 @@ export const apiService = createApi({
 
       }),
     }),
-    getVirtualTransaction: builder.query({
+    getVirtualTransaction: builder.mutation({
       query: ({ token, id }) => ({
         url: `account/virtual/${id}`,
         method: 'GET',
@@ -346,7 +346,7 @@ export const apiService = createApi({
 
 export const { useRequestOtpMutation,
   useGetVirtualAccountQuery,
-  useGetVirtualTransactionQuery,
+  useGetVirtualTransactionMutation,
   useCreateVirtualAccountMutation,
   useGetUserDetailsQuery,
   useVerifyOtpMutation,

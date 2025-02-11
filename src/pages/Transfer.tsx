@@ -10,6 +10,7 @@ import BackgroundImage from '../assets/images/background.png'
 import {
     useGetBankListQuery,
     useTransferFundsMutation,
+    useGetTransferStatusMutation,
     useGetUserDetailsQuery,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
@@ -25,8 +26,8 @@ const Transfer = () => {
     const location = useLocation();
     const dispatch = useDispatch();
     const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
-    const [accountNumber, setAccountNumber] = useState(() => localStorage.getItem('accountNumber') || '');
-    const [accountNumberError, setAccountNumberError] = useState('');
+    const [email, setEmail] = useState(() => localStorage.getItem('beneficiaryEmail') || '');
+    const [emailError, setEmailError] = useState('');
     const [amountError, setAmountError] = useState('');
     const [narration, setNarration] = useState(() => localStorage.getItem('narration') || '')
     const [narrationError, setNarrationError] = useState("")
@@ -36,13 +37,13 @@ const Transfer = () => {
     const [transferSuccessfulModal, setTransferSuccessfulModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
     const [transferFailedModal, setTransferFailedModal] = useState(false);
-    // const [selectedPackage, setSelectedPackage] = useState('');
-    // const [packageError, setPackageError] = useState('');
+    const [payeeId, setPayeeId] = useState("")
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const { data: bankListData, error, isLoading } = useGetBankListQuery({ token: storedToken });
     const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
     const [transferFunds] = useTransferFundsMutation();
+    const [transferStatus] = useGetTransferStatusMutation();
     // const [transferStatus] = useGetTransferStatusMutation();
     const { secondData } = location.state || {};
 
@@ -72,12 +73,35 @@ const Transfer = () => {
         }
     }, [secondData]);
 
+
+    interface ValidateEmail {
+        (email: string): boolean;
+    }
+
+
+    const validateEmail: ValidateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setEmail(value);
+
+        if (validateEmail(value)) {
+            setEmailError('');
+    
+        } else {
+            setEmailError('Please enter a valid email address.');
+        }
+    };
     useEffect(() => {
         // Store amount and number in localStorage
         localStorage.setItem('amount', amount);
-        localStorage.setItem('accountNumber', accountNumber);
+        localStorage.setItem('beneficiaryEmail', email);
         localStorage.setItem('narration', narration);
-    }, [amount, accountNumber, narration]);
+    }, [amount, email, narration]);
 
     const handleBack = () => {
         navigate("/home");
@@ -91,10 +115,7 @@ const Transfer = () => {
         setAmount(value);
     };
 
-    const handleAccountNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setAccountNumber(value);
-    };
+
 
     const handleNarrationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -102,56 +123,6 @@ const Transfer = () => {
     };
 
 
-    // interface Bank {
-    //     name: string;
-    //     code: string;
-    // }
-
-    // interface BankListData {
-    //     data: Bank[];
-    // }
-
-    // const packageOptions: Bank[] = (bankListData as BankListData)?.data.map((bank: Bank) => ({
-    //     name: bank.name,
-    //     code: bank.code
-    // })) || [];
-
-    // const handlePackageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    //     const selectedBank = packageOptions.find(bank => bank.name === e.target.value);
-    //     if (selectedBank) {
-    //         setSelectedPackage(selectedBank.code);
-    //         if (accountNumber) {
-    //             await handleVerifyAccount();
-    //         }
-    //     }
-    //     setPackageError('');
-    // };
-
-    // const handleVerifyAccount = async () => {
-
-    //     if (!selectedPackage) {
-    //         setPackageError('Please select a bank.');
-    //     }
-    //     if (!accountNumber) {
-    //         setAccountNumberError('Please enter a valid account number.');
-    //     }
-    //     if (accountNumber && selectedPackage) {
-    //         try {
-    //             const response = await verifyBankAccount({ token: storedToken, accountNumber, bankCode: selectedPackage });
-    //             if (response.data.success) {
-    //                 setVerifiedAccountData(response.data.message);
-    //             } else {
-    //                 toast.error('Something went wrong in verifying the account number');
-    //             }
-    //         } catch (err) {
-    //             console.error(err);
-
-    //         }
-    //     } else {
-    //         setAccountNumberError('Invalid account number.');
-    //         setPackageError('Invalid bank code.');
-    //     }
-    // }
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -159,17 +130,34 @@ const Transfer = () => {
             setAmountError('Please enter an amount.');
             return
         }
-        if (!accountNumber) {
-            setAccountNumberError('Please enter a valid account number.');
+        if (!email) {
+            setEmailError('Please enter the beneficiary email address on bolddata');
             return
         }
-        if (amount && accountNumber) {
+        if (amount && email) {
             setAmountError('');
-            setAccountNumberError("")
+            setEmailError("");
             setNarrationError("")
             try {
 
                 setLoading(true);
+                const checkEmail = async () => {
+                    const response = await transferStatus({
+                        email,
+                        token: storedToken,
+                    });
+                    if (response?.data?.success) {
+                        toast.success(response.data.message);
+                        setPayeeId(response.data.data.id)
+                    } else {
+                        toast.error(response.data.message);
+                        setEmail("");
+                        setAmount("");
+                        setNarration("")
+                        return;
+                    }
+                }
+                checkEmail();
 
                 navigate('/pin/transfer/enter', { state: { service: "transfer" } });
 
@@ -186,56 +174,52 @@ const Transfer = () => {
     };
 
 
- 
+
     const handleCloseModal = async () => {
 
         try {
 
             setLoading(true);
-            console.log(1)
+
             const response = await transferFunds({
-                debitAccountNumber: "0119017579",
+                payeeId: payeeId,
                 token: storedToken,
-                nameEnquiryReference: "61e985180e69308aa37a7a94",
-                beneficiaryBankCode: "999240",
-                beneficiaryAccountNumber: accountNumber,
+
                 amount: parseInt(amount, 10),
-                saveBeneficiary: false,
-                narration: narration,
+
                 transactionPin: storedPin,
 
             });
-            console.log(2)
+
             if (response?.data?.success) {
-                console.log(3)
+
                 toast.success(response.data.message);
                 dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
-                console.log(4)
+
             } else {
-                console.log(5)
+
                 if (response.error && 'data' in response.error) {
                     console.log(response.error)
                     console.log((response.error.data as { message: string }).message);
                     const errorMessage = (response.error.data as { message: string }).message
                     toast.error(errorMessage);
                 }
-                console.log(6)
+
             }
         } catch (error) {
-            console.log(7)
+
             console.error(error);
             toast.error((error as { data: { message: string } })?.data?.message);
             setTransferFailedModal(true);
-            console.log(8)
+
             // toast.error('Transaction failed. Please try again.');
         } finally {
-            console.log(9)
-            setAccountNumber("");
+            setEmail("");
             setAmount("");
             setNarration("")
             localStorage.setItem('amount', '');
-            localStorage.setItem('accountNumber', '');
+            localStorage.setItem('beneficiaryEmail', '');
             localStorage.setItem('narration', '');
             setLoading(false);
             setShowModal(false);
@@ -259,17 +243,16 @@ const Transfer = () => {
                         <p className='text-[#4CAF50] font-[600] font-poppins text-xl my-5'>Safe & secure</p>
                         <form className='mt-5 flex-grow flex flex-col justify-between pb-20' onSubmit={handleSubmit}>
                             <div>
-                                <div className='mt-5'>
-                                    <p className='text-white font-[500] text-base font-poppins mb-2'>Account Number</p>
+                                <div>
+                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Email</p>
                                     <input
-                                        type="number"
-                                        value={accountNumber}
-                                        onChange={handleAccountNumberChange}
+                                        type='email'
+                                        value={email}
+                                        onChange={handleEmailChange}
                                         className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='1711245709'
+                                        placeholder='example@gmail.com'
                                     />
-                                    {accountNumberError && <p className='text-[#D45A0E] text-sm text-center'>{accountNumberError}</p>}
-
+                                    {emailError && <p className='text-[#D45A0E] text-sm text-center'>{emailError}</p>}
                                 </div>
                                 {/* <div className='mt-8'>
                                     <p className='text-white font-[500] text-base font-poppins mb-2'>Select Provider</p>
@@ -388,8 +371,8 @@ const Transfer = () => {
                         <p className='text-white font-[400]  font-poppins text-sm '>Transfer</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
-                        <p className='text-white font-[400]  font-poppins text-sm '>Account Number</p>
-                        <p className='text-white font-[400]  font-poppins text-sm '>{accountNumber}</p>
+                        <p className='text-white font-[400]  font-poppins text-[13px] '>Beneficiary Email address</p>
+                        <p className='text-white font-[400]  font-poppins text-[13px] '>{email}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Amount:</p>

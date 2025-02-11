@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      includeAssets: ['bolddata.svg'],
+      includeAssets: ['bolddata.svg', 'favicon.ico'],
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
