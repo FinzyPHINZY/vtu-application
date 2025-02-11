@@ -39,7 +39,7 @@ export const createSubAccount = async (req, res, next) => {
       identityId,
       otp,
       callbackUrl: process.env.FRONTEND_BASE_URL,
-      autoSweep: false,
+      autoSweep: true,
       autoSweepDetails: { schedule: 'Instant' },
     };
 
