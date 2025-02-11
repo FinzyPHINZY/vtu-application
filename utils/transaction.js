@@ -17,11 +17,11 @@ export const isValidAccountNumber = (accountNumber) => {
 export const validateBalance = async (userId, amount) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new ApiError(404, 'User not found');
+    throw new ApiError(404, false, 'User not found');
   }
 
   if (user.accountBalance < amount) {
-    throw new ApiError(400, 'Insufficient account balance');
+    throw new ApiError(400, false, 'Insufficient account balance');
   }
 
   return user;
@@ -62,7 +62,7 @@ export const processTransaction = async (user, amount, transactionDetails) => {
     return user.transactions[user.transactions.length - 1];
   } catch (error) {
     console.error('Transaction processing failed:', error);
-    throw new ApiError(500, 'Failed to process transaction');
+    throw new ApiError(500, false, 'Failed to process transaction');
   }
 };
 
