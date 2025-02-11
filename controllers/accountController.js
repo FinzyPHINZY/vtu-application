@@ -229,7 +229,7 @@ export const getVirtualTransaction = async (req, res, next) => {
     console.log(user.transactions);
 
     const transaction = user.transactions.find(
-      (t) => t.metadata.virtualAccountId === virtualAccountId
+      (t) => t.metadata.virtualAccountId.toString() === virtualAccountId
     );
 
     if (!transaction) {
