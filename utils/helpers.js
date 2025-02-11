@@ -161,7 +161,7 @@ export const airtimePurchaseValidation = [
     .isInt({ min: 50, max: 50000 })
     .withMessage('Amount must be between 50 and 50000 Naira'),
   body('mobile_number')
-    .matches(/^08\d{9}$/)
+    .matches(/^(0(7[01-9]|8[01-9]|9[01-9])\d{8})$/)
     .withMessage('Invalid phone number format. Must be in format 08XXXXXXXXX'),
   body('Ported_number')
     .isBoolean()
