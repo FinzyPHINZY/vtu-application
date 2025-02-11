@@ -94,7 +94,7 @@ const updateAccountBalance = async ({
     await session.withTransaction(async () => {
       // Validate transfer amount
       if (!transferAmount || transferAmount <= 0) {
-        throw new ApiError(400, 'Invalid transfer amount');
+        throw new ApiError(400, false, 'Invalid transfer amount');
       }
 
       // Find user by either userId or accountNumber

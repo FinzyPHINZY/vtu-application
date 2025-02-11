@@ -55,6 +55,7 @@ export const getToken = async (retryCount = 0) => {
 
     throw new ApiError(
       error.response?.status || 500,
+      false,
       'Failed to obtain Safe Haven token',
       error.response?.data
     );
@@ -72,7 +73,7 @@ export const saveToken = async (tokenData) => {
     });
   } catch (error) {
     console.error('Failed to save token:', error);
-    throw new ApiError(500, 'Failed to save authentication token');
+    throw new ApiError(500, false, 'Failed to save authentication token');
   }
 };
 
