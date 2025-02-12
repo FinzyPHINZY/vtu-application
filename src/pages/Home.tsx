@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import DesktopImage from '../assets/images/bold-data.png'
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
@@ -40,8 +40,8 @@ const Home = () => {
     const [accountBalanceHidden, setAccountBalanceHidden] = useState(false);
     const [getVirtualTransaction] = useGetVirtualTransactionMutation();
     console.log(storedUser, storedToken, storedPin, 48)
-    console.log(storedUser.hasSetTransactionPin)
-    console.log(storedUser.accountDetails.status)
+    // console.log(storedUser.hasSetTransactionPin)
+    // console.log(storedUser.accountDetails.status)
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -56,62 +56,69 @@ const Home = () => {
     const [accountName, setAccountName] = useState('');
     const [amountToPay, setAmountToPay] = useState('');
     const [timeLeft, setTimeLeft] = useState(600);
-    const { data: userDetails, refetch: refetchUserDetails } = useGetUserDetailsQuery({ token: storedToken });
-  
+    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
 
     useEffect(() => {
-        let attempt = 0;
-        const timer = setInterval(() => {
-            setTimeLeft(prevTime => (prevTime > 0 ? prevTime - 1 : 0));
-        }, 1000);
-    
-        const interval = setInterval(() => {
-          
-                const fetchTransaction = async () => {
-                    if (attempt < 10) {
-                        attempt++;
-                        const response = await getVirtualTransaction({ token: storedToken, id: sessionId });
-                        if (response?.data?.status === 'Completed') {
-                            clearInterval(interval);
-                            toast.success(response.data.message);
-                            refetchUserDetails();
-                            dispatch(setUserInfo(userDetails.data));
-                            return
-                        } else if (response?.data?.status === 'Pending') {
-                            toast.info('Payment is still pending. Please wait...');
-                        } else if (response?.data?.status === 'error' && response?.data?.code === 400) {
-                            clearInterval(interval);
-                            toast.error('No transaction found. Please try again.');
-                        }
-                    } else {
-                        clearInterval(interval);
-                        toast.error('No transaction found. Please try again.');
+        dispatch(setUserInfo(userDetails));
+    }, [dispatch, userDetails])
+
+    const closeModal2 = useCallback(async () => {
+        const checkTransactionStatus = async () => {
+            const response = await getVirtualTransaction({ token: storedToken, id: sessionId });
+
+            if (response?.data?.status === 'Completed') {
+                toast.success(response.data.message);
+
+
+                setShowModal2(false);
+                return true;
+            } else if (response?.data?.status === 'Pending') {
+
+                toast.info('Payment is still pending. Please wait...');
+                return false;
+            } else if (response?.data?.status === 'error' && response?.data?.code === 400) {
+
+                toast.error('No transaction found. Please try again.');
+                setShowModal2(false);
+                return true;
+            }
+            return false;
+        };
+
+        try {
+            const isComplete = await checkTransactionStatus();
+            if (!isComplete) {
+                const timer = setTimeout(async () => {
+                    while (!(await checkTransactionStatus())) {
+                        await new Promise(resolve => setTimeout(resolve, 180000)); // Wait 1 minute
                     }
-                };
-                fetchTransaction();
-         
-        }, 180000); // 3 minutes in milliseconds
-    
+                }, 180000); // Initial 1-minute delay
+
+                return () => clearTimeout(timer);
+            }
+        } catch (error) {
+            console.error('Error checking transaction status:', error);
+            toast.error('An error occurred while checking transaction status');
+            setShowModal2(false);
+        }
+    }, [getVirtualTransaction, sessionId, storedToken]); // Added dependencies
+
+    useEffect(() => {
+        const timer = setInterval(async () => {
+            setTimeLeft(prevTime => (prevTime > 0 ? prevTime - 1 : 0));
+            if (timeLeft <= 0) {
+                clearInterval(timer); // Clear the timer
+                await closeModal2(); // Invoke closeModal2 when timer expires
+            }
+        }, 1000);
+
         return () => {
             clearInterval(timer);
-            clearInterval(interval);
         };
-    }, [showModal2, timeLeft, sessionId, storedToken, getVirtualTransaction, refetchUserDetails, dispatch, userDetails]);
-    
-    const closeModal2 = async () => {
-        setShowModal2(false);
-        const response = await getVirtualTransaction({ token: storedToken, id: sessionId });
-        if (response?.data?.status === 'Completed') {
-            toast.success(response.data.message);
-            refetchUserDetails();
-        } else if (response?.data?.status === 'Pending') {
-            toast.info('Payment is still pending. Please wait...');
-        } else if (response?.data?.status === 'error' && response?.data?.code === 400) {
-            toast.error('No transaction found. Please try again.');
-        }
-        dispatch(setUserInfo(userDetails.data));
-    };
-    
+    }, [timeLeft, closeModal2]);
+
+
+
 
 
     const formatTime = (time: number) => {
@@ -119,14 +126,14 @@ const Home = () => {
         const seconds = time % 60;
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     };
-    // const storedData = {token: storedToken}
+
     const {
         data: transactionsResponse,
         isLoading: isLoading2,
         error: error2
     } = useGetAllTransactionsQuery({ token: storedToken });
 
-    // const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+
     const [createVirtualAccount] = useCreateVirtualAccountMutation();
     const transactions = transactionsResponse?.transactions || [];
     useEffect(() => {
@@ -155,6 +162,7 @@ const Home = () => {
 
     };
 
+
     // const handleCloseModal = () => {
     //     setShowModal(false);
     //     navigate('/otp');
@@ -170,7 +178,7 @@ const Home = () => {
                 amount: parseInt(amount, 10),
                 token: storedToken
             });
-    
+
             if (response?.data?.success) {
                 toast.success(response.data.message);
                 setAccountName(response.data.data.accountName);
@@ -178,7 +186,17 @@ const Home = () => {
                 setBankName("SAFE HAVEN MFB");
                 setAmountToPay(response.data.data.amount);
                 setSessionId(response.data._id);
-                setShowModal2(true);
+
+                navigate('/deposit', {
+                    state: {
+                        accountName: response.data.data.accountName,
+                        accountNumber: response.data.data.accountNumber,
+                        bankName: "SAFE HAVEN MFB",
+                        amountToPay: response.data.data.amount,
+                        sessionId: response.data.data._id
+                    }
+                });
+
             } else {
                 if (response.error) {
                     if ('status' in response.error && response.error.status === 504) {
@@ -200,7 +218,7 @@ const Home = () => {
             setShowModal(false);
         }
     };
-    
+
 
     type Transaction = {
         _id: string;

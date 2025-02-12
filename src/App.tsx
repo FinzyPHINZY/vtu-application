@@ -28,6 +28,7 @@ import UseTransactionPin2 from './pages/UseTransactionPin2.tsx';
 import UseTransactionPin3 from './pages/UseTransactionPin3.tsx';
 import UseTransactionPin4 from './pages/UseTransactionPin4.tsx';
 import UseTransactionPin5 from './pages/UseTransactionPin5.tsx';
+import Deposit from './pages/Deposit.tsx';
 
 function App() {
 
@@ -60,6 +61,8 @@ function App() {
           <Route path="/verification/initiate" element={<CompleteSignup2 />} />
           <Route path="/verification/validate" element={<CompleteSignup3 />} />
           <Route path="/otp/reset" element={<ResetPasswordOTP />} />
+          <Route path="/deposit" element={<Deposit />} />
+          
         </Routes>
       </Router>
       <ToastContainer />
