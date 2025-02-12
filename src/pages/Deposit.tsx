@@ -50,11 +50,6 @@ const Deposit = () => {
         60000
     )
 
-    // useEffect(() => {
-    //     if (secondData) {
-    //         setShowModal(true);
-    //     }
-    // }, [secondData]);
 
 
 
@@ -84,13 +79,13 @@ const Deposit = () => {
     const closeModal2 = useCallback(async () => {
         const checkTransactionStatus = async () => {
             const response = await getVirtualTransaction({ token: storedToken, id: sessionId });
-            console.log(sessionId, 56)
+            console.log(sessionId, response, 56)
             if (response?.data?.status === 'Completed') {
                 toast.success(response.data.message);
                 console.log("completed", response?.data?._id)
                 refetchUserDetails();
                 dispatch(setUserInfo(userDetails.data));
-                navigate("/home");
+                navigate("/login");
 
             } else if (response?.data?.status === 'Pending') {
                 console.log("pending", response?.data?._id)
@@ -103,7 +98,7 @@ const Deposit = () => {
                         console.log("completed", response?.data?._id)
                         refetchUserDetails();
                         dispatch(setUserInfo(userDetails.data));
-                        navigate("/home");
+                        navigate("/login");
 
                     }
                 }, 300000); // 300,000 milliseconds = 5 minutes
@@ -111,13 +106,13 @@ const Deposit = () => {
 
             } else if (response?.data?.status === 'error' && response?.data?.code === 400) {
                 console.log("error", response?.data?._id)
-                toast.error('No transaction found. Please try again, I no trust you');
-                navigate("/home");
+                toast.error('No transaction found. Please try again');
+                navigate("/login");
 
             }
             // return false;
-            toast.error('No transaction found. Please try again, I trust you');
-            navigate("/home");
+            toast.error('No transaction found. Please try again');
+            navigate("/login");
         };
 
         try {
@@ -125,7 +120,7 @@ const Deposit = () => {
 
         } catch (error) {
             console.error('Error checking transaction status:', error);
-            toast.error('An error occurred while checking transaction status, na lie');
+            toast.error('An error occurred while checking transaction status');
 
         }
     }, [getVirtualTransaction, refetchUserDetails, dispatch, userDetails, sessionId, storedToken, navigate]); // Added dependencies
@@ -158,10 +153,11 @@ const Deposit = () => {
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={closeModal2} />
 
-                            <p className='text-white font-[500]  font-poppins text-base '>Deposit</p>
+                         
                             <div>             </div>
 
                         </div>
+                        <p className='text-white font-[500]  font-poppins text-center text-base my-4'>Transfer to this account details below</p>
                         <div className='flex justify-between items-center mt-4'>
                             <p className='text-white font-[400]  font-poppins text-sm '>Amount to Pay</p>
                             <p className='text-white font-[400]  font-poppins text-sm '>{amountToPay}</p>
@@ -185,6 +181,7 @@ const Deposit = () => {
 
 
                         </div>
+                        <p className='text-[#D45A0E] font-[500]  font-poppins text-center text-base my-4'>Disclaimer: Do not close this page after the transaction until the timer elapse</p>
                     </div>
                 ) : (
                     // JSX for screens above 768px
