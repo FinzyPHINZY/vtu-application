@@ -9,7 +9,11 @@ import {
 import { googleLoginValidation } from '../utils/helpers.js';
 const router = express.Router();
 
-router.post('/request-otp', otpRateLimiter, authController.requestOtp);
+router.post(
+  '/request-otp',
+  // otpRateLimiter,
+  authController.requestOtp
+);
 
 router.post('/verify-otp', authController.verifyOtp);
 

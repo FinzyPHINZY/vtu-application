@@ -74,7 +74,7 @@ router.get(
 router.post(
   '/lookup',
   validateHeaders,
-  lookupLimiter,
+  // lookupLimiter,
   lookupValidation,
   validateRequest,
   InternalTransferController.lookupPayee

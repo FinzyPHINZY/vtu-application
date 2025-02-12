@@ -37,7 +37,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet());
 app.use(cors());
-app.use(limiter);
+// app.use(limiter);
 app.use(requestLogger);
 
 // Endpoints

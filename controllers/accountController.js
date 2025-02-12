@@ -226,10 +226,8 @@ export const getVirtualTransaction = async (req, res, next) => {
       throw new ApiError(404, false, 'Virtual account transaction not found');
     }
 
-    console.log(user.transactions);
-
     const transaction = user.transactions.find(
-      (t) => t.metadata.virtualAccountId.toString() === virtualAccountId
+      (t) => t.metadata.virtualAccountId === virtualAccountId
     );
 
     if (!transaction) {
@@ -258,6 +256,8 @@ export const getVirtualTransaction = async (req, res, next) => {
         },
       }
     );
+
+    console.log(response.data);
 
     const { data } = response.data;
 

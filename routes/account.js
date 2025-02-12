@@ -32,7 +32,7 @@ router.post(
 router.post(
   '/virtual',
   validateHeaders,
-  virtualAccountLimiter,
+  // virtualAccountLimiter,
   validateRequest,
   accountController.createVirtualAccount
 );
