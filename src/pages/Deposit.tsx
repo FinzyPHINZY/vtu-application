@@ -79,35 +79,29 @@ const Deposit = () => {
     const closeModal2 = useCallback(async () => {
         const checkTransactionStatus = async () => {
             const response = await getVirtualTransaction({ token: storedToken, id: sessionId });
-            console.log(sessionId, response, 56)
-            if (response?.data?.status === 'Completed') {
+            console.log(sessionId, response?.data?.data, 56)
+            if (response?.data?.data?.status == 'success') {
                 toast.success(response.data.message);
                 console.log("completed", response?.data?._id)
                 refetchUserDetails();
                 dispatch(setUserInfo(userDetails.data));
                 navigate("/login");
+                return
 
-            } else if (response?.data?.status === 'Pending') {
+            } else if (response?.data?.data?.status === 'Pending') {
                 console.log("pending", response?.data?._id)
                 toast.info('Payment is still pending. Please wait for three minutes...');
-
-                setTimeout(async () => {
-                    const secondResponse = await getVirtualTransaction({ token: storedToken, id: sessionId });
-                    if (secondResponse?.data?.status === 'Completed') {
-                        toast.success(response.data.message);
-                        console.log("completed", response?.data?._id)
-                        refetchUserDetails();
-                        dispatch(setUserInfo(userDetails.data));
-                        navigate("/login");
-
-                    }
-                }, 300000); // 300,000 milliseconds = 5 minutes
+                return;
+                
 
 
-            } else if (response?.data?.status === 'error' && response?.data?.code === 400) {
-                console.log("error", response?.data?._id)
-                toast.error('No transaction found. Please try again');
-                navigate("/login");
+            } else if (response.error && 'data' in response.error) {
+                    console.log((response.error.data as { message: string }).message);
+                    const errorMessage = (response.error.data as { message: string }).message
+                    toast.error(errorMessage);
+                    navigate("/login");
+                    return
+                
 
             }
             // return false;
@@ -153,7 +147,7 @@ const Deposit = () => {
                         <div className='flex justify-between items-center'>
                             <LeftArrowIcon onClick={closeModal2} />
 
-                         
+
                             <div>             </div>
 
                         </div>
