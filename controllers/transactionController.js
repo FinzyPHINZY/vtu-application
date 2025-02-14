@@ -366,7 +366,7 @@ export const purchaseAirtime = async (req, res, next) => {
       await user.save();
 
       // Send receipt
-      await sendTransactionReceipt(user, transaction);
+      await sendTransactionReceipt(user, transactionDoc[0]);
 
       console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
@@ -485,6 +485,7 @@ export const purchaseData = async (req, res, next) => {
       await user.save();
 
       // send receipt
+
       await sendTransactionReceipt(user, transactionDoc);
 
       console.log(`Data bundle purchase successful for user: ${req.user.id}`);
