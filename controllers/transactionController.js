@@ -335,7 +335,6 @@ export const purchaseAirtime = async (req, res, next) => {
     );
 
     const transactionDoc = await Transaction.find({ reference });
-    console.log(transactionDoc);
 
     console.log('purchasing airtime');
 
@@ -363,7 +362,7 @@ export const purchaseAirtime = async (req, res, next) => {
 
       // Update transaction based on status
       transactionDoc[0].status = 'success';
-      await transactionDoc.save();
+      await transactionDoc[0].save();
       await user.save();
 
       // Send receipt
@@ -385,7 +384,10 @@ export const purchaseAirtime = async (req, res, next) => {
       });
     } catch (error) {
       // Handle failed API call
-      console.error('DataStation API call failed:', error.response?.data);
+      console.error(
+        'DataStation API call failed:',
+        error.response?.data || error.message
+      );
 
       // Reverse the transaction
       user.accountBalance += amount;
