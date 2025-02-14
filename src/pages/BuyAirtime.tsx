@@ -7,7 +7,7 @@ import { LeftArrowIcon } from '../assets/svg'
 import {
     useFetchNetworksQuery,
     usePurchaseAirtime2Mutation,
-    useGetUserDetailsQuery
+    useGetUserDetailsMutation,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -41,7 +41,7 @@ const BuyAirtime = () => {
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
-    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const [getUserDetails] = useGetUserDetailsMutation();
     const { data: fetchNetworks } = useFetchNetworksQuery({ token: storedToken });
     useEffect(() => {
         console.log(serviceDataId, fetchNetworks);
@@ -112,19 +112,19 @@ const BuyAirtime = () => {
 
 
     useEffect(() => {
-      
+
         console.log('number:', number);
         console.log('amount', amount);
         localStorage.setItem('amount', amount);
         console.log('selectedNetwork:', selectedNetwork);
-    
-      
+
+
         if (selectedNetwork) {
             localStorage.setItem('NetworkId', selectedNetwork.network_id.toString());
         }
         localStorage.setItem('number', number);
     }, [amount, number, selectedNetwork?.network_id, selectedNetwork]);
-    
+
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
@@ -142,6 +142,7 @@ const BuyAirtime = () => {
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                const userDetails = await getUserDetails({ token: storedToken })
                 dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {
@@ -179,10 +180,10 @@ const BuyAirtime = () => {
 
         if (!selectedNetwork) {
             toast.error('Please click on any network and select it');
-             return
+            return
         }
         setLoading(true);
-        if (amount && number ) {
+        if (amount && number) {
             setAmountError('');
             setNumberError('');
 

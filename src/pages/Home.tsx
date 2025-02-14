@@ -22,16 +22,18 @@ import '../App.css'
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import {
     useGetAllTransactionsQuery,
-    useGetUserDetailsQuery,
+    useGetUserDetailsMutation,
     useCreateVirtualAccountMutation,
     useGetVirtualTransactionMutation,
 } from '../services/apiService';
 import { FaLongArrowAltUp } from "react-icons/fa";
 import { FaLongArrowAltDown } from "react-icons/fa";
 import { useDispatch } from 'react-redux';
-import { setUserInfo } from '../store/slices/userSlices';
+import { setUserInfo, User } from '../store/slices/userSlices';
 import { toast } from 'react-toastify';
 import { IoMdClose } from "react-icons/io";
+
+
 
 const Home = () => {
     const storedUser = useSelector((state: RootState) => state.user.user);
@@ -56,11 +58,26 @@ const Home = () => {
     const [accountName, setAccountName] = useState('');
     const [amountToPay, setAmountToPay] = useState('');
     const [timeLeft, setTimeLeft] = useState(600);
-    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const [getUserDetails] = useGetUserDetailsMutation();
+   
+    const [userDetails, setUserDetails] = useState<User | null>(null);
 
+
+
+    
     useEffect(() => {
-        dispatch(setUserInfo(userDetails));
-    }, [dispatch, userDetails])
+        const fetch = async () => {
+            const response = await getUserDetails({ token: storedToken });
+            setUserDetails(response.data.data);
+        };
+        fetch();
+    }, [getUserDetails, storedToken]);
+    console.log(userDetails, 7000)
+    useEffect(() => {
+        if (userDetails) {
+            dispatch(setUserInfo(userDetails));
+        }
+    }, [dispatch, userDetails]);
 
     const closeModal2 = useCallback(async () => {
         const checkTransactionStatus = async () => {
@@ -270,7 +287,7 @@ const Home = () => {
                                 <div className='flex justify-center items-center gap-1 mt-2'>
                                     <p className='text-[#FFFFFFB2] font-[400] text-base font-kavoon'>N</p>
                                     <p className='text-[#FFFFFF] px-2 font-[700] text-2xl font-poppins'>
-                                        {accountBalanceHidden ? '***' : storedUser.accountBalance}
+                                        {accountBalanceHidden ? '***' : userDetails?.accountBalance || storedUser.accountBalance}
                                     </p>
                                     <div onClick={toggleAccountBalance}>
                                         {accountBalanceHidden ? <FaEyeSlash color="#FFFFFF" /> : <FaEye color="#FFFFFF" />}

@@ -8,7 +8,7 @@ import {
     useFetchCableListQuery,
     useFetchCablePlansQuery,
     usePurchaseCableTV2Mutation,
-    useGetUserDetailsQuery,
+    useGetUserDetailsMutation,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -47,7 +47,7 @@ const BuyCable = () => {
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
     const { data: cablePlans } = useFetchCablePlansQuery({ token: storedToken });
     const { data: cableList } = useFetchCableListQuery({ token: storedToken });
-    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const [getUserDetails] = useGetUserDetailsMutation();
     // const [verifyPowerTVData] = useVerifyPowerTVDataMutation();
     useEffect(() => {
         console.log(serviceDataId, cableList, cablePlans);
@@ -109,6 +109,7 @@ const BuyCable = () => {
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                const userDetails = await getUserDetails({ token: storedToken })
                 dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {

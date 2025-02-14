@@ -7,7 +7,7 @@ import { LeftArrowIcon } from '../assets/svg'
 import {
     useFetchPowerProvidersQuery,
     usePurchaseUtilityBill2Mutation,
-    useGetUserDetailsQuery,
+    useGetUserDetailsMutation,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -42,7 +42,7 @@ const BuyElectricity = () => {
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const { data: powerProviders } = useFetchPowerProvidersQuery({ token: storedToken });
-    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const [getUserDetails] = useGetUserDetailsMutation();
 
 
     useEffect(() => {
@@ -127,6 +127,7 @@ const BuyElectricity = () => {
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                const userDetails = await getUserDetails({ token: storedToken })
                 dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {

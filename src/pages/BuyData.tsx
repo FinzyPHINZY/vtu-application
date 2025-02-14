@@ -11,7 +11,7 @@ import {
     useFetchNetworksQuery,
     useFetchDataPlansQuery,
     usePurchaseData2Mutation,
-    useGetUserDetailsQuery,
+    useGetUserDetailsMutation,
 } from '../services/apiService';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
@@ -43,7 +43,7 @@ const BuyData = () => {
     const [purchaseData2] = usePurchaseData2Mutation();
     const { data: fetchDataPlans } = useFetchDataPlansQuery({ token: storedToken });
     const { data: fetchNetworks } = useFetchNetworksQuery({ token: storedToken });
-    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const [getUserDetails] = useGetUserDetailsMutation();
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const [paymentSuccessfulModal, setPaymentSuccessfulModal] = useState(false);
 
@@ -126,6 +126,7 @@ const BuyData = () => {
 
             if (response?.data?.success) {
                 toast.success(response.data.message);
+                const userDetails = await getUserDetails({ token: storedToken })
                 dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
             } else {

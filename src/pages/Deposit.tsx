@@ -6,7 +6,7 @@ import { LeftArrowIcon } from '../assets/svg'
 // import MTN from '../assets/images/mtn.png'
 import '../App.css'
 import {
-    useGetUserDetailsQuery,
+    useGetUserDetailsMutation,
     useGetVirtualTransactionMutation,
 } from '../services/apiService';
 import { useDispatch } from 'react-redux';
@@ -40,7 +40,7 @@ const Deposit = () => {
     // const [accountName2, setAccountName] = useState('');
     // const [amountToPay2, setAmountToPay] = useState('');
     const [timeLeft, setTimeLeft] = useState(600);
-    const { data: userDetails, refetch: refetchUserDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const [getUserDetails] = useGetUserDetailsMutation();
     console.log(
         accountName,
         accountNumber,
@@ -80,33 +80,33 @@ const Deposit = () => {
         const checkTransactionStatus = async () => {
             const response = await getVirtualTransaction({ token: storedToken, id: sessionId });
             console.log(sessionId, response?.data?.data, 56)
-            if (response?.data?.data?.status == 'success') {
+            if (response?.data?.data?.status == 'Completed') {
                 toast.success(response.data.message);
                 console.log("completed", response?.data?._id)
-                refetchUserDetails();
+                const userDetails = await getUserDetails({ token: storedToken })
                 dispatch(setUserInfo(userDetails.data));
-                navigate("/login");
+                navigate("/home");
                 return
 
             } else if (response?.data?.data?.status === 'Pending') {
                 console.log("pending", response?.data?._id)
                 toast.info('Payment is still pending. Please wait for three minutes...');
                 return;
-                
+
 
 
             } else if (response.error && 'data' in response.error) {
-                    console.log((response.error.data as { message: string }).message);
-                    const errorMessage = (response.error.data as { message: string }).message
-                    toast.error(errorMessage);
-                    navigate("/login");
-                    return
-                
+                console.log((response.error.data as { message: string }).message);
+                const errorMessage = (response.error.data as { message: string }).message
+                toast.error(errorMessage);
+                navigate("/home");
+                return
+
 
             }
             // return false;
             toast.error('No transaction found. Please try again');
-            navigate("/login");
+            navigate("/home");
         };
 
         try {
@@ -117,14 +117,14 @@ const Deposit = () => {
             toast.error('An error occurred while checking transaction status');
 
         }
-    }, [getVirtualTransaction, refetchUserDetails, dispatch, userDetails, sessionId, storedToken, navigate]); // Added dependencies
+    }, [getVirtualTransaction, getUserDetails, dispatch, sessionId, storedToken, navigate]); // Added dependencies
 
     useEffect(() => {
         const timer = setInterval(async () => {
             setTimeLeft(prevTime => (prevTime > 0 ? prevTime - 1 : 0));
             if (timeLeft <= 0) {
-                clearInterval(timer); // Clear the timer
-                await closeModal2(); // Invoke closeModal2 when timer expires
+                clearInterval(timer); 
+                await closeModal2(); 
             }
         }, 1000);
 

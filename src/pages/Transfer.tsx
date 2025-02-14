@@ -11,7 +11,7 @@ import {
     useGetBankListQuery,
     useTransferFundsMutation,
     useGetTransferStatusMutation,
-    useGetUserDetailsQuery,
+    useGetUserDetailsMutation,
 } from '../services/apiService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -41,7 +41,7 @@ const Transfer = () => {
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const storedPin = useSelector((state: RootState) => state.user.pin);
     const { data: bankListData, error, isLoading } = useGetBankListQuery({ token: storedToken });
-    const { data: userDetails } = useGetUserDetailsQuery({ token: storedToken });
+    const [getUserDetails] = useGetUserDetailsMutation();
     const [transferFunds] = useTransferFundsMutation();
     const [transferStatus] = useGetTransferStatusMutation();
     // const [transferStatus] = useGetTransferStatusMutation();
@@ -194,6 +194,7 @@ const Transfer = () => {
             if (response?.data?.success) {
 
                 toast.success(response.data.message);
+                const userDetails = await getUserDetails({ token: storedToken })
                 dispatch(setUserInfo(userDetails.data));
                 setPaymentSuccessfulModal(true);
 

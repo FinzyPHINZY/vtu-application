@@ -33,23 +33,23 @@ export const apiService = createApi({
       }),
     }),
     initiateVerification: builder.mutation({
-      query: ({  number,  token }) => ({
+      query: ({ number, token }) => ({
         url: 'verification/initiate',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: {  number,  },
+        body: { number, },
       }),
     }),
     validateVerification: builder.mutation({
-      query: ({  otp, identityId, token }) => ({
+      query: ({ otp, identityId, token }) => ({
         url: 'verification/validate',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: {  otp, identityId },
+        body: { otp, identityId },
       }),
     }),
     googleLogin: builder.mutation({
@@ -182,13 +182,13 @@ export const apiService = createApi({
       }),
     }),
     createSubAccount: builder.mutation({
-      query: ({  phoneNumber, token, emailAddress, identityId, identityNumber, identityType, otp, }) => ({
+      query: ({ phoneNumber, token, emailAddress, identityId, identityNumber, identityType, otp, }) => ({
         url: 'account/subaccount',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: {  phoneNumber, emailAddress, identityId, identityNumber, identityType, otp, },
+        body: { phoneNumber, emailAddress, identityId, identityNumber, identityType, otp, },
       }),
     }),
     purchaseAirtime2: builder.mutation({
@@ -261,13 +261,13 @@ export const apiService = createApi({
       }),
     }),
     transferFunds: builder.mutation({
-      query: ({  token, amount,  transactionPin,  payeeId }) => ({
+      query: ({ token, amount, transactionPin, payeeId }) => ({
         url: 'transfers/transfer',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        body: { payeeId,  amount,  transactionPin },
+        body: { payeeId, amount, transactionPin },
       }),
     }),
     requestPasswordReset: builder.mutation({
@@ -300,7 +300,7 @@ export const apiService = createApi({
         body: { transactionPin },
       }),
     }),
-    getUserDetails: builder.query({
+    getUserDetails: builder.mutation({
       query: ({ token }) => ({
         url: 'user',
         method: 'GET',
@@ -331,7 +331,7 @@ export const apiService = createApi({
       }),
     }),
     createVirtualAccount: builder.mutation({
-      query: ({ token, amount}) => ({
+      query: ({ token, amount }) => ({
         url: 'account/virtual',
         method: 'POST',
         headers: {
@@ -348,7 +348,7 @@ export const { useRequestOtpMutation,
   useGetVirtualAccountQuery,
   useGetVirtualTransactionMutation,
   useCreateVirtualAccountMutation,
-  useGetUserDetailsQuery,
+  useGetUserDetailsMutation,
   useVerifyOtpMutation,
   useCompleteSignupMutation,
   useLoginMutation,
