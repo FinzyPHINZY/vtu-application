@@ -13,6 +13,14 @@ import accountRoutes from './routes/account.js';
 import transactionRoutes from './routes/transactions.js';
 import transferRoutes from './routes/transfers.js';
 import { initialize } from './services/safeHavenAuth.js';
+// admin routes
+import analyticsRoutes from './routes/admin/analytics.js';
+import auditRoutes from './routes/admin/audit.js';
+import notificationsRoutes from './routes/admin/notifications.js';
+import productsRoutes from './routes/admin/products.js';
+import supportRoutes from './routes/admin/support.js';
+import systemControlRoutes from './routes/admin/systemControl.js';
+import adminTransactionRoutes from './routes/admin/transactions.js';
 
 dotenv.config();
 
@@ -67,6 +75,15 @@ app.use('/api/account', accountRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/transfers', transferRoutes);
+
+// admin endpoints
+app.use('/api/admin/system-control', systemControlRoutes);
+app.use('/api/admin/products', productsRoutes);
+app.use('/api/admin/notifications', notificationsRoutes);
+app.use('/api/admin/transactions', adminTransactionRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
+app.use('/api/admin/audit', auditRoutes);
+app.use('/api/admin/support', supportRoutes);
 
 // error handler
 app.use(errorHandler);
