@@ -101,7 +101,7 @@ const BuyData = () => {
         setNumber(value);
     };
 
-    console.log(selectedDataPlan?.amount.toString(), 50000)
+    
     // const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     //     setAmount(e.target.value);
     //     setAmountError('');
@@ -114,6 +114,12 @@ const BuyData = () => {
         try {
 
             setLoading(true);
+            console.log(
+                parseInt(localStorage.getItem('amount') || '0', 10),
+                parseInt(localStorage.getItem('NetworkId') || '0', 10),
+                parseInt(localStorage.getItem('DataId') || '0', 10),
+                number
+            )
             const response = await purchaseData2({
                 amount: parseInt(localStorage.getItem('amount') || '0', 10),
                 mobile_number: number,
@@ -161,9 +167,7 @@ const BuyData = () => {
     }, [secondData]);
 
     useEffect(() => {
-        console.log('selectedDataPlan:', selectedDataPlan);
-        console.log('number:', number);
-        console.log('selectedNetwork:', selectedNetwork);
+
     
         if (selectedDataPlan) {
             localStorage.setItem('amount', selectedDataPlan.amount.toString());

@@ -91,7 +91,7 @@ const Transfer = () => {
 
         if (validateEmail(value)) {
             setEmailError('');
-    
+
         } else {
             setEmailError('Please enter a valid email address.');
         }
@@ -123,6 +123,34 @@ const Transfer = () => {
     };
 
 
+
+    // Move checkEmail function outside handleSubmit
+    const checkEmail = async () => {
+        try {
+            const response = await transferStatus({
+                email,
+                token: storedToken,
+            });
+            if (response?.data?.success) {
+                toast.success(response.data.message);
+                setPayeeId(response.data.data.id);
+                localStorage.setItem('payeeId', response.data.data.id);
+                console.log(response.data.data.id, 8000);
+                return true; // Indicate that the email check was successful
+            } else {
+                toast.error(response.data.message);
+                setEmail("");
+                setAmount("");
+                setNarration("");
+                return false; // Indicate that the email check failed
+            }
+        } catch (error) {
+            toast.error('Error checking email. Please try again.');
+            console.log(error)
+            return false; // Indicate that an error occurred during the email check
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -141,25 +169,17 @@ const Transfer = () => {
             try {
 
                 setLoading(true);
-                const checkEmail = async () => {
-                    const response = await transferStatus({
-                        email,
-                        token: storedToken,
-                    });
-                    if (response?.data?.success) {
-                        toast.success(response.data.message);
-                        setPayeeId(response.data.data.id)
-                    } else {
-                        toast.error(response.data.message);
-                        setEmail("");
-                        setAmount("");
-                        setNarration("")
-                        return;
-                    }
+                const isEmailChecked = await checkEmail();
+                console.log(localStorage.getItem('payeeId'));
+                if (isEmailChecked) {
+                    navigate('/pin/transfer/enter', { state: { service: "transfer" } });
+                } else {
+                    toast.error('Failed to set payeeId. Please try again.');
+                    setEmail("");
+                    setAmount("");
+                    setNarration("")
                 }
-                checkEmail();
 
-                navigate('/pin/transfer/enter', { state: { service: "transfer" } });
 
 
             } catch (err) {
@@ -180,12 +200,12 @@ const Transfer = () => {
         try {
 
             setLoading(true);
-
+            console.log(localStorage.getItem('payeeId'), payeeId, storedPin, amount)
             const response = await transferFunds({
-                payeeId: payeeId,
+                payeeId: localStorage.getItem('payeeId'),
                 token: storedToken,
 
-                amount: parseInt(amount, 10),
+                amount: amount,
 
                 transactionPin: storedPin,
 
