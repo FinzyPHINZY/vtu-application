@@ -32,8 +32,7 @@ const BuyData = () => {
     const dispatch = useDispatch();
     const [number, setNumber] = useState(() => localStorage.getItem('number') || '')
     const [numberError, setNumberError] = useState('');
-    // const [amount, setAmount] = useState(() => localStorage.getItem('amount') || '')
-    // const [amountError, setAmountError] = useState('');
+
     const storedToken = useSelector((state: RootState) => state.auth.token);
     const [selectedNetwork, setSelectedNetwork] = useState<Network | null>(null);
     const [selectedDataPlan, setSelectedDataPlan] = useState<DataPlans | null>(null);
@@ -101,11 +100,6 @@ const BuyData = () => {
         setNumber(value);
     };
 
-    
-    // const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     setAmount(e.target.value);
-    //     setAmountError('');
-    // };
 
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -147,7 +141,7 @@ const BuyData = () => {
             console.error(error);
             toast.error((error as { data: { message: string } })?.data?.message);
         } finally {
-            // setSelectedPackage("");
+
             setNumber("");
             localStorage.setItem('amount', '');
             localStorage.setItem('number', '');
@@ -168,7 +162,7 @@ const BuyData = () => {
 
     useEffect(() => {
 
-    
+
         if (selectedDataPlan) {
             localStorage.setItem('amount', selectedDataPlan.amount.toString());
             localStorage.setItem('DataId', selectedDataPlan.data_id.toString());
@@ -178,7 +172,7 @@ const BuyData = () => {
         }
         localStorage.setItem('number', number);
     }, [selectedDataPlan, number, selectedNetwork, selectedDataPlan?.data_id, selectedNetwork?.network_id]);
-    
+
     const handleCloseModal = async () => {
 
         if (!number) {
@@ -197,7 +191,7 @@ const BuyData = () => {
         }
         setLoading(true);
         if (selectedDataPlan?.amount && number) {
-            // setPackageError('');
+
             setNumberError('');
             navigate('/pin/data/enter', { state: { service: "data" } });
 
@@ -299,20 +293,9 @@ const BuyData = () => {
                                     {numberError && <p className='text-[#D45A0E] text-sm text-center'>{numberError}</p>}
 
                                 </div>
-                                {/* <div className='mt-8'>
-                                    <p className='text-white font-[500] text-base font-poppins mb-5'>Amount</p>
-                                    <input
-                                        type="number"
-                                        value={amount}
-                                        onChange={handleAmountChange}
-                                        className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                                        placeholder='200'
-                                    />
-                                    {amountError && <p className='text-[#D45A0E] text-sm text-center'>{amountError}</p>}
 
-                                </div> */}
-                                <div className='flex justify-between flex-wrap items-center gap-4  mt-10'>
-                                    {fetchDataPlans && selectedNetwork && fetchDataPlans.data
+                                <div className=' gap-4  mt-10'>
+                                    {/* {fetchDataPlans && selectedNetwork && fetchDataPlans.data
                                         .filter((dataPlan: DataPlans) => dataPlan.network === selectedNetwork.networkname)
                                         .map((dataPlan: DataPlans, index: number) => {
                                             const isSelected = selectedDataPlan && selectedDataPlan.data_id === dataPlan.data_id;
@@ -329,6 +312,47 @@ const BuyData = () => {
                                                 </div>
                                             );
                                         })}
+                                            */}
+
+                                    {fetchDataPlans && selectedNetwork && (
+                                        Object.entries(
+                                            fetchDataPlans.data
+                                                .filter((dataPlan: DataPlans) => dataPlan.network === selectedNetwork.networkname)
+                                                .reduce((acc: Record<string, DataPlans[]>, dataPlan: DataPlans) => {
+                                                    const planType = dataPlan.planType;
+                                                    if (!acc[planType]) {
+                                                        acc[planType] = [];
+                                                    }
+                                                    acc[planType].push(dataPlan);
+                                                    return acc;
+                                                }, {} as Record<string, DataPlans[]>)
+                                        ).map(([planType, plans]) => (
+                                            <div key={planType} className=" mt-10 gap-4">
+                                                <h3 className="text-white font-[600] text-base font-poppins mb-2">
+                                                    {planType}
+                                                </h3>
+                                                <div className='flex justify-between flex-wrap items-center gap-4  mt-2'>
+                                                    {(plans as DataPlans[]).map((dataPlan: DataPlans, index: number) => {
+                                                        const isSelected = selectedDataPlan && selectedDataPlan.data_id === dataPlan.data_id;
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className={`flex flex-col rounded-xl border h-28 w-[30%] justify-center items-center gap-2 cursor-pointer ${isSelected ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                                                onClick={() => setSelectedDataPlan(dataPlan)}
+                                                            >
+                                                                <div className="p-2">
+                                                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>N{dataPlan.amount}</p>
+                                                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.size}</p>
+                                                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.validity}</p>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+
                                 </div>
 
                                 {/* <div className='flex justify-between flex-wrap items-center py-3 mt-10 '>

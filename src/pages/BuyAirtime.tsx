@@ -127,7 +127,7 @@ const BuyAirtime = () => {
 
     const handleSubmitButton = async (e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault();
-
+        console.log(localStorage.getItem('NetworkId'))
         try {
             setLoading(true);
             const response = await purchaseAirtime2({
@@ -148,6 +148,7 @@ const BuyAirtime = () => {
             } else {
                 if (response.error && 'data' in response.error) {
                     console.log((response.error.data as { message: string }).message);
+                    console.log(response.error)
                     const errorMessage = (response.error.data as { message: string }).message
                     toast.error(errorMessage);
                 }

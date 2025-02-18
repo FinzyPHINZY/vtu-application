@@ -4,19 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { LeftArrowIcon } from '../assets/svg';
-// import { useSelector } from 'react-redux';
-// import { RootState } from '../store/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 import { Circles } from 'react-loader-spinner';
 import { toast } from 'react-toastify';
-// import { useDispatch } from 'react-redux';
-// import { setPin as setUserPin } from '../store/slices/userSlices';
+import { useDispatch } from 'react-redux';
+import { setPin as setUserPin } from '../store/slices/userSlices';
 
 const UseTransactionPin2 = () => {
     const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
     const [pin, setPin] = useState(['', '', '', '']);
     const [loading, setLoading] = useState(false);
-    // const dispatch = useDispatch();
+    const dispatch = useDispatch();
+    const storedPin = useSelector((state: RootState) => state.user.pin);
+  
     useEffect(() => {
         const handleResize = () => {
             const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -59,13 +61,22 @@ const UseTransactionPin2 = () => {
         if (pin.filter(num => num !== '').length === 4) {
             setLoading(true);
             try {
-                if (pin.join('')) {
-                    // dispatch(setUserPin(pin.join('')));
+                if (!storedPin || storedPin == '') {
+                    navigate("/pin/create");
+                } else if (pin.join('') === storedPin) {
+                    dispatch(setUserPin(pin.join('')));
                     navigate('/airtime', { state: { secondData: true, } });
 
                 } else {
                     toast.error("Wrong Transaction Pin");
                 }
+                // if (pin.join('')) {
+                //     // dispatch(setUserPin(pin.join('')));
+                //     navigate('/airtime', { state: { secondData: true, } });
+
+                // } else {
+                //     toast.error("Wrong Transaction Pin");
+                // }
             } catch (err) {
                 console.error(err);
                 toast.error('Error occurred. Please try again.');

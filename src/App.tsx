@@ -29,6 +29,7 @@ import UseTransactionPin3 from './pages/UseTransactionPin3.tsx';
 import UseTransactionPin4 from './pages/UseTransactionPin4.tsx';
 import UseTransactionPin5 from './pages/UseTransactionPin5.tsx';
 import Deposit from './pages/Deposit.tsx';
+import ActivityTracker from './store/ActivityTracker.tsx';
 
 function App() {
 
@@ -36,6 +37,7 @@ function App() {
   return (
     <>
       <Router>
+        <ActivityWrapper />
         <Routes>
           <Route path="/" element={<SplashScreen />} />
           <Route path="/account/create" element={<Signup />} />
@@ -62,20 +64,19 @@ function App() {
           <Route path="/verification/validate" element={<CompleteSignup3 />} />
           <Route path="/otp/reset" element={<ResetPasswordOTP />} />
           <Route path="/deposit" element={<Deposit />} />
-          
+
         </Routes>
       </Router>
       <ToastContainer />
+
       <PWABadge />
     </>
   )
 }
-// swDev();
 
-// try {
-//   swDev();
-// } catch (error) {
-//   console.error("Service worker registration failed:", error);
-// }
+const ActivityWrapper = () => {
+  return <ActivityTracker />; // Render the ActivityTracker component within the Router context
+};
+
 
 export default App
