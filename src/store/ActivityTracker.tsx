@@ -23,7 +23,7 @@ const ActivityTracker: React.FC = () => {
     const checkInterval = setInterval(() => {
       const now = Date.now();
       const timeDiff = now - lastActivity;
-      const INACTIVITY_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+      const INACTIVITY_THRESHOLD = 12 * 60 * 1000; // 5 minutes
 
       if (timeDiff >= INACTIVITY_THRESHOLD) {
         dispatch(logoutUser());
