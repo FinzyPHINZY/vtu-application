@@ -8,31 +8,50 @@ export const revenueValidation = [
 ];
 
 export const dataPlanValidation = [
-  body('name').isString().trim().notEmpty().withMessage('Name is required'),
-  body('price')
+  body('amount')
     .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
-  body('data_amount')
+    .withMessage('Amount must be a positive number'),
+];
+
+export const createDataPlanValidation = [
+  body('data_id').isFloat().withMessage('Data Id must be a number'),
+  body('network')
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage('Network is required'),
+  body('planType')
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage('Plan Type is required'),
+  body('amount')
     .isFloat({ min: 0 })
-    .withMessage('Data amount must be a positive number'),
+    .withMessage('Amount must be a positive number'),
+  body('size').isString().trim().notEmpty().withMessage('Size is required'),
   body('validity')
-    .isInt({ min: 1 })
-    .withMessage('Validity must be at least 1 day'),
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage('Validity is required'),
 ];
 
 export const cablePlanValidation = [
-  body('name').isString().trim().notEmpty().withMessage('Name is required'),
-  body('price')
+  body('amount')
     .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
-  body('channels')
-    .isArray()
-    .withMessage('Channels must be an array')
+    .withMessage('Amount must be a positive number'),
+];
+
+export const createCablePlanValidation = [
+  body('cablePlanID').isFloat().withMessage('Cable plan id is required'),
+  body('cablename')
+    .isString()
+    .trim()
     .notEmpty()
-    .withMessage('At least one channel is required'),
-  body('duration')
-    .isInt({ min: 1 })
-    .withMessage('Duration must be at least 1 day'),
+    .withMessage('cable name is required'),
+  body('amount')
+    .isFloat({ min: 0 })
+    .withMessage('Amount must be a positive number'),
 ];
 
 export const planIdValidation = [

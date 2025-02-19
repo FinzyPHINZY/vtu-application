@@ -9,6 +9,8 @@ import {
 } from '../../utils/middleware.js';
 import {
   cablePlanValidation,
+  createCablePlanValidation,
+  createDataPlanValidation,
   dataPlanValidation,
   planIdValidation,
 } from '../../utils/admin/helpers.js';
@@ -38,14 +40,14 @@ router.put(
 
 router.post(
   '/data-plans',
-  dataPlanValidation,
+  createDataPlanValidation,
   validateRequest,
   ProductController.createDataPlan
 );
 
 router.post(
   '/cable-plans',
-  cablePlanValidation,
+  createCablePlanValidation,
   validateRequest,
   ProductController.createCablePlan
 );

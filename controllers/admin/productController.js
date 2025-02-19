@@ -1,30 +1,31 @@
+import CablePlan from '../../models/CablePlan.js';
+import DataPlan from '../../models/DataPlans.js';
+import ApiError from '../../utils/error.js';
+
 export const updateDataPlan = async (req, res, next) => {
   try {
     const { planId } = req.params;
-    const { name, price, data_amount, validity } = req.body;
+    const { amount } = req.body;
 
-    // TODO: Implement database update logic
-    // This would include:
-    // 1. Finding the plan by ID
-    // 2. Updating the plan details
-    // 3. Saving the changes
+    const updatedPlan = await DataPlan.findByIdAndUpdate(
+      planId,
+      { amount },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedPlan) {
+      throw new ApiError(404, false, 'Data plan not found');
+    }
 
     console.log(`Data plan updated: ${planId}`, {
-      adminId: req.userId,
-      updates: { name, price, data_amount, validity },
+      adminId: req.user.id,
+      updates: { amount },
     });
 
     res.status(200).json({
       success: true,
       message: 'Data plan updated successfully',
-      data: {
-        id: planId,
-        name,
-        price,
-        data_amount,
-        validity,
-        updatedAt: new Date(),
-      },
+      data: updatedPlan,
     });
   } catch (error) {
     console.error(`Failed to update data plan ${req.params.planId}:`, error);
@@ -35,26 +36,27 @@ export const updateDataPlan = async (req, res, next) => {
 export const updateCablePlan = async (req, res, next) => {
   try {
     const { planId } = req.params;
-    const { name, price, channels, duration } = req.body;
+    const { amount } = req.body;
 
-    // TODO: Implement database update logic
+    const updatedCablePlan = await CablePlan.findByIdAndUpdate(
+      planId,
+      { amount },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCablePlan) {
+      throw new ApiError(404, false, 'Cable plan not found');
+    }
 
     console.log(`Cable plan updated: ${planId}`, {
-      adminId: req.userId,
-      updates: { name, price, channelCount: channels.length, duration },
+      adminId: req.user.id,
+      updates: { amount },
     });
 
     res.status(200).json({
       success: true,
       message: 'Cable plan updated successfully',
-      data: {
-        id: planId,
-        name,
-        price,
-        channels,
-        duration,
-        updatedAt: new Date(),
-      },
+      data: updatedCablePlan,
     });
   } catch (error) {
     console.error(`Failed to update cable plan ${req.params.planId}:`, error);
@@ -64,26 +66,32 @@ export const updateCablePlan = async (req, res, next) => {
 
 export const createDataPlan = async (req, res, next) => {
   try {
-    const { name, price, data_amount, validity } = req.body;
+    const { data_id, amount, network, size, planType, validity } = req.body;
 
-    // TODO: Implement database creation logic
+    const existingPlan = await DataPlan.findOne({ data_id });
+    if (existingPlan) {
+      throw new ApiError(400, false, 'Data plan already exists');
+    }
 
-    console.log('New data plan created', {
-      adminId: req.userId,
-      planDetails: { name, price, data_amount, validity },
+    const newDataPlan = await DataPlan.create({
+      data_id,
+      amount,
+      network,
+      size,
+      planType,
+      validity,
     });
+
+    if (!newDataPlan) {
+      throw new ApiError(400, false, 'failed to create data plan. Try again');
+    }
+
+    console.log('New data plan created');
 
     res.status(201).json({
       success: true,
       message: 'Data plan created successfully',
-      data: {
-        id: 'new_plan_id', // Replace with actual ID
-        name,
-        price,
-        data_amount,
-        validity,
-        createdAt: new Date(),
-      },
+      data: newDataPlan,
     });
   } catch (error) {
     console.error('Failed to create data plan:', error);
@@ -93,26 +101,32 @@ export const createDataPlan = async (req, res, next) => {
 
 export const createCablePlan = async (req, res, next) => {
   try {
-    const { name, price, channels, duration } = req.body;
+    const { cablePlanID, cablename, amount } = req.body;
 
-    // TODO: Implement database creation logic
+    const existingPlan = await CablePlan.findOne({ cablePlanID });
+
+    if (existingPlan) {
+      throw new ApiError(400, false, 'Cable Plan already exists');
+    }
+
+    const newCablePlan = await CablePlan.create({
+      cablePlanID,
+      cablename,
+      amount,
+    });
+
+    if (!newCablePlan) {
+      throw new ApiError(400, false, 'failed to create cable plan. Try again');
+    }
 
     console.log('New cable plan created', {
-      adminId: req.userId,
-      planDetails: { name, price, channelCount: channels.length, duration },
+      adminId: req.user.id,
     });
 
     res.status(201).json({
       success: true,
       message: 'Cable plan created successfully',
-      data: {
-        id: 'new_plan_id', // Replace with actual ID
-        name,
-        price,
-        channels,
-        duration,
-        createdAt: new Date(),
-      },
+      data: newCablePlan,
     });
   } catch (error) {
     console.error('Failed to create cable plan:', error);
@@ -124,15 +138,13 @@ export const deleteDataPlan = async (req, res, next) => {
   try {
     const { planId } = req.params;
 
-    // TODO: Implement database deletion logic
-    // Consider:
-    // 1. Checking for active subscriptions
-    // 2. Soft delete vs hard delete
-    // 3. Archiving plan data
+    const deletedDataPlan = await DataPlan.findByIdAndDelete(planId);
 
-    console.log(`Data plan deleted: ${planId}`, {
-      adminId: req.userId,
-    });
+    if (!deletedDataPlan) {
+      throw new ApiError(404, false, 'Data plan not found');
+    }
+
+    console.log(`Data plan deleted: ${planId}`);
 
     res.status(200).json({
       success: true,
@@ -150,9 +162,13 @@ export const deleteCablePlan = async (req, res, next) => {
 
     // TODO: Implement database deletion logic
 
-    console.log(`Cable plan deleted: ${planId}`, {
-      adminId: req.userId,
-    });
+    const deletedCablePlan = await CablePlan.findByIdAndDelete(planId);
+
+    if (!deletedCablePlan) {
+      throw new ApiError(404, false, 'Cable plan not found');
+    }
+
+    console.log(`Cable plan deleted: ${planId}`);
 
     res.status(200).json({
       success: true,

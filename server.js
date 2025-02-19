@@ -82,7 +82,7 @@ app.use('/api/admin/products', productsRoutes);
 // app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/admin/transactions', adminTransactionRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
-app.use('/api/admin/audit', auditRoutes);
+// app.use('/api/admin/audit', auditRoutes);
 // app.use('/api/admin/support', supportRoutes);
 
 // error handler
