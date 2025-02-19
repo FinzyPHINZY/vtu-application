@@ -16,9 +16,9 @@ import { initialize } from './services/safeHavenAuth.js';
 // admin routes
 import analyticsRoutes from './routes/admin/analytics.js';
 import auditRoutes from './routes/admin/audit.js';
-import notificationsRoutes from './routes/admin/notifications.js';
+// import notificationsRoutes from './routes/admin/notifications.js';
 import productsRoutes from './routes/admin/products.js';
-import supportRoutes from './routes/admin/support.js';
+// import supportRoutes from './routes/admin/support.js';
 import systemControlRoutes from './routes/admin/systemControl.js';
 import adminTransactionRoutes from './routes/admin/transactions.js';
 
@@ -45,7 +45,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet());
 app.use(cors());
-// app.use(limiter);
+app.use(limiter);
 app.use(requestLogger);
 
 // Endpoints
@@ -79,11 +79,11 @@ app.use('/api/transfers', transferRoutes);
 // admin endpoints
 app.use('/api/admin/system-control', systemControlRoutes);
 app.use('/api/admin/products', productsRoutes);
-app.use('/api/admin/notifications', notificationsRoutes);
+// app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/admin/transactions', adminTransactionRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin/audit', auditRoutes);
-app.use('/api/admin/support', supportRoutes);
+// app.use('/api/admin/support', supportRoutes);
 
 // error handler
 app.use(errorHandler);

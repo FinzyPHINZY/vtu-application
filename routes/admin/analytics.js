@@ -23,4 +23,6 @@ router.get(
   AnalyticsControllers.getRevenue
 );
 
+router.get('/summary', AnalyticsControllers.getTransactionsSummary);
+
 export default router;

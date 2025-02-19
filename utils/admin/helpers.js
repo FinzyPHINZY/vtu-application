@@ -143,3 +143,47 @@ export const directMessageValidation = [
     .isLength({ max: 1000 })
     .withMessage('Message must not exceed 1000 characters'),
 ];
+
+export const getDateRange = (period) => {
+  const now = new Date();
+
+  let startDate, endDate, prevStartDate, prevEndDate;
+
+  switch (period) {
+    case 'daily':
+      startDate = new Date(now.setHours(0, 0, 0, 0));
+      endDate = new Date(now.setHours(23, 59, 59, 999));
+      prevStartDate = new Date(startDate);
+      prevStartDate.setDate(prevStartDate.getDate() - 1);
+      prevEndDate = new Date(endDate);
+      prevEndDate.setDate(prevEndDate.getDate() - 1);
+      break;
+
+    case 'weekly':
+      const startOfWeek = now.getDate() - now.getDay(); // Get Sunday of this week
+      startDate = new Date(now.setDate(startOfWeek));
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 6);
+
+      prevStartDate = new Date(startDate);
+      prevStartDate.setDate(prevStartDate.getDate() - 7);
+      prevEndDate = new Date(endDate);
+      prevEndDate.setDate(prevEndDate.getDate() - 7);
+      break;
+
+    case 'monthly':
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      prevStartDate = new Date(startDate);
+      prevStartDate.setMonth(prevStartDate.getMonth() - 1);
+      prevEndDate = new Date(endDate);
+      prevEndDate.setMonth(prevEndDate.getMonth() - 1);
+      break;
+
+    default:
+      throw new Error('Invalid period');
+  }
+
+  return { startDate, endDate, prevStartDate, prevEndDate };
+};
