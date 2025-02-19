@@ -16,6 +16,18 @@ export const requestLogger = (req, res, next) => {
   next();
 };
 
+export const adminAuth = async (req, res, next) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== 'admin') {
+      throw new ApiError(403, false, 'Admin access required');
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const errorHandler = (err, req, res, next) => {
   console.error('Error:', {
     message: err.message,
