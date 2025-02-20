@@ -3,6 +3,7 @@ import DesktopImage from '../assets/images/bold-data.png';
 import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import { CancelIcon, CustomerSupport, LeftArrowIcon, SearchIcon } from '../assets/svg';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -308,14 +309,14 @@ const TransactionHistory = () => {
                                         >
                                             <div className='flex justify-start items-center gap-4'>
 
-                                            {transaction.status == "failed" ? <IoMdClose className='text-[#D45A0E] h-6 w-6'/> :
-                                                        transaction.type == "debit" ? <FaLongArrowAltUp className='w-7 h-7 text-[#D45A0E]  ' />
-                                                            : <FaLongArrowAltDown className='w-7 h-7 text-[#D45A0E] ' />
-                                                    }
+                                                {transaction.status == "failed" ? <IoMdClose className='text-[#D45A0E] h-6 w-6' /> :
+                                                    transaction.type == "debit" ? <FaLongArrowAltUp className='w-7 h-7 text-[#D45A0E]  ' />
+                                                        : <FaLongArrowAltDown className='w-7 h-7 text-[#D45A0E] ' />
+                                                }
                                                 <div>
                                                     <p className='text-white font-[400] text-sm font-poppins '>{transaction.type} - {transaction.serviceType}</p>
                                                     <p className='text-[#FFFFFFA1] font-[400] text-sm font-poppins '>{transaction.currency} {transaction.amount}</p>
-                                                    <p className={`${transaction.status == "failed" ? "text-red-500" :"text-[#47BF4C]"} font-[400] text-sm font-poppins `}>Transaction {transaction.status}</p>
+                                                    <p className={`${transaction.status == "failed" ? "text-red-500" : "text-[#47BF4C]"} font-[400] text-sm font-poppins `}>Transaction {transaction.status}</p>
                                                 </div>
                                             </div>
                                             <p className='text-[#D45A0E] font-[400] text-sm font-poppins '>See more</p>
@@ -352,7 +353,9 @@ const TransactionHistory = () => {
                             <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
                                 <FiFacebook className='text-white' />
                             </a>
-
+                            <a href="https://wa.me/2348036813099" target="_blank" rel="noopener noreferrer">
+                                <FaWhatsapp className='text-white' />
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -368,7 +371,7 @@ const TransactionHistory = () => {
                         </div>
 
                         <div onClick={() => { setShowModal(false); setSelectedTransaction(null) }}>
-                            <CancelIcon   />
+                            <CancelIcon />
                         </div>
                     </div>
                     {/* {(selectedTransaction.serviceType == "airtime" || selectedTransaction.serviceType == "data") &&
@@ -409,7 +412,7 @@ const TransactionHistory = () => {
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400]  font-poppins text-sm '>Status:</p>
-                        <p className={`${selectedTransaction.status == "failed" ? "text-red-500" :"text-[#47BF4C]"} font-[400] font-poppins text-sm `}>{selectedTransaction.status}</p>
+                        <p className={`${selectedTransaction.status == "failed" ? "text-red-500" : "text-[#47BF4C]"} font-[400] font-poppins text-sm `}>{selectedTransaction.status}</p>
                     </div>
                     <div className='flex justify-between items-center mt-4'>
                         <p className='text-white font-[400] font-poppins text-sm '>Date & Time:</p>

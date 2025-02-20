@@ -7,6 +7,7 @@ import EEDC from '../assets/images/eedc.png'
 import More from '../assets/images/more.png'
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { MailBoxIcon } from '../assets/svg'
 import BackgroundImage from '../assets/images/background.png'
@@ -100,7 +101,7 @@ const SplashScreen = () => {
                             <p className='text-2xl text-center font-[700]  font-mochiy-pop-one mt-7 text-white'> Simplify your life with quick, secure, and convenient bill payments all in one place. </p>
                             <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>With Bold Data and just a just a few clicks, you can manage your everyday payments and stay on top of your bills without any hassle. </p>
                             <p className='text-base px-5 font-[200] text-center font-mochiy-pop-one text-white mt-2'>   </p>
-                            
+
                         </div>
                         <div className='mb-16'>
                             <div className='bg-white h-16 mb-5 rounded-[35px] flex justify-center items-center gap-8 max-sm:gap-6 ' onClick={() => login()}>
@@ -130,7 +131,9 @@ const SplashScreen = () => {
                                     <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
                                         <FiFacebook className='text-white' />
                                     </a>
-
+                                    <a href="https://wa.me/2348036813099" target="_blank" rel="noopener noreferrer">
+                                        <FaWhatsapp className='text-white' />
+                                    </a>
 
                                 </div>
                             </div>
@@ -158,7 +161,9 @@ const SplashScreen = () => {
                                 <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
                                     <FiFacebook className='text-white' />
                                 </a>
-
+                                <a href="https://wa.me/2348036813099" target="_blank" rel="noopener noreferrer">
+                                    <FaWhatsapp className='text-white' />
+                                </a>
 
                             </div>
                         </div>

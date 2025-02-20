@@ -3,6 +3,7 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import { CancelIcon, LeftArrowIcon } from '../assets/svg'
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -314,7 +315,7 @@ const BuyData = () => {
                                         })}
                                             */}
 
-                                    {fetchDataPlans && selectedNetwork && (
+                                    {/* {fetchDataPlans && selectedNetwork && (
                                         Object.entries(
                                             fetchDataPlans.data
                                                 .filter((dataPlan: DataPlans) => dataPlan.network === selectedNetwork.networkname)
@@ -351,7 +352,48 @@ const BuyData = () => {
                                                 </div>
                                             </div>
                                         ))
+                                    )} */}
+                                    {fetchDataPlans && selectedNetwork && (
+                                        Object.entries(
+                                            fetchDataPlans.data
+                                                .filter((dataPlan: DataPlans) => dataPlan.network === selectedNetwork.networkname)
+                                                .reduce((acc: Record<string, DataPlans[]>, dataPlan: DataPlans) => {
+                                                    const planType = dataPlan.planType;
+                                                    if (!acc[planType]) {
+                                                        acc[planType] = [];
+                                                    }
+                                                    acc[planType].push(dataPlan);
+                                                    return acc;
+                                                }, {} as Record<string, DataPlans[]>)
+                                        ).map(([planType, plans]) => (
+                                            (planType !== 'CORPORATE GIFTING' && planType !== 'GIFTING' && planType !== 'DATA COUPONS') && (
+                                                <div key={planType} className=" mt-10 gap-4">
+                                                    <h3 className="text-white font-[600] text-base font-poppins mb-2">
+                                                        {planType}
+                                                    </h3>
+                                                    <div className='flex justify-between flex-wrap items-center gap-4 mt-2'>
+                                                        {(plans as DataPlans[]).map((dataPlan: DataPlans, index: number) => {
+                                                            const isSelected = selectedDataPlan && selectedDataPlan.data_id === dataPlan.data_id;
+                                                            return (
+                                                                <div
+                                                                    key={index}
+                                                                    className={`flex flex-col rounded-xl border h-28 w-[30%] justify-center items-center gap-2 cursor-pointer ${isSelected ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                                                    onClick={() => setSelectedDataPlan(dataPlan)}
+                                                                >
+                                                                    <div className="p-2">
+                                                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>N{dataPlan.amount}</p>
+                                                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.size}</p>
+                                                                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>{dataPlan.validity}</p>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )
+                                        ))
                                     )}
+
 
                                 </div>
 
@@ -407,6 +449,9 @@ const BuyData = () => {
                                 </a>
                                 <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
                                     <FiFacebook className='text-white' />
+                                </a>
+                                <a href="https://wa.me/2348036813099" target="_blank" rel="noopener noreferrer">
+                                    <FaWhatsapp className='text-white' />
                                 </a>
 
                             </div>

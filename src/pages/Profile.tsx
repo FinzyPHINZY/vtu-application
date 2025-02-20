@@ -3,6 +3,7 @@ import DesktopImage from '../assets/images/bold-data.png';
 import { useNavigate } from 'react-router-dom';
 import { FaInstagram } from 'react-icons/fa';
 import { FiFacebook } from 'react-icons/fi';
+import { FaWhatsapp } from "react-icons/fa";
 import { ArrowRight, CustomerSupport2, LeftArrowIcon, TransactionPin } from '../assets/svg';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -71,13 +72,7 @@ const Profile = () => {
                 <ArrowRight />
               </div>
             </div>
-            {/* <div className="flex justify-between items-center mt-3">
-              <div className="flex justify-start items-center gap-4">
-                <FcAbout className="h-7 w-7" />
-                <p className="text-[#FFFFFF] font-[400] text-base font-poppins">About Us</p>
-              </div>
-              <ArrowRight />
-            </div> */}
+         
           </div>
 
           <p className="text-[#D45A0E] text-center font-[400] text-sm font-poppins mt-5" onClick={() => navigate('/login')}>
@@ -103,6 +98,9 @@ const Profile = () => {
               </a>
               <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
                 <FiFacebook className="text-white" />
+              </a>
+              <a href="https://wa.me/2348036813099" target="_blank" rel="noopener noreferrer">
+                <FaWhatsapp className='text-white' />
               </a>
             </div>
           </div>

@@ -3,6 +3,7 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import { LeftArrowIcon } from '../assets/svg'
 import {
     useFetchCableListQuery,
@@ -76,7 +77,7 @@ const BuyCable = () => {
     const handleBack = () => {
         navigate('/home');
     };
- 
+
 
     // const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     //     setAmount(e.target.value);
@@ -146,23 +147,23 @@ const BuyCable = () => {
     }, [secondData]);
 
     useEffect(() => {
-      
+
         console.log('number:', number);
-    
+
         localStorage.setItem('number', number);
         console.log('selectedCableList:', selectedCableList);
         console.log('selectedCablePlan:', selectedCablePlan);
-   
+
         if (selectedCableList) {
-         
+
             localStorage.setItem('cableName', selectedCableList?.cable_id?.toString());
         }
 
         if (selectedCablePlan) {
             localStorage.setItem('amount', selectedCablePlan?.amount?.toString());
             localStorage.setItem('cablePlan', selectedCablePlan?.cablePlanID?.toString());
-        } 
-       
+        }
+
     }, [amount, number, selectedCableList?.cable_id, selectedCablePlan?.cablePlanID, selectedCableList, selectedCablePlan]);
 
 
@@ -175,7 +176,7 @@ const BuyCable = () => {
             setNumberError('Please enter a valid card number.');
             return;
         }
-     
+
         if (!selectedCableList) {
             toast.error('Please your choice from the list of cables');
             return;
@@ -188,14 +189,14 @@ const BuyCable = () => {
         if (selectedCablePlan && number && selectedCableList) {
             setPackageError('');
             setNumberError('');
-        
+
             navigate('/pin/cable/enter', { state: { service: "cabletv" } });
 
             setLoading(false);
         } else {
             setNumberError('Please enter a valid card number');
             setPackageError('Please select a cable plan.');
-           
+
         }
     };
 
@@ -237,32 +238,32 @@ const BuyCable = () => {
             return !plan.cablename.includes('GOtv') && !plan.cablename.includes('DStv');
         });
     };
-    
-    
+
+
     // const getStartimesPlans = (cablePlans: CablePlan[], selectedCableList: CableList | null) => {
     //     if (!selectedCableList) return [];
     //     return cablePlans.filter((plan: CablePlan) => !plan.cablename.includes(selectedCableList.cablename));
     // };
-    
+
     // const packageOptions = getStartimesPlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename) || getFilteredCablePlans(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename);
 
-    const packageOptions = cablePlans && cablePlans.data 
-    ? ( getFilteredCablePlans2(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename))
-    : [];
+    const packageOptions = cablePlans && cablePlans.data
+        ? (getFilteredCablePlans2(cablePlans.data, selectedCableList).map((plan: CablePlan) => plan.cablename))
+        : [];
 
 
     const handlePackageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedPackageName = e.target.value;
         setSelectedPackage(selectedPackageName);
-        
+
         // Find the selected cable plan object
         const selectedPlan = cablePlans.data.find((plan: CablePlan) => plan.cablename === selectedPackageName);
-        
+
         // Set the selected cable plan
         setSelectedCablePlan(selectedPlan || null);
         setPackageError('');
     };
-    
+
 
     // const handleItemClick = (servicedata: ServiceData) => {
     //     setSelectedService(servicedata);
@@ -423,7 +424,9 @@ const BuyCable = () => {
                                 <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
                                     <FiFacebook className='text-white' />
                                 </a>
-
+                                <a href="https://wa.me/2348036813099" target="_blank" rel="noopener noreferrer">
+                                    <FaWhatsapp className='text-white' />
+                                </a>
                             </div>
                         </div>
                     </div>

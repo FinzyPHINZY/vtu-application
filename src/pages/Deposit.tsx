@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import DesktopImage from '../assets/images/bold-data.png'
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import { LeftArrowIcon } from '../assets/svg'
 // import MTN from '../assets/images/mtn.png'
 import '../App.css'
@@ -199,7 +200,9 @@ const Deposit = () => {
                                 <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
                                     <FiFacebook className='text-white' />
                                 </a>
-
+                                <a href="https://wa.me/2348036813099" target="_blank" rel="noopener noreferrer">
+                                    <FaWhatsapp className='text-white' />
+                                </a>
                             </div>
                         </div>
                     </div>

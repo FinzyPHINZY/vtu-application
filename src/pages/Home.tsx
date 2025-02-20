@@ -3,6 +3,7 @@ import DesktopImage from '../assets/images/bold-data.png'
 import { FaInstagram } from "react-icons/fa";
 import { FiFacebook } from "react-icons/fi";
 import { useNavigate } from 'react-router-dom';
+import { FaWhatsapp } from "react-icons/fa";
 // import MTN from '../assets/images/mtn.png';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
@@ -301,13 +302,13 @@ const Home = () => {
                                     <p className='text-[#FFFFFF] font-[400] text-base font-poppins'>Deposit</p>
                                 </div>
                                 <div className='bg-[#D45A0E] h-14 w-[42%] rounded-[10px] flex justify-center items-center gap-3'
-                                 onClick={() => {
-                                    !storedUser.hasSetTransactionPin
-                                    ?
-                                    navigate("/pin/create")
-                                    :
-                                    navigate('/transfer')
-                                }}>
+                                    onClick={() => {
+                                        !storedUser.hasSetTransactionPin
+                                            ?
+                                            navigate("/pin/create")
+                                            :
+                                            navigate('/transfer')
+                                    }}>
                                     <TransferIcon />
                                     <p className='text-[#FFFFFF] font-[400] text-base font-poppins'>Transfer</p>
                                 </div>
@@ -364,10 +365,10 @@ const Home = () => {
                                 <div className=' flex flex-col justify-center items-center gap-2'
                                     onClick={() => {
                                         !storedUser.hasSetTransactionPin
-                                        ?
-                                        navigate("/pin/create")
-                                        :
-                                        navigate('/data')
+                                            ?
+                                            navigate("/pin/create")
+                                            :
+                                            navigate('/data')
                                     }}
 
                                 >
@@ -379,10 +380,10 @@ const Home = () => {
                                 <div className=' flex flex-col justify-center items-center gap-2'
                                     onClick={() => {
                                         !storedUser.hasSetTransactionPin
-                                        ?
-                                        navigate("/pin/create")
-                                        :
-                                        navigate('/airtime')
+                                            ?
+                                            navigate("/pin/create")
+                                            :
+                                            navigate('/airtime')
                                     }}
 
                                 >
@@ -393,10 +394,10 @@ const Home = () => {
                                 <div className=' flex flex-col justify-center items-center gap-2'
                                     onClick={() => {
                                         !storedUser.hasSetTransactionPin
-                                        ?
-                                        navigate("/pin/create")
-                                        :
-                                        navigate('/cable')
+                                            ?
+                                            navigate("/pin/create")
+                                            :
+                                            navigate('/cable')
                                     }}
 
                                 >
@@ -408,10 +409,10 @@ const Home = () => {
                                 <div className=' flex flex-col justify-center items-center gap-2'
                                     onClick={() => {
                                         !storedUser.hasSetTransactionPin
-                                        ?
-                                        navigate("/pin/create")
-                                        :
-                                        navigate('/utility')
+                                            ?
+                                            navigate("/pin/create")
+                                            :
+                                            navigate('/utility')
                                     }}
 
                                 >
@@ -465,184 +466,186 @@ const Home = () => {
                             </div>
                         </div>
                     </div>
-    ) : (
-        // JSX for screens above 768px
-        <div className='min-h-screen w-full gap-4 bg-black p-5 flex flex-col justify-between'>
-            {(showModal || showModal2) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
-            <div className='text-white font-[500] font-kavoon text-2xl'>Bold data</div>
-            <div className='flex justify-center items-center '>
-                <img src={DesktopImage} className='w-60 h-60 ' />
-            </div>
+                ) : (
+                    // JSX for screens above 768px
+                    <div className='min-h-screen w-full gap-4 bg-black p-5 flex flex-col justify-between'>
+                        {(showModal || showModal2) && <div className='absolute inset-0 bg-black bg-opacity-75 blur-sm'></div>}
+                        <div className='text-white font-[500] font-kavoon text-2xl'>Bold data</div>
+                        <div className='flex justify-center items-center '>
+                            <img src={DesktopImage} className='w-60 h-60 ' />
+                        </div>
 
-            <div className=''>
-                <p className='text-white font-[400]  font-poppins text-4xl mb-3 text-center'>Desktop site is currently unavailable</p>
-                <p className='text-white font-[400]  font-poppins text-2xl text-center'>Please use mobile version or resize your browser</p>
-            </div>
+                        <div className=''>
+                            <p className='text-white font-[400]  font-poppins text-4xl mb-3 text-center'>Desktop site is currently unavailable</p>
+                            <p className='text-white font-[400]  font-poppins text-2xl text-center'>Please use mobile version or resize your browser</p>
+                        </div>
 
-            <div>
-                <p className='text-white font-[400]  font-poppins text-2xl text-center mb-2'>Follow us on</p>
-                <div className='flex flex-1 justify-center items-center gap-4'>
-                    <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
-                        <FaInstagram className='text-white' />
-                    </a>
-                    <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
-                        <FiFacebook className='text-white' />
-                    </a>
-
-                </div>
-            </div>
-        </div>
-    )
-}
-{/* Modal Component */ }
-{
-    showModal && (
-        <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[500px] py-5 px-10 z-50 flex justify-start flex-col'>
-
-            <div className='flex justify-between items-center'>
-
-                <p className='text-white font-[500]  font-poppins text-base '>Deposit</p>
-                <div onClick={() => { setShowModal(false); }}>
-                    <CancelIcon />
-                </div>
-
-            </div>
-
-            <div
-                onClick={() => { setShowModal(false); navigate("/verification/initiate") }}
-                className="scrolling-text text-white font-poppins text-lg mt-6 flex items-center justify-start"> {`Get a permanent Bank Account`}</div>
-
-            <p className='text-white font-[400]  font-poppins text-sm mt-6 mb-3 text-center '>Quick Deposit</p>
-
-            <div className=''>
-
-
-                <input
-                    type="number"
-                    value={amount}
-                    onChange={handleAmountChange}
-                    className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
-                    placeholder='N Enter Amount'
-                />
-
-
-            </div>
-            <div className='flex justify-between flex-wrap items-center py-3 mt-5'>
-                <div
-                    className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '100' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
-                    onClick={() => {
-                        setAmount('100');
-                        setSelectedAmount('100');
-                    }}>
-                    <div className=" ">
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>100</p>
+                        <div>
+                            <p className='text-white font-[400]  font-poppins text-2xl text-center mb-2'>Follow us on</p>
+                            <div className='flex flex-1 justify-center items-center gap-4'>
+                                <a href="https://www.instagram.com/data.bold/#" target="_blank" rel="noopener noreferrer">
+                                    <FaInstagram className='text-white' />
+                                </a>
+                                <a href="https://web.facebook.com/people/BOLD-DATA/61565221174295/" target="_blank" rel="noopener noreferrer">
+                                    <FiFacebook className='text-white' />
+                                </a>
+                                <a href="https://wa.me/2348036813099" target="_blank" rel="noopener noreferrer">
+                                    <FaWhatsapp className='text-white' />
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div
-                    className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '200' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
-                    onClick={() => {
-                        setAmount('200');
-                        setSelectedAmount('200');
-                    }}>
-                    <div className="">
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>200</p>
+                )
+            }
+            {/* Modal Component */}
+            {
+                showModal && (
+                    <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[500px] py-5 px-10 z-50 flex justify-start flex-col'>
+
+                        <div className='flex justify-between items-center'>
+
+                            <p className='text-white font-[500]  font-poppins text-base '>Deposit</p>
+                            <div onClick={() => { setShowModal(false); }}>
+                                <CancelIcon />
+                            </div>
+
+                        </div>
+
+                        <div
+                            onClick={() => { setShowModal(false); navigate("/verification/initiate") }}
+                            className="scrolling-text text-white font-poppins text-lg mt-6 flex items-center justify-start"> {`Get a permanent Bank Account`}</div>
+
+                        <p className='text-white font-[400]  font-poppins text-sm mt-6 mb-3 text-center '>Quick Deposit</p>
+
+                        <div className=''>
+
+
+                            <input
+                                type="number"
+                                value={amount}
+                                onChange={handleAmountChange}
+                                className='w-full h-16 border border-[#E0E0E0] rounded-[35px] px-4 text-white bg-black outline-none'
+                                placeholder='N Enter Amount'
+                            />
+
+
+                        </div>
+                        <div className='flex justify-between flex-wrap items-center py-3 mt-5'>
+                            <div
+                                className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '100' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                onClick={() => {
+                                    setAmount('100');
+                                    setSelectedAmount('100');
+                                }}>
+                                <div className=" ">
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>100</p>
+                                </div>
+                            </div>
+                            <div
+                                className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '200' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                onClick={() => {
+                                    setAmount('200');
+                                    setSelectedAmount('200');
+                                }}>
+                                <div className="">
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>200</p>
+                                </div>
+                            </div>
+                            <div
+                                className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '500' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                onClick={() => {
+                                    setAmount('500');
+                                    setSelectedAmount('500');
+                                }}>
+                                <div className="">
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>500</p>
+                                </div>
+                            </div>
+                            <div
+                                className={`flex mt-2 flex-col rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '1000' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                onClick={() => {
+                                    setAmount('1000');
+                                    setSelectedAmount('1000');
+                                }}>
+                                <div className="">
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>1000</p>
+                                </div>
+                            </div>
+
+                            <div
+                                className={`flex mt-2 flex-col rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '2000' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                onClick={() => {
+                                    setAmount('2000');
+                                    setSelectedAmount('2000');
+                                }}>
+                                <div className="">
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>2000</p>
+                                </div>
+                            </div>
+
+                            <div
+                                className={`flex mt-2 flex-col rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '5000' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
+                                onClick={() => {
+                                    setAmount('5000');
+                                    setSelectedAmount('5000');
+                                }}>
+                                <div className="">
+                                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>5000</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleSubmitButton}
+                            className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
+                            {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
+                                :
+                                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Fund your Wallet</p>
+                            }
+
+
+                        </button>
                     </div>
-                </div>
-                <div
-                    className={`flex flex-col mt-2 rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '500' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
-                    onClick={() => {
-                        setAmount('500');
-                        setSelectedAmount('500');
-                    }}>
-                    <div className="">
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>500</p>
+                )
+            }
+
+            {
+                showModal2 && (
+                    <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[300px] py-5 px-10 flex z-50 justify-between flex-col'>
+                        <div className='flex justify-between items-center'>
+                            <div>             </div>
+                            <p className='text-white font-[500]  font-poppins text-base '>Deposit</p>
+                            <div onClick={closeModal2}>
+                                <CancelIcon />
+                            </div>
+
+                        </div>
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>Amount to Pay</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{amountToPay}</p>
+                        </div>
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>Bank Name:</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{bankName}</p>
+                        </div>
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>Account Number:</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{accountNumber}</p>
+                        </div>
+                        <div className='flex justify-between items-center mt-4'>
+                            <p className='text-white font-[400]  font-poppins text-sm '>Account Name:</p>
+                            <p className='text-white font-[400]  font-poppins text-sm '>{accountName}</p>
+                        </div>
+                        <div
+                            className='bg-[#D45A0E] h-10 mt-5 w-full rounded-[25px] flex flex-col justify-center items-center '>
+
+                            <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Expires in {formatTime(timeLeft)} </p>
+
+
+                        </div>
                     </div>
-                </div>
-                <div
-                    className={`flex mt-2 flex-col rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '1000' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
-                    onClick={() => {
-                        setAmount('1000');
-                        setSelectedAmount('1000');
-                    }}>
-                    <div className="">
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>1000</p>
-                    </div>
-                </div>
-
-                <div
-                    className={`flex mt-2 flex-col rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '2000' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
-                    onClick={() => {
-                        setAmount('2000');
-                        setSelectedAmount('2000');
-                    }}>
-                    <div className="">
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>2000</p>
-                    </div>
-                </div>
-
-                <div
-                    className={`flex mt-2 flex-col rounded-xl border h-10 w-[30%] justify-center items-center gap-2 cursor-pointer ${selectedAmount === '5000' ? 'border-[#FFFFFF] bg-[#333333]' : 'border-black bg-[#595959]'}`}
-                    onClick={() => {
-                        setAmount('5000');
-                        setSelectedAmount('5000');
-                    }}>
-                    <div className="">
-                        <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>5000</p>
-                    </div>
-                </div>
-            </div>
-
-            <button
-                onClick={handleSubmitButton}
-                className='bg-[#D45A0E] h-16 mt-5 w-full rounded-[35px] flex justify-center items-center '>
-                {loading ? <Circles height="30" width="30" color="#FFFFFF" ariaLabel="loading" />
-                    :
-                    <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Fund your Wallet</p>
-                }
-
-
-            </button>
-        </div>
-    )
-}
-
-{
-    showModal2 && (
-        <div className='fixed bottom-0 inset-x-0 bg-[#1E1E1E] h-[300px] py-5 px-10 flex z-50 justify-between flex-col'>
-            <div className='flex justify-between items-center'>
-                <div>             </div>
-                <p className='text-white font-[500]  font-poppins text-base '>Deposit</p>
-                <div onClick={closeModal2}>
-                    <CancelIcon />
-                </div>
-
-            </div>
-            <div className='flex justify-between items-center mt-4'>
-                <p className='text-white font-[400]  font-poppins text-sm '>Amount to Pay</p>
-                <p className='text-white font-[400]  font-poppins text-sm '>{amountToPay}</p>
-            </div>
-            <div className='flex justify-between items-center mt-4'>
-                <p className='text-white font-[400]  font-poppins text-sm '>Bank Name:</p>
-                <p className='text-white font-[400]  font-poppins text-sm '>{bankName}</p>
-            </div>
-            <div className='flex justify-between items-center mt-4'>
-                <p className='text-white font-[400]  font-poppins text-sm '>Account Number:</p>
-                <p className='text-white font-[400]  font-poppins text-sm '>{accountNumber}</p>
-            </div>
-            <div className='flex justify-between items-center mt-4'>
-                <p className='text-white font-[400]  font-poppins text-sm '>Account Name:</p>
-                <p className='text-white font-[400]  font-poppins text-sm '>{accountName}</p>
-            </div>
-            <div
-                className='bg-[#D45A0E] h-10 mt-5 w-full rounded-[25px] flex flex-col justify-center items-center '>
-
-                <p className='text-[#FFFFFF] font-[600] text-base font-poppins'>Expires in {formatTime(timeLeft)} </p>
-
-
-            </div>
-        </div>
-    )
-}
+                )
+            }
         </div >
     )
 }
