@@ -366,7 +366,8 @@ const BuyData = () => {
                                                     return acc;
                                                 }, {} as Record<string, DataPlans[]>)
                                         ).map(([planType, plans]) => (
-                                            (planType !== 'CORPORATE GIFTING' && planType !== 'GIFTING' && planType !== 'DATA COUPONS') && (
+                                            // planType !== 'CORPORATE GIFTING' &&
+                                            ( planType !== 'GIFTING' && planType !== 'DATA COUPONS') && (
                                                 <div key={planType} className=" mt-10 gap-4">
                                                     <h3 className="text-white font-[600] text-base font-poppins mb-2">
                                                         {planType}
