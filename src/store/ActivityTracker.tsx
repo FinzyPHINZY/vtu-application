@@ -1,14 +1,15 @@
 // src/components/ActivityTracker.tsx
-import React, { useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { updateLastActivity, logoutUser } from './slices/authSlices';
-import { RootState } from '../store/store';
+import React, { useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { updateLastActivity, logoutUser } from "./slices/authSlices";
+import { RootState } from "../store/store";
 
 const ActivityTracker: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { lastActivity } = useSelector((state: RootState) => state.auth);
+  const storedUser = useSelector((state: RootState) => state.user.user);
 
   const handleActivity = useCallback(() => {
     dispatch(updateLastActivity());
@@ -16,8 +17,8 @@ const ActivityTracker: React.FC = () => {
 
   useEffect(() => {
     // Set up activity listeners
-    const events = ['click', 'keypress', 'scroll', 'mousemove'];
-    events.forEach(event => window.addEventListener(event, handleActivity));
+    const events = ["click", "keypress", "scroll", "mousemove"];
+    events.forEach((event) => window.addEventListener(event, handleActivity));
 
     // Set up inactivity check
     const checkInterval = setInterval(() => {
@@ -27,14 +28,21 @@ const ActivityTracker: React.FC = () => {
 
       if (timeDiff >= INACTIVITY_THRESHOLD) {
         dispatch(logoutUser());
-        navigate('/login');
+
+        if (storedUser.isGoogleUser) {
+          navigate("/");
+        } else {
+          navigate("/login");
+        }
         clearInterval(checkInterval);
       }
     }, 1000);
 
     // Cleanup
     return () => {
-      events.forEach(event => window.removeEventListener(event, handleActivity));
+      events.forEach((event) =>
+        window.removeEventListener(event, handleActivity)
+      );
       clearInterval(checkInterval);
     };
   }, [lastActivity, dispatch, navigate]);
