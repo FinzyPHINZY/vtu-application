@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   checkGoogleUser,
+  checkSystemStatus,
   tokenExtractor,
   userExtractor,
   validateHeaders,
@@ -15,6 +16,7 @@ import {
 import * as accountController from '../controllers/accountController.js';
 const router = express.Router();
 
+router.use(checkSystemStatus);
 router.use(tokenExtractor);
 router.use(userExtractor);
 

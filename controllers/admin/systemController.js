@@ -56,12 +56,6 @@ export const emergencyShutdown = async (req, res, next) => {
 // Restores system functionality after emergency shutdown
 export const emergencyRestore = async (req, res, next) => {
   try {
-    // TODO: Implement system restoration logic
-    // This could include:
-    // 1. Resetting system-wide shutdown flag
-    // 2. Resuming transaction processing
-    // 3. Sending notifications to users
-
     const systemStatus = await SystemStatus.findOne({ key: 'shutdown' });
 
     if (!systemStatus || !systemStatus.isActive) {

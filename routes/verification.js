@@ -1,6 +1,7 @@
 import express from 'express';
 import * as verificationController from '../controllers/verificationController.js';
 import {
+  checkSystemStatus,
   tokenExtractor,
   userExtractor,
   validateHeaders,
@@ -12,6 +13,7 @@ import {
 } from '../utils/helpers.js';
 const router = express.Router();
 
+router.use(checkSystemStatus);
 router.use(tokenExtractor);
 router.use(userExtractor);
 

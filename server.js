@@ -4,12 +4,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import userRouter from './routes/user.js';
-import {
-  checkSystemStatus,
-  errorHandler,
-  limiter,
-  requestLogger,
-} from './utils/middleware.js';
+import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
 import connectDB from './Config/Database.js';
 import servicesRoutes from './routes/services.js';
 import authRoutes from './routes/auth.js';
@@ -52,7 +47,6 @@ app.use(helmet());
 app.use(cors());
 app.use(limiter);
 app.use(requestLogger);
-app.use(checkSystemStatus);
 
 // Endpoints
 app.get('/', async (req, res) => {
@@ -89,7 +83,7 @@ app.use('/api/admin/products', productsRoutes);
 app.use('/api/admin/transactions', adminTransactionRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 // app.use('/api/admin/audit', auditRoutes);
-// app.use('/api/admin/support', supportRoutes);
+app.use('/api/admin/system', systemControlRoutes);
 
 // error handler
 app.use(errorHandler);
