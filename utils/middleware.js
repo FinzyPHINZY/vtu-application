@@ -6,6 +6,7 @@ import { body, validationResult } from 'express-validator';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import ApiError from './error.js';
+import SystemStatus from '../models/SystemStatus.js';
 
 dotenv.config({});
 
@@ -51,6 +52,26 @@ export const errorHandler = (err, req, res, next) => {
     code: 500,
     message: 'Internal server error',
   });
+};
+
+export const checkSystemStatus = async (req, res, next) => {
+  try {
+    const systemStatus = await SystemStatus.findOne({ key: 'shutdown' });
+
+    if (systemStatus?.isActive) {
+      throw new ApiError(
+        '503',
+        false,
+        'The system is temporarily shut down',
+        `Estimated restore time: ${systemStatus.estimatedRestoreTime}`
+      );
+    }
+
+    next();
+  } catch (error) {
+    console.error(error?.response || error?.message || error);
+    next(error);
+  }
 };
 
 export const convertAccessTokenToIdToken = async (req, res, next) => {

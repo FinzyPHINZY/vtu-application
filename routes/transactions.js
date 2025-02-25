@@ -7,6 +7,7 @@ import {
   transactionPinValidation,
 } from '../utils/helpers.js';
 import {
+  checkSystemStatus,
   tokenExtractor,
   userExtractor,
   validateHeaders,
@@ -19,6 +20,7 @@ import {
 
 const router = express.Router();
 
+router.use(checkSystemStatus);
 router.use(tokenExtractor);
 router.use(userExtractor);
 

@@ -1,21 +1,38 @@
 // Initiates an emergency system shutdown
+import SystemStatus from '../../models/SystemStatus.js';
+
 export const emergencyShutdown = async (req, res, next) => {
   try {
     const { reason, duration } = req.body;
 
+    await SystemStatus.findOneAndUpdate(
+      { key: 'shutdown' },
+      {
+        isActive: true,
+        reason,
+        shutdownTime: new Date(),
+        duration,
+        estimatedRestoreTime: new Date(Date.now() + 60 * 60000),
+      },
+      { upsert: true, new: true }
+    );
+
     // Log the shutdown event
     console.warn('Emergency shutdown initiated', {
-      adminId: req.userId,
+      adminId: req.user.id,
       reason,
       duration,
     });
 
-    // TODO: Implement actual system shutdown logic
-    // This could include:
-    // 1. Setting a system-wide flag in the database
-    // 2. Stopping new transactions
-    // 3. Completing pending transactions
-    // 4. Sending notifications to users
+    // Schedule automatic restoration after the duration
+    setTimeout(async () => {
+      await SystemStatus.findOneAndUpdate(
+        { key: 'shutdown' },
+        { isActive: false },
+        { new: true }
+      );
+      console.log('System automatically restored after emergency shutdown');
+    }, duration * 60000);
 
     res.status(200).json({
       success: true,
@@ -28,7 +45,10 @@ export const emergencyShutdown = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Emergency shutdown failed:', error);
+    console.error(
+      'Emergency shutdown failed:',
+      error?.response || error?.message || error
+    );
     next(error);
   }
 };
@@ -36,14 +56,30 @@ export const emergencyShutdown = async (req, res, next) => {
 // Restores system functionality after emergency shutdown
 export const emergencyRestore = async (req, res, next) => {
   try {
-    // TODO: Implement system restoration logic
-    // This could include:
-    // 1. Resetting system-wide shutdown flag
-    // 2. Resuming transaction processing
-    // 3. Sending notifications to users
+    const systemStatus = await SystemStatus.findOne({ key: 'shutdown' });
+
+    if (!systemStatus || !systemStatus.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'System is not currently shut down.',
+      });
+    }
+
+    // Restore system functionality
+    await SystemStatus.findOneAndUpdate(
+      { key: 'shutdown' },
+      {
+        isActive: false,
+        reason: null,
+        shutdownTime: null,
+        duration: 0,
+        estimatedRestoreTime: null,
+      },
+      { new: true }
+    );
 
     console.log('System restoration initiated', {
-      adminId: req.userId,
+      adminId: req.user.id,
     });
 
     res.status(200).json({
@@ -54,7 +90,10 @@ export const emergencyRestore = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('System restoration failed:', error);
+    console.error(
+      'System restoration failed:',
+      error?.response || error?.message || error
+    );
     next(error);
   }
 };

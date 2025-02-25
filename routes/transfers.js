@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+  checkSystemStatus,
   lookupLimiter,
   lookupValidation,
   tokenExtractor,
@@ -21,6 +22,7 @@ import {
 } from '../utils/transactionPin.js';
 const router = express.Router();
 
+router.use(checkSystemStatus);
 router.use(tokenExtractor);
 router.use(userExtractor);
 

@@ -1,119 +1,180 @@
-### **Updated Plan for the BOLD DATA backend Development**
+# VTU Application - Backend
 
----
+This is a comprehensive Virtual Top-Up (VTU) platform that enables users to perform various digital transactions including airtime purchases, data subscriptions, utility payments, and bank transfers. The platform integrates multiple third-party APIs to provide a seamless user experience.
 
-### **Phase 1: User Management Revamp ✅**
+## Table of Contents
 
-1. **OTP-Based Sign-In**
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [API Documentation](#api-documentation)
+- [Security](#security)
+- [Error Handling](#error-handling)
 
-   - Backend:
-     - Build an API endpoint to send OTP to the user's email.
-     - Create an endpoint to verify OTP and return a session or authentication token upon success.
+## Features
 
-2. **Complete Signup**
+### Core Functionality
 
-   - Backend:
-     - After OTP verification, provide an API endpoint for completing user signup.
-     - Store user details: name, pre-populated email, and phone number.
+- **User Authentication & Authorization**
+  - OTP-based authentication
+  - Google OAuth integration
+  - Role-based access control (User/Admin)
+  - Transaction PIN security
 
-3. **Session Management**
-   - Ensure the user session is persisted for subsequent actions (e.g., token-based authentication).
+### Financial Services
 
----
+- **Virtual Account Management**
+  - Automatic account creation via Safe Haven API
+  - Balance tracking
+  - Transaction history
 
-### **Phase 2: Bank Account Integration ✅**
+### Transaction Types
 
-1. **Virtual Account Creation**
+- **Airtime & Data**
 
-   - Automatically create a virtual account for each user upon successful signup using Safe Haven's API.
-   - Store the virtual account details (account number, bank name) in the user’s profile.
+  - Multiple network provider support
+  - Bulk purchase capabilities
+  - Real-time transaction status
 
-2. **Depositing Money**
+- **Utility Payments**
 
-   - Integrate Safe Haven’s API to enable users to deposit funds into their virtual accounts.
-   - Use webhooks or polling to confirm deposits and update the user’s balance in real time.
+  - Electricity bill payments
+  - Cable TV subscriptions
+  - Service verification
 
-3. **Withdrawing Money**
+- **Bank Transfers**
+  - Internal transfers between users
+  - External bank transfers
+  - Name enquiry verification
 
-   - Add functionality to transfer funds from the virtual account to any bank account.
-   - Validate user input and ensure sufficient balances before processing transactions.
+### Administrative Features
 
-4. **Frontend Implementation**
+- System status management
+- Transaction monitoring
+- User activity tracking
+- Analytics dashboard
 
-   - Provide an interface to:
-     - View account balance.
-     - Deposit money (with details on how to fund the virtual account).
-     - Transfer money (with recipient details and amount).
+## Technology Stack
 
-5. **Backend Security**
-   - Enforce strong validations for transactions.
-   - Record all transactions (deposits, withdrawals) in the database for auditing and user history.
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT, Google OAuth
+- **Email Service**: SMTP integration
+- **API Integration**: Safe Haven, Payment processors
 
----
+## Architecture
 
-### **Phase 3: Feature Implementation ✅**
-
-#### **1. Airtime Purchase (Priority Feature)**
-
-- **Frontend:**
-  - Create a form for selecting the network, entering the phone number, and specifying the amount.
-  - Display a confirmation dialog before purchase.
-- **Backend:**
-  - Deduct the amount from the user’s virtual account.
-  - Call Safe Haven's VAS transaction API to process the airtime purchase.
-  - Record the transaction in the database.
-
-#### **2. Cable TV Subscription**
-
-- Follow the same pattern as airtime purchase:
-  - Create an interface for users to select the provider, account number, and subscription package.
-  - Deduct funds and call the respective API.
-
-#### **3. Internet Data Purchase**
-
-- Allow users to select the network, enter a phone number, and choose a data package.
-- Integrate the appropriate API for processing the purchase.
-
-#### **4. Electricity Bill Payment**
-
-- Let users input their meter number and select the payment amount.
-- Integrate Safe Haven’s API to process the bill payment.
-
----
-
-### **Phase 4: Notifications ✅**
-
-- Use Nodemailer for notifications on successful transactions, deposits, and withdrawals.
-- Send email notifications for transaction receipts.
-
----
-
-### **Phase 5: Admin Panel**
-
-- Monitor user activity, balances, and transactions.
-- Analyze trends (e.g., total airtime purchases or deposits over time).
-- Provide tools for debugging and managing user accounts.
-
----
-
-### **Key Reasons for This Sequence**
-
-1. **User Management Revamp First:** A seamless authentication system is the foundation for all subsequent features.
-2. **Bank Account Second:** This feature is crucial for enabling purchases and transactions.
-3. **Other Features:** Once the foundation is ready, these features can be built incrementally without dependency issues.
-
----
-
-TODO:
-
-- Expose token: expiresIn ✅
-- Provide prefilled values for transaction endpoint requirements.✅
-- Enhance and Streamline Transactions workflow. Provide necessary endpoints✅
-- Display Safehaven response data from power/tv number verification.✅
+### Directory Structure
 
 ```
-- Update Deposit functionality (using Virtual Accounts) ✅
-- Fix timeout token issue.
-- 504 gateway error for requests while creating virtual accounts.
-- improve transfer functionality - using email instead of account number
+├── controllers/ # Request handlers
+├── models/ # Database schemas
+├── routes/ # API routes
+├── services/ # Business logic
+├── utils/ # Helper functions
+└── middleware/ # Custom middleware
 ```
+
+### Key Components
+
+- **SystemStatus**: Manages application-wide operational status
+- **Transaction Processing**: Handles all financial operations
+- **Error Handling**: Centralized error management
+- **Rate Limiting**: Prevents API abuse
+
+## Security
+
+- JWT-based authentication
+- Rate limiting on sensitive endpoints
+- Transaction PIN verification
+- Input validation and sanitization
+- Error message sanitization
+
+## Error Handling
+
+The application uses a custom `ApiError` class for consistent error handling:
+
+```javascript
+class ApiError extends Error {
+  constructor(code, success, message, details = null) {
+    super(message);
+    this.success = success;
+    this.code = code;
+    this.details = details;
+  }
+}
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14+)
+- MongoDB
+- Safe Haven API credentials
+- SMTP server access
+
+### Installation
+
+#### Clone repository
+
+```bash
+git clone https://github.com/yourusername/bold-data-backend.git
+```
+
+#### Install dependencies
+
+```bash
+npm install
+```
+
+#### Set up environment variables
+
+```env
+JWT_SECRET=
+SAFE_HAVEN_OAUTH_CLIENT_ID=
+SAFE_HAVEN_API_BASE_URL=https://api.safehavenmfb.com
+SAFE_HAVEN_CLIENT_ID=
+SAFE_HAVEN_CLIENT_ASSERTION=<your_client_assertion_token>
+TOKEN_URL=https://api.safehavenmfb.com/oauth2/token
+FRONTEND_BASE_URL=
+SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER=
+SAFE_HAVEN_VIRTUAL_ACCOUNT_BANK_CODE=
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=youremail@gmail.com
+SMTP_PASS=<your_smtp_password>
+SMTP_FROM=example@gmail.com
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+DATASTATION_AUTH_TOKEN=
+VTU_SERVICE_ACCOUNT==
+```
+
+### Start development server
+
+```bash
+npm run dev
+```
+
+## API Documentation
+
+Refer to the the Postman documentation here: [Click me!]()
+
+## Security & Best Practices
+
+- **Environment Variables**: Store sensitive credentials securely.
+- **Error Handling**: Ensure meaningful error messages.
+- **Logging**: Monitor API usage and errors.
+- **Rate Limiting**: Prevent API abuse.
+
+## License
+
+MIT License
+
+## Contact
+
+For inquiries, reach out to [finzyphinzyy@proton.me](mailto:finzyphinzyy@proton.me)
