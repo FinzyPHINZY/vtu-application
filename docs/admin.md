@@ -48,28 +48,6 @@ Manage VTU services such as data plans, airtime, cable TV, and utility payments.
 
 ---
 
-### **Screen Requirements:**
-
-- Notification center with unread/read status.
-- Admin panel to send new notifications.
-
----
-
-## 5. **User & Support Management**
-
-### **Purpose:**
-
-Allows admin users to access support and manage accounts.
-
-### **Backend Functionalities:**
-
-- Retrieve list of support tickets with status.
-- Admin can respond to support tickets.
-- Fetch user profile details.
-- Update user profile information.
-
----
-
 ## 6. **System Control & Settings (Admin Panel)**
 
 ### **Purpose:**
