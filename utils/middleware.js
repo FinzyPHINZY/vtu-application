@@ -56,14 +56,38 @@ export const errorHandler = (err, req, res, next) => {
 
 export const checkSystemStatus = async (req, res, next) => {
   try {
-    const systemStatus = await SystemStatus.findOne({ key: 'shutdown' });
+    const path = req.path.toLowerCase();
+    let service = 'system'; // default to system-wide check
 
+    // Map paths to services
+    if (path.includes('data')) service = 'data';
+    else if (path.includes('airtime')) service = 'airtime';
+    else if (path.includes('cable')) service = 'cable-tv';
+    else if (path.includes('utility')) service = 'utility';
+
+    // Check both system-wide and service-specific shutdown
+    const [systemStatus, serviceStatus] = await Promise.all([
+      SystemStatus.findOne({ key: 'system' }),
+      SystemStatus.findOne({ key: service }),
+    ]);
+
+    // Check for system-wide shutdown first
     if (systemStatus?.isActive) {
       throw new ApiError(
-        '503',
+        503,
         false,
         'The system is temporarily shut down',
         `Estimated restore time: ${systemStatus.estimatedRestoreTime}`
+      );
+    }
+
+    // Then check for service-specific shutdown
+    if (serviceStatus?.isActive) {
+      throw new ApiError(
+        503,
+        false,
+        `The ${service} service is temporarily shut down`,
+        `Estimated restore time: ${serviceStatus.estimatedRestoreTime}`
       );
     }
 
@@ -111,11 +135,9 @@ export const tokenExtractor = (req, res, next) => {
   try {
     const authorization = req.get('authorization');
 
-    if (authorization && authorization.startsWith('Bearer ')) {
-      req.token = authorization.replace('Bearer ', '');
-    } else {
-      req.token = null;
-    }
+    req.token = authorization?.startsWith('Bearer ')
+      ? authorization.replace('Bearer ', '')
+      : null;
 
     next();
   } catch (error) {
@@ -160,13 +182,15 @@ export const userExtractor = async (req, res, next) => {
         success: false,
         message: 'Token expired. Please log in again.',
       });
-    } else if (error.name === 'JsonWebTokenError') {
-      return res.status(400).json({ success: false, message: 'Invalid token' });
-    } else {
-      return res
-        .status(500)
-        .json({ success: false, message: 'Internal Server Error' });
     }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(400).json({ success: false, message: 'Invalid token' });
+    }
+
+    return res
+      .status(500)
+      .json({ success: false, message: 'Internal Server Error' });
   }
 };
 
