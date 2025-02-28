@@ -6,7 +6,8 @@ const systemStatusSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      default: 'shutdown',
+      enum: ['data', 'airtime', 'cable-tv', 'utility', 'system'],
+      default: 'system',
     },
     isActive: {
       type: Boolean,

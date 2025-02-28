@@ -25,4 +25,6 @@ router.post(
 
 router.post('/emergency-restore', SystemController.emergencyRestore);
 
+router.get('/status', SystemController.getServicesStatus);
+
 export default router;
