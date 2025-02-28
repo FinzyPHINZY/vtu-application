@@ -1,9 +1,10 @@
 // Initiates an emergency system shutdown
 import SystemStatus from '../../models/SystemStatus.js';
-import ApiError from '@utils/error.js';
+import ApiError from '../../utils/error.js';
 
 export const emergencyShutdown = async (req, res, next) => {
   try {
+    console.log(req.body);
     const { reason, duration, services } = req.body;
 
     if (!services || !services.length) {
