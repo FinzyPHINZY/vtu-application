@@ -234,7 +234,7 @@ export const getVirtualTransaction = async (req, res, next) => {
       throw new ApiError(404, false, 'Transaction not found');
     }
 
-    if (transaction.status === 'success') {
+    if (['success', 'failed'].includes(transaction.status)) {
       return res.status(200).json({
         success: true,
         message: 'Transaction already processed',
@@ -265,10 +265,12 @@ export const getVirtualTransaction = async (req, res, next) => {
       throw new ApiError(400, false, response.data.message, response.data);
     }
 
-    if (data.status === 'Completed') {
-      transaction.status = 'success';
+    if (data.status === 'Completed' || data.status === 'Failed') {
+      transaction.status = data.status === 'Completed' ? 'success' : 'failed';
 
-      user.accountBalance += data.amount;
+      if (data.status === 'Completed') {
+        user.accountBalance += data.amount;
+      }
 
       await transaction.save();
       await user.save();
