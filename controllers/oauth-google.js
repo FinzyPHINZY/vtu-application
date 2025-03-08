@@ -5,10 +5,8 @@ import jwt from 'jsonwebtoken';
 
 export const appLogin = async (req, res, next) => {
   const { id, displayName, email } = req.body;
-  console.log('Request received', req.body);
   try {
     let user = await User.findOne({ email: email });
-    console.log('user from DB ', user);
 
     if (user) {
       // If the user exists, update their Google ID and profile information
@@ -41,7 +39,6 @@ export const appLogin = async (req, res, next) => {
 };
 
 export const googleCallback = async (req, res, next) => {
-  console.log('this is user', req.user);
   const { id, displayName, emails, name } = req.user;
   try {
     let user = await User.findOne({ email: emails[0].value });
