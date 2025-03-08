@@ -51,7 +51,7 @@ app.use(morgan('dev'));
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:7000',
+    origin: process.env.FRONTEND_BASE_URL || 'http://localhost:7000',
     credentials: true,
   })
 );
