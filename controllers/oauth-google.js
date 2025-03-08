@@ -41,21 +41,46 @@ export const appLogin = async (req, res, next) => {
 };
 
 export const googleCallback = async (req, res, next) => {
-  const { id, displayName, emails } = req.user;
+  console.log('this is user', req.user);
+  const { id, displayName, emails, name } = req.user;
   try {
     let user = await User.findOne({ email: emails[0].value });
 
     if (user) {
       // If the user exists, update their Google ID and profile information
       user.googleId = id;
-      user.username = displayName;
+      user.firstName = name.givenName;
+      user.lastName = name.familyName;
+      user.googleEmail = emails[0].value;
+      user.isVerified = true;
+      user.isGoogleUser = true;
+      user.accountDetails = {
+        bankName: '',
+        accountId: '',
+        accountName: '',
+        accountType: '',
+        status: '',
+      };
+
       await user.save();
     } else {
       // If the user doesn't exist, create a new user
       user = new User({
         googleId: id,
         username: displayName,
+        firstName: name.givenName,
+        lastName: name.familyName,
+        googleEmail: emails[0].value,
         email: emails[0].value,
+        isVerified: true,
+        isGoogleUser: true,
+        accountDetails: {
+          bankName: '',
+          accountId: '',
+          accountName: '',
+          accountType: '',
+          status: '',
+        },
       });
       await user.save();
     }
