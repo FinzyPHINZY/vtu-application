@@ -49,12 +49,7 @@ import './cron-jobs/deposit.js';
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet());
-app.use(
-  cors({
-    origin: process.env.FRONTEND_BASE_URL || 'http://localhost:7000',
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(cookieParser());
 app.use(limiter);
 app.use(requestLogger);
