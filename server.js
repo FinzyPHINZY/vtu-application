@@ -4,7 +4,6 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import passport from 'passport';
-
 import cookieParser from 'cookie-parser';
 
 import connectDB from './Config/Database.js';
@@ -64,12 +63,51 @@ app.use(passport.initialize());
 import './Config/passport.js';
 
 // Endpoints
-app.get('/', async (req, res) => {
-  res
-    .status(200)
-    .send(
-      'Welcome to Bold Data. Your one-stop service for Bills Payment and Subscriptions. '
-    );
+
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bold Data - Bills Payment & Subscriptions</title>
+        <meta name="description" content="Bold Data is your one-stop service for bills payment, airtime, and subscriptions.">
+        <meta name="robots" content="index, follow">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                color: #333;
+                text-align: center;
+                padding: 50px;
+            }
+            h1 {
+                color: #007bff;
+                font-size: 2.5rem;
+            }
+            p {
+                font-size: 1.2rem;
+                margin-top: 10px;
+            }
+            .container {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                display: inline-block;
+                max-width: 600px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Welcome to Bold Data</h1>
+            <p>Your one-stop service for bills payment and subscriptions.</p>
+        </div>
+    </body>
+    </html>
+  `);
 });
 
 // health endpoint
