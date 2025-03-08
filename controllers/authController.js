@@ -23,7 +23,7 @@ export const requestOtp = async (req, res, next) => {
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser || existingUser.isVerified) {
+    if (existingUser && existingUser.isVerified) {
       throw new ApiError(409, false, 'Email already registered');
     }
 
