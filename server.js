@@ -3,22 +3,25 @@ import dotenv from 'dotenv';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
-import userRouter from './routes/user.js';
-import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
+import passport from 'passport';
+
+import cookieParser from 'cookie-parser';
+
 import connectDB from './Config/Database.js';
+import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
+import { initialize } from './services/safeHavenAuth.js';
+
+// routes
+import userRouter from './routes/user.js';
 import servicesRoutes from './routes/services.js';
 import authRoutes from './routes/auth.js';
+import oauthRoutes from './routes/oauth.js';
 import verificationRoutes from './routes/verification.js';
 import accountRoutes from './routes/account.js';
 import transactionRoutes from './routes/transactions.js';
 import transferRoutes from './routes/transfers.js';
-import { initialize } from './services/safeHavenAuth.js';
-// admin routes
 import analyticsRoutes from './routes/admin/analytics.js';
-import auditRoutes from './routes/admin/audit.js';
-// import notificationsRoutes from './routes/admin/notifications.js';
 import productsRoutes from './routes/admin/products.js';
-// import supportRoutes from './routes/admin/support.js';
 import systemControlRoutes from './routes/admin/systemControl.js';
 import adminTransactionRoutes from './routes/admin/transactions.js';
 
@@ -47,9 +50,18 @@ import './cron-jobs/deposit.js';
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:7000',
+    credentials: true,
+  })
+);
+app.use(cookieParser());
 app.use(limiter);
 app.use(requestLogger);
+
+app.use(passport.initialize());
+import './Config/passport.js';
 
 // Endpoints
 app.get('/', async (req, res) => {
@@ -72,6 +84,7 @@ app.get('/health', (req, res) => {
 
 // middleware endpoints
 app.use('/api/auth', authRoutes);
+app.use('/api/oauth', oauthRoutes);
 app.use('/api/user', userRouter);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/account', accountRoutes);
@@ -82,10 +95,8 @@ app.use('/api/transfers', transferRoutes);
 // admin endpoints
 app.use('/api/admin/system-control', systemControlRoutes);
 app.use('/api/admin/products', productsRoutes);
-// app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/admin/transactions', adminTransactionRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
-// app.use('/api/admin/audit', auditRoutes);
 app.use('/api/admin/system', systemControlRoutes);
 
 // error handler

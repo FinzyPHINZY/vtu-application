@@ -10,6 +10,7 @@ import sendEmail from '../services/emailService.js';
 import { getAuthorizationToken } from '../services/safeHavenAuth.js';
 import ApiError from '../utils/error.js';
 import { errorHandler } from '../utils/middleware.js';
+import passport from 'passport';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -22,7 +23,7 @@ export const requestOtp = async (req, res, next) => {
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser && existingUser.isVerified) {
+    if (existingUser || existingUser.isVerified) {
       throw new ApiError(409, false, 'Email already registered');
     }
 
@@ -230,117 +231,5 @@ export const login = async (req, res, next) => {
   } catch (error) {
     next(error);
     console.error('Error during login', error.response);
-  }
-};
-
-export const googleLogin = async (req, res) => {
-  try {
-    const { email, googleId } = req.user;
-
-    // Find or create user
-    let user = await User.findOne({
-      $or: [{ googleId }, { email, authProvider: 'google' }],
-    });
-
-    if (!user) {
-      // Create new user with Google credentials
-      user = await User.create({
-        email,
-        googleId,
-        isVerified: true,
-        isGoogleUser: true,
-        phoneNumber: null,
-        firstName: '',
-        lastName: '',
-        accountBalance: 0,
-        accountDetails: {
-          bankName: '',
-          accountName: '',
-          accountType: 'Current',
-          accountBalance: '0',
-          status: 'Pending',
-        },
-      });
-
-      console.log('this is user', user);
-    }
-
-    if (user && user.isGoogleUser !== true) {
-      throw new ApiError(400, false, 'Please login with EMAIL and PASSWORD');
-    }
-
-    // Get Safe Haven token
-
-    const refreshToken = await getAuthorizationToken();
-
-    const body = {
-      grant_type: 'refresh_token',
-      client_id: process.env.SAFE_HAVEN_CLIENT_ID,
-      client_assertion: process.env.SAFE_HAVEN_CLIENT_ASSERTION,
-      client_assertion_type:
-        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-      refresh_token: refreshToken,
-    };
-
-    let safeHavenResponse;
-    try {
-      safeHavenResponse = await axios.post(
-        `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-        body
-      );
-    } catch (error) {
-      console.error(
-        'Failed to get Safe Haven token:',
-        error.response?.data || error.message
-      );
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to authenticate with Safe Haven',
-      });
-    }
-
-    const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
-
-    // Remove sensitive data from user object
-
-    console.log(`User logged in with Google successfully: ${email}`);
-
-    // Create JWT token
-    const userForToken = {
-      id: user._id,
-      safeHavenAccessToken: {
-        access_token,
-        expires_in,
-        ibs_client_id,
-      },
-    };
-
-    const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
-      expiresIn: '1d',
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: 'Signed in successfully',
-      data: {
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-        accountBalance: user.accountBalance,
-        hasSetTransactionPin: user.hasSetTransactionPin,
-        isVerified: user.isVerified,
-        status: user.status,
-        isGoogleUser: true,
-        accountDetails: user.accountDetails,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phoneNumber: user.phoneNumber,
-      },
-      token,
-      expires_in,
-    });
-  } catch (error) {
-    console.error('Google login failed:', error);
-    res.status(500).json({ success: false, message: 'Google login failed' });
   }
 };
