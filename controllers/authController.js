@@ -1,7 +1,6 @@
 import OTP from '../models/OTP.js';
 import bcrypt from 'bcrypt';
 import { isValidEmail } from '../utils/helpers.js';
-import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
@@ -9,10 +8,6 @@ import { generateOtpEmailTemplate } from '../utils/email.js';
 import sendEmail from '../services/emailService.js';
 import { getAuthorizationToken } from '../services/safeHavenAuth.js';
 import ApiError from '../utils/error.js';
-import { errorHandler } from '../utils/middleware.js';
-import passport from 'passport';
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const requestOtp = async (req, res, next) => {
   try {
