@@ -236,14 +236,25 @@ export const login = async (req, res, next) => {
 export const googleLogin = async (req, res) => {
   try {
     const { email, googleId, firstName, lastName } = req.user;
-    console.log(req.user);
 
     // Find or create user
-    let user = await User.findOne({
-      $or: [{ googleId }, { email, authProvider: 'google' }],
-    });
+    let user = await User.findOne({ email });
 
-    if (!user) {
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.isGoogleUser = true;
+        user.isVerified = true;
+        if (!user.firstName) user.firstName = firstName || 'Unknown';
+        if (!user.lastName) user.lastName = lastName || 'Unknown';
+        await user.save();
+      } else if (user.googleId !== googleId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already associated with different Google account',
+        });
+      }
+    } else {
       // Create new user with Google credentials
       user = await User.create({
         email,
@@ -262,17 +273,11 @@ export const googleLogin = async (req, res) => {
           status: 'Pending',
         },
       });
-
-      console.log('this is user', user);
-    } else if (!user.firstName || !user.lastName) {
-      user.firstName = firstName || user.firstName;
-      user.lastName = lastName || user.lastName;
-      await user.save();
     }
 
-    if (user && user.isGoogleUser !== true) {
-      throw new ApiError(400, false, 'Please login with EMAIL and PASSWORD');
-    }
+    // if (user && user.isGoogleUser !== true) {
+    //   throw new ApiError(400, false, 'Please login with EMAIL and PASSWORD');
+    // }
 
     // Get Safe Haven token
 
@@ -305,10 +310,6 @@ export const googleLogin = async (req, res) => {
     }
 
     const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
-
-    // Remove sensitive data from user object
-
-    console.log(`User logged in with Google successfully: ${email}`);
 
     // Create JWT token
     const userForToken = {
