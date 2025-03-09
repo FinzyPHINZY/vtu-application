@@ -49,15 +49,20 @@ import './cron-jobs/deposit.js';
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet());
-// app.use(cors());
-app.use(
-  cors({
-    origin: ['https://www.bolddatahub.com', 'https://bolddatapay.com'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+app.use(cors());
+app.use(function (req, res, next) {
+  // kolpa magkiorika poy de ta kserw
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Headers, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization'
+  );
+  res.header(
+    'Access-Control-Allow-Methods',
+    'GET, PUT, POST, DELETE, PATCH, OPTIONS'
+  );
+  next();
+});
 app.use(cookieParser());
 app.use(limiter);
 app.use(requestLogger);
