@@ -107,17 +107,25 @@ export const convertAccessTokenToIdToken = async (req, res, next) => {
     }
 
     // Fetch user info using the access token
+    // const response = await axios.get(
+    //   `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`
+    // );
+
     const response = await axios.get(
-      `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${access_token}`
+      'https://www.googleapis.com/oauth2/v3/userinfo',
+      { headers: { Authorization: `Bearer ${access_token}` } }
     );
 
     if (!response.data.email) {
       return res.status(400).json({ message: 'Invalid Google Access Token' });
     }
 
+    console.log(response.data);
     // Attach the user info to the request
     req.user = {
       email: response.data.email,
+      firstName: response.data.given_name,
+      lastName: response.data.family_name,
       googleId: response.data.sub,
     };
 
