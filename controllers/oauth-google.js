@@ -82,33 +82,33 @@ export const googleCallback = async (req, res, next) => {
       await user.save();
     }
 
-    // getTokenResponse(user, 200, res, true);
+    getTokenResponse(user, 200, res, true);
 
-    // Generate JWT Token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1d',
-    });
+    // // Generate JWT Token
+    // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    //   expiresIn: '1d',
+    // });
 
-    res.status(200).json({
-      success: true,
-      message: 'Signed in successfully',
-      data: {
-        _id: user._id,
-        email: user.email,
-        role: user.role || 'user', // Default role if not set
-        accountBalance: user.accountBalance || 0,
-        hasSetTransactionPin: user.hasSetTransactionPin || false,
-        isVerified: user.isVerified,
-        status: user.status || 'active',
-        isGoogleUser: true,
-        accountDetails: user.accountDetails,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phoneNumber: user.phoneNumber || '',
-      },
-      token,
-      expires_in: 86400, // 1 day in seconds
-    });
+    // res.status(200).json({
+    //   success: true,
+    //   message: 'Signed in successfully',
+    //   data: {
+    //     _id: user._id,
+    //     email: user.email,
+    //     role: user.role || 'user', // Default role if not set
+    //     accountBalance: user.accountBalance || 0,
+    //     hasSetTransactionPin: user.hasSetTransactionPin || false,
+    //     isVerified: user.isVerified,
+    //     status: user.status || 'active',
+    //     isGoogleUser: true,
+    //     accountDetails: user.accountDetails,
+    //     firstName: user.firstName,
+    //     lastName: user.lastName,
+    //     phoneNumber: user.phoneNumber || '',
+    //   },
+    //   token,
+    //   expires_in: 86400, // 1 day in seconds
+    // });
   } catch (error) {
     console.error('Error handling user after Google authentication', error);
     res.status(500).send('Internal Server Error');
