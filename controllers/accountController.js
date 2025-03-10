@@ -135,8 +135,6 @@ export const createVirtualAccount = async (req, res, next) => {
       }
     );
 
-    console.log('this is response', response.data);
-
     if (response.data.statusCode !== 200) {
       throw new ApiError(
         response.data.statuscode,
@@ -147,6 +145,21 @@ export const createVirtualAccount = async (req, res, next) => {
     }
 
     const { data } = response.data;
+
+    console.log('im being logged', {
+      reference: externalReference,
+      type: 'credit',
+      serviceType: 'deposit',
+      amount: data.amount,
+      virtualAccountId: data._id,
+      status: 'pending',
+      metadata: {
+        accountNumber: data.accountNumber,
+        bankName: data.bankName,
+        expiresAt: data.expiryDate,
+      },
+      user: user._id,
+    });
 
     const transaction = await Transaction.create({
       reference: externalReference,
