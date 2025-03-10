@@ -146,21 +146,6 @@ export const createVirtualAccount = async (req, res, next) => {
 
     const { data } = response.data;
 
-    console.log('im being logged', {
-      reference: externalReference,
-      type: 'credit',
-      serviceType: 'deposit',
-      amount: data.amount,
-      virtualAccountId: data._id,
-      status: 'pending',
-      metadata: {
-        accountNumber: data.accountNumber,
-        bankName: data.bankName,
-        expiresAt: data.expiryDate,
-      },
-      user: user._id,
-    });
-
     const transaction = await Transaction.create({
       reference: externalReference,
       type: 'credit',
@@ -175,8 +160,6 @@ export const createVirtualAccount = async (req, res, next) => {
       },
       user: user._id,
     });
-
-    console.log('this is transaction result', transaction);
 
     // Push the transaction _id to the user's transactions array
     user.transactions.push(transaction._id);
@@ -248,8 +231,6 @@ export const getVirtualTransaction = async (req, res, next) => {
     if (!transaction) {
       throw new ApiError(404, false, 'Transaction not found');
     }
-
-    console.log('THIS IS TRANSACTION STATUS', transaction.status);
 
     if (['success', 'failed'].includes(transaction.status)) {
       return res.status(200).json({
