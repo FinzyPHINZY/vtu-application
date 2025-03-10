@@ -193,6 +193,12 @@ export const login = async (req, res, next) => {
 
     const { access_token, expires_in, ibs_client_id } = response.data;
 
+    user.safeHavenAccessToken = {
+      access_token,
+      ibs_client_id,
+    };
+    await user.save();
+
     const userForToken = {
       id: user._id,
       safeHavenAccessToken: {
@@ -310,6 +316,12 @@ export const googleLogin = async (req, res) => {
     }
 
     const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
+
+    user.safeHavenAccessToken = {
+      access_token,
+      ibs_client_id,
+    };
+    await user.save();
 
     // Create JWT token
     const userForToken = {

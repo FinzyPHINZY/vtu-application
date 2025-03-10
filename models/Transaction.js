@@ -41,6 +41,12 @@ const transactionSchema = new mongoose.Schema(
     metadata: {
       type: Object,
     },
+    virtualAccountId: {
+      type: String,
+      required: () => {
+        return this.serviceType === 'deposit';
+      },
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
