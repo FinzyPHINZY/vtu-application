@@ -13,13 +13,13 @@ export const updateDataPlan = async (req, res, next) => {
       throw new ApiError(404, false, 'Data plan not found');
     }
 
-    if (amount < existingPlan.amount) {
-      throw new ApiError(
-        400,
-        false,
-        'New amount cannot be less than existing price'
-      );
-    }
+    // if (amount < existingPlan.amount) {
+    //   throw new ApiError(
+    //     400,
+    //     false,
+    //     'New amount cannot be less than existing price'
+    //   );
+    // }
 
     const updatedPlan = await DataPlan.findByIdAndUpdate(
       planId,
