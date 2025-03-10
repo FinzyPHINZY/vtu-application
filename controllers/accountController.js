@@ -160,8 +160,10 @@ export const createVirtualAccount = async (req, res, next) => {
         bankName: data.bankName,
         expiresAt: data.expiryDate,
       },
-      user: user._id, // Associate transaction with user
+      user: user._id,
     });
+
+    console.log('this is transaction result', transaction);
 
     // Push the transaction _id to the user's transactions array
     user.transactions.push(transaction._id);
