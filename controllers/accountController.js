@@ -249,6 +249,8 @@ export const getVirtualTransaction = async (req, res, next) => {
       throw new ApiError(404, false, 'Transaction not found');
     }
 
+    console.log('THIS IS TRANSACTION STATUS', transaction.status);
+
     if (['success', 'failed'].includes(transaction.status)) {
       return res.status(200).json({
         success: true,
