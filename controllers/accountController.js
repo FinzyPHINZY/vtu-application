@@ -153,9 +153,9 @@ export const createVirtualAccount = async (req, res, next) => {
       type: 'credit',
       serviceType: 'deposit',
       amount: data.amount,
+      virtualAccountId: data._id,
       status: 'pending',
       metadata: {
-        virtualAccountId: data._id,
         accountNumber: data.accountNumber,
         bankName: data.bankName,
         expiresAt: data.expiryDate,
