@@ -58,13 +58,13 @@ export const updateCablePlan = async (req, res, next) => {
       throw new ApiError(404, false, 'Cable Plan not found');
     }
 
-    if (amount < existingPlan.amount) {
-      throw new ApiError(
-        400,
-        false,
-        'New Amount cannot be less than existing price'
-      );
-    }
+    // if (amount < existingPlan.amount) {
+    //   throw new ApiError(
+    //     400,
+    //     false,
+    //     'New Amount cannot be less than existing price'
+    //   );
+    // }
 
     const updatedCablePlan = await CablePlan.findByIdAndUpdate(
       planId,
