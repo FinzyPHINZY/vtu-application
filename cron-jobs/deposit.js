@@ -68,6 +68,7 @@ const job = cron.schedule('*/5 * * * *', async () => {
         );
 
         const { data } = response.data;
+        console.log(data);
 
         if (data.status === 'Completed') {
           txn.status = 'success';
