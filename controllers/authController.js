@@ -236,10 +236,7 @@ export const login = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
-    console.error(
-      'Error during login',
-      error?.response || error?.message || error
-    );
+    console.error('Error during login', error?.response || error);
   }
 };
 
