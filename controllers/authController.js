@@ -185,8 +185,6 @@ export const login = async (req, res, next) => {
       body
     );
 
-    console.log(response.data);
-
     if (response.data.error) {
       throw new ApiError(403, false, response.data.error);
     }
@@ -236,7 +234,10 @@ export const login = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
-    console.error('Error during login', error?.response || error);
+    console.error(
+      'Error during login',
+      error?.response || error?.message || error
+    );
   }
 };
 
