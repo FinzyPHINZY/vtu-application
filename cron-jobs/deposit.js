@@ -8,8 +8,8 @@ const job = cron.schedule('*/5 * * * *', async () => {
   try {
     console.log('Starting pending transaction cleanup job');
 
-    const cutoffTime = new Date(Date.now() - 15 * 60 * 1000);
-    // const cutoffTime = new Date(Date.now() - 45 * 1000);
+    // const cutoffTime = new Date(Date.now() - 15 * 60 * 1000);
+    const cutoffTime = new Date(Date.now() - 45 * 1000);
     console.log('Looking for transactions before:', cutoffTime);
 
     const transactions = await Transaction.find({
