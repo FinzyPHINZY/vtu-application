@@ -41,23 +41,37 @@ const transactionSchema = new mongoose.Schema(
     metadata: {
       type: Object,
     },
-    // virtualAccountId: {
-    //   type: String,
-    //   required: () => {
-    //     return this.serviceType === 'deposit';
-    //   },
-    // },
     virtualAccountId: {
       type: String,
-      required: function (doc) {
+      required: (doc) => {
         return doc?.serviceType === 'deposit';
       },
     },
-
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    failureReason: {
+      type: String,
+      default: null,
+    },
+    verificationAttempts: {
+      type: Number,
+      default: 0,
+    },
+    completedAt: {
+      type: Date,
+    },
+    lastVerifiedAt: {
+      type: Date,
+    },
+    statusHistory: [
+      {
+        status: String,
+        timestamp: Date,
+        reason: String,
+      },
+    ],
   },
   { timestamps: true },
   { _id: false } // to prrevent MongoDB from creating a separate ObjectId for each transaction
