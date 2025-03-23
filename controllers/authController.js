@@ -164,8 +164,6 @@ export const login = async (req, res, next) => {
       throw new ApiError(401, false, 'User is not verified');
     }
 
-    console.log(password, user.password);
-
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       user.failedLoginAttempts += 1;
