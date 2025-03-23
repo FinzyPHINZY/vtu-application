@@ -152,8 +152,16 @@ export const login = async (req, res, next) => {
       throw new ApiError(404, false, 'User not found');
     }
 
-    if (!user || !user.isVerified) {
+    if (user.isGoogleUser) {
+      throw new ApiError(400, false, 'Please sign in with Google.');
+    }
+
+    if (!user.password) {
       throw new ApiError(401, false, 'Invalid Credentials');
+    }
+
+    if (!user.isVerified) {
+      throw new ApiError(401, false, 'User is not verified');
     }
 
     console.log(password, user.password);
