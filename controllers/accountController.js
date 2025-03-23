@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import { generateRandomReference } from '../utils/helpers.js';
 import ApiError from '../utils/error.js';
 import Transaction from '../models/Transaction.js';
+import { logUserActivity } from '../utils/userActivity.js';
 
 export const createSubAccount = async (req, res, next) => {
   try {
@@ -70,6 +71,9 @@ export const createSubAccount = async (req, res, next) => {
     };
 
     await user.save();
+    await logUserActivity(user._id, 'others', {
+      details: 'Sub-Account creation',
+    });
 
     console.log(`Sub-account created successfully for user: ${req.user.id}`);
 
@@ -164,6 +168,10 @@ export const createVirtualAccount = async (req, res, next) => {
     // Push the transaction _id to the user's transactions array
     user.transactions.push(transaction._id);
     await user.save();
+
+    await logUserActivity(user._id, 'others', {
+      details: 'Virtual Account creation',
+    });
 
     return res.status(200).json({
       success: true,
@@ -268,6 +276,11 @@ export const getVirtualTransaction = async (req, res, next) => {
 
       if (data.status === 'Completed') {
         user.accountBalance += data.amount;
+
+        await logUserActivity(user._id, 'deposit', {
+          amount: data.amount,
+          currency: 'NGN',
+        });
       }
 
       await transaction.save();

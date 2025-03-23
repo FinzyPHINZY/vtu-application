@@ -9,6 +9,7 @@ import sendEmail from '../services/emailService.js';
 import { getAuthorizationToken } from '../services/safeHavenAuth.js';
 import ApiError from '../utils/error.js';
 import { OAuth2Client } from 'google-auth-library';
+import { logUserActivity } from '../utils/userActivity.js';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -219,6 +220,8 @@ export const login = async (req, res, next) => {
     const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
       expiresIn: '1d',
     });
+
+    await logUserActivity(user._id, 'login', { ip: req.ip });
 
     res.status(200).json({
       success: true,

@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { generatePasswordResetEmailTemplate } from '../utils/email.js';
 import sendEmail from '../services/emailService.js';
 import ApiError from '../utils/error.js';
+import { logUserActivity } from '../utils/userActivity.js';
 
 export const fetchUser = async (req, res) => {
   try {
@@ -70,6 +71,8 @@ export const updateUserRole = async (req, res) => {
 
     user.role = role;
     await user.save();
+
+    await logUserActivity(user._id, 'profile_update', { field: 'role' });
 
     res.status(200).json({
       success: true,
@@ -165,6 +168,8 @@ export const resetPassword = async (req, res, next) => {
 
     console.log(`Password reset completed for user: ${email}`);
 
+    await logUserActivity(user._id, 'profile_update', { field: 'password' });
+
     res.status(200).json({
       success: true,
       message: 'Password reset successful',
@@ -203,6 +208,10 @@ export const setTransactionPin = async (req, res) => {
     await user.save();
 
     console.log(`Transaction PIN set successfully for user: ${req.user.id}`);
+
+    await logUserActivity(user._id, 'profile_update', {
+      field: 'transactionPin',
+    });
 
     return res.status(200).json({
       success: true,

@@ -2,6 +2,7 @@ import Transaction from '../models/Transaction.js';
 import User from '../models/User.js';
 import ApiError from '../utils/error.js';
 import { generateRandomReference } from '../utils/helpers.js';
+import { logUserActivity } from '../utils/userActivity.js';
 
 export const lookupPayee = async (req, res, next) => {
   try {
@@ -142,6 +143,11 @@ export const transfer = async (req, res, next) => {
       amount,
       payerId: updatedPayer._id,
       payeeId: payee._id,
+    });
+
+    await logUserActivity(updatedPayer._id, 'transfer', {
+      to: recipientId,
+      amount,
     });
 
     res.status(200).json({

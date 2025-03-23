@@ -2,6 +2,7 @@ import { getTokenResponse } from '../utils/getTokenResponse.js';
 import User from '../models/User.js';
 import UserToken from '../models/UserToken.js';
 import jwt from 'jsonwebtoken';
+import { logUserActivity } from '../utils/userActivity.js';
 
 export const appLogin = async (req, res, next) => {
   const { id, displayName, email } = req.body;
@@ -81,6 +82,8 @@ export const googleCallback = async (req, res, next) => {
       });
       await user.save();
     }
+
+    await logUserActivity(user._id, 'login', { ip: req.ip });
 
     // getTokenResponse(user, 200, res, true);
 

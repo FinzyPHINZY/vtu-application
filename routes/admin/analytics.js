@@ -25,4 +25,6 @@ router.get(
 
 router.get('/summary', AnalyticsControllers.getTransactionsSummary);
 
+router.get('/active-users', AnalyticsControllers.fetchActiveUsers);
+
 export default router;

@@ -1,6 +1,12 @@
+import User from '../../models/User.js';
 import Transaction from '../../models/Transaction.js';
 import { getDateRange } from '../../utils/admin/helpers.js';
 import ApiError from '../../utils/error.js';
+import {
+  getActiveUsers,
+  getActivityBreakdown,
+  getUserRetention,
+} from '../../utils/userActivity.js';
 
 export const getRevenue = async (req, res, next) => {
   try {
@@ -119,29 +125,28 @@ export const getTransactionsSummary = async (req, res, next) => {
   }
 };
 
-export const getActiveUsers = async (req, res, next) => {
+export const fetchActiveUsers = async (req, res, next) => {
   try {
-    // TODO: Implement active users calculation logic
-    // This could include:
-    // 1. Counting daily/monthly active users
-    // 2. Analyzing user engagement
-    // 3. Identifying most active users
-    // 4. Tracking user retention
+    const data = {
+      activeUsers: {
+        daily: await getActiveUsers('daily'),
+        weekly: await getActiveUsers('weekly'),
+        monthly: await getActiveUsers('monthly'),
+        quarterly: await getActiveUsers('quarterly'),
+      },
+      activityBreakdown: await getActivityBreakdown(),
+      retention: await getUserRetention(),
+      newUsersToday: await User.countDocuments({
+        createdAt: { $gte: new Date(new Date() - 24 * 60 * 60 * 1000) },
+      }),
+    };
 
-    console.log('Active users report generated', {
-      adminId: req.userId,
-    });
+    console.log('Active users report generated');
 
     res.status(200).json({
       success: true,
       message: 'Active users data retrieved successfully',
-      data: {
-        daily: 0,
-        weekly: 0,
-        monthly: 0,
-        retentionRate: '0%',
-        topUsers: [],
-      },
+      data,
     });
   } catch (error) {
     console.error('Active users report generation failed:', error);

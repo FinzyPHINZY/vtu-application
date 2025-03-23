@@ -14,6 +14,7 @@ import CableList from '../models/CableList.js';
 import DataPlan from '../models/DataPlans.js';
 import ElectricityCompany from '../models/ElectricityCompanies.js';
 import NetworkList from '../models/Networklist.js';
+import { logUserActivity } from '../utils/userActivity.js';
 
 // const executeTransfer = async (req, res, next) => {
 //   try {
@@ -370,6 +371,8 @@ export const purchaseAirtime = async (req, res, next) => {
 
       console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
+      await logUserActivity(user._id, 'topup', { amount });
+
       return res.status(200).json({
         success: true,
         message: 'Airtime purchase successful',
@@ -490,6 +493,8 @@ export const purchaseData = async (req, res, next) => {
 
       console.log(`Data bundle purchase successful for user: ${req.user.id}`);
 
+      await logUserActivity(user._id, 'data', { amount });
+
       return res.status(200).json({
         success: true,
         message: 'Data purchase successful',
@@ -566,7 +571,7 @@ export const payCableTV = async (req, res, next) => {
     try {
       // Make request to Safe Haven API
       const response = await axios.post(
-        `https://datastationapi.com/api/cablesub/`,
+        'https://datastationapi.com/api/cablesub/',
         {
           cablename,
           cableplan,
@@ -589,7 +594,9 @@ export const payCableTV = async (req, res, next) => {
       // send receipt
       await sendTransactionReceipt(user, transactionDoc);
 
-      console.log(`Cable TV Subscription successful`);
+      console.log('Cable TV Subscription successful');
+
+      await logUserActivity(user._id, 'cable_tv', { amount });
 
       return res.status(200).json({
         success: true,
@@ -675,6 +682,8 @@ export const payUtilityBill = async (req, res, next) => {
 
       console.log('Utility payment successful');
 
+      await logUserActivity(user._id, 'utility', { amount, disco_name });
+
       return res.status(200).json({
         success: true,
         message: 'Utility bill payment successful',
@@ -683,7 +692,6 @@ export const payUtilityBill = async (req, res, next) => {
           amount,
           disco_name,
           meter_number,
-          amount,
           meterType,
           status: transactionDoc.status,
           timestamp: transactionDoc.createdAt,

@@ -125,6 +125,9 @@ const userSchema = new mongoose.Schema(
     lastLoginAttempt: {
       type: Date,
     },
+    lastActive: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
