@@ -1,6 +1,6 @@
 import OTP from '../models/OTP.js';
 import User from '../models/User.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { generatePasswordResetEmailTemplate } from '../utils/email.js';
 import sendEmail from '../services/emailService.js';
 import ApiError from '../utils/error.js';

@@ -1,5 +1,5 @@
 import OTP from '../models/OTP.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { isValidEmail } from '../utils/helpers.js';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
