@@ -112,7 +112,7 @@ export const createVirtualAccount = async (req, res, next) => {
     );
 
     const payload = {
-      validFor: 600,
+      validFor: 900,
       externalReference,
       amount,
       amountControl: 'Fixed',

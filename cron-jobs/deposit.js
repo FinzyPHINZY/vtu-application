@@ -123,6 +123,12 @@ const job = cron.schedule('*/5 * * * * *', async () => {
         );
 
         const { data } = response.data;
+
+        if (!data) {
+          console.log('still pending');
+          continue;
+        }
+
         console.log(`Transaction ${txn._id} status from API:`, data.status);
 
         // Handle successful transaction
