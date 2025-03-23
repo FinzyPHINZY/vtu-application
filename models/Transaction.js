@@ -65,6 +65,9 @@ const transactionSchema = new mongoose.Schema(
     lastVerifiedAt: {
       type: Date,
     },
+    processingTime: {
+      type: Number,
+    },
     statusHistory: [
       {
         status: String,
