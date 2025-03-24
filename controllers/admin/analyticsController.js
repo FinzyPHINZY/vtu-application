@@ -128,6 +128,7 @@ export const getTransactionsSummary = async (req, res, next) => {
 export const fetchActiveUsers = async (req, res, next) => {
   try {
     const data = {
+      totalUsers: await User.countDocuments(),
       activeUsers: {
         daily: await getActiveUsers('daily'),
         weekly: await getActiveUsers('weekly'),
