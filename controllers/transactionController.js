@@ -351,13 +351,23 @@ export const purchaseAirtime = async (req, res, next) => {
           airtime_type,
         },
         {
-          timeout: 30000,
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
           },
         }
       );
+
+      const { Status, api_response } = response.data;
+
+      if (Status !== 'successful') {
+        throw new ApiError(
+          400,
+          false,
+          'Failed from provider. Try again',
+          api_response
+        );
+      }
 
       console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
@@ -473,7 +483,6 @@ export const purchaseData = async (req, res, next) => {
           Ported_number,
         },
         {
-          timeout: 30000,
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
@@ -481,6 +490,16 @@ export const purchaseData = async (req, res, next) => {
         }
       );
 
+      const { Status, api_response } = response.data;
+
+      if (Status !== 'successful') {
+        throw new ApiError(
+          400,
+          false,
+          'Failed from provider. Try again',
+          api_response
+        );
+      }
       // update transaction status
       transactionDoc.status = 'success';
 
@@ -510,7 +529,7 @@ export const purchaseData = async (req, res, next) => {
       });
     } catch (error) {
       // Handle failed API call
-      console.error('DataStation API call failed:', error);
+      console.error('DataStation API call failed:', error.data);
 
       // Reverse the transaction
       user.accountBalance += amount;
@@ -582,9 +601,19 @@ export const payCableTV = async (req, res, next) => {
             Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
             'Content-Type': 'application/json',
           },
-          timeout: 30000,
         }
       );
+
+      const { Status, api_response } = response.data;
+
+      if (Status !== 'successful') {
+        throw new ApiError(
+          400,
+          false,
+          'Failed from provider. Try again',
+          api_response
+        );
+      }
 
       transactionDoc.status = 'success';
 
@@ -668,10 +697,20 @@ export const payUtilityBill = async (req, res, next) => {
         {
           headers: {
             Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
-            timeout: 30000,
           },
         }
       );
+
+      const { Status, api_response } = response.data;
+
+      if (Status !== 'successful') {
+        throw new ApiError(
+          400,
+          false,
+          'Failed from provider. Try again',
+          api_response
+        );
+      }
 
       transactionDoc.status = 'success';
 

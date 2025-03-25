@@ -24,6 +24,17 @@ router.use(checkSystemStatus);
 router.use(tokenExtractor);
 router.use(userExtractor);
 
+router.post('/webhook', (req, res) => {
+  console.log('webhook response', req.body);
+  return res
+    .status(200)
+    .json({
+      status: 200,
+      message: 'webhook called successfully',
+      data: req.body,
+    });
+});
+
 router.get(
   '/',
   validateHeaders,

@@ -1,4 +1,5 @@
 import UserActivity from '../models/UserActivity.js';
+import User from '../models/User.js';
 
 export const logUserActivity = async (userId, activityType, metadata = {}) => {
   try {
