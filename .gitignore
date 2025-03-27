@@ -6,3 +6,5 @@ prod-privatekey.pem
 prod-publickey.cer
 .env*
 seed data
+private_key.pem
+public_key.pem
