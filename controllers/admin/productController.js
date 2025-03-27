@@ -1,6 +1,85 @@
+import axios from 'axios';
 import CablePlan from '../../models/CablePlan.js';
 import DataPlan from '../../models/DataPlans.js';
 import ApiError from '../../utils/error.js';
+
+export const fetchAndUpdatePlans = async (req, res, next) => {
+  try {
+    console.log('Fetching data from API...');
+
+    const response = await axios.get(
+      `${process.env.DATASTATION_ENDPOINT}/api/user`,
+      {
+        headers: {
+          Authorization: `Token ${process.env.DATASTATION_AUTH_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('data fetched successfully');
+
+    const { MTN_PLAN, GLO_PLAN, AIRTEL_PLAN } = response.data.Dataplans;
+    const nineMobilePlan = response.data.Dataplans['9MOBILE_PLAN'];
+    const { GOTVPLAN, DSTVPLAN, STARTIMEPLAN } = response.data.Cableplan;
+
+    const tvPlans = [...GOTVPLAN, ...DSTVPLAN, ...STARTIMEPLAN];
+
+    const parsedTvPlans = [];
+    const parsedDataPlans = [];
+
+    const internetPlans = [
+      ...nineMobilePlan.ALL,
+      ...MTN_PLAN.ALL,
+      ...GLO_PLAN.ALL,
+      ...AIRTEL_PLAN.ALL,
+    ];
+
+    for (const plan of tvPlans) {
+      const newPlan = {
+        cablePlanID: Number(plan.cableplan_id),
+        cablename: plan.cableplan_id,
+        amount: plan.plan_amount,
+      };
+
+      parsedTvPlans.push(newPlan);
+    }
+
+    for (const plan of internetPlans) {
+      const newPlan = {
+        data_id: Number(plan.dataplan_id),
+        network: plan.plan_network,
+        planType: plan.plan_type,
+        amount: Number(plan.plan_amount),
+        size: plan.plan,
+        validity: plan.month_validate,
+      };
+
+      parsedDataPlans.push(newPlan);
+    }
+
+    // empty collections
+    await DataPlan.deleteMany({});
+    await CablePlan.deleteMany({});
+
+    console.log('Collections emptied.');
+
+    // populate collections
+    await DataPlan.insertMany(parsedDataPlans);
+    await CablePlan.insertMany(parsedTvPlans);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Data fetched and updated successfully',
+    });
+  } catch (error) {
+    console.log(
+      'ERROR: Failed to update plans',
+      error?.response || error?.message || error
+    );
+    next(error);
+  }
+};
 
 export const updateDataPlan = async (req, res, next) => {
   try {

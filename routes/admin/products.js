@@ -22,6 +22,13 @@ router.use(tokenExtractor);
 router.use(userExtractor);
 router.use(adminAuth);
 
+router.get(
+  '/update-data',
+  validateHeaders,
+  validateRequest,
+  ProductController.fetchAndUpdatePlans
+);
+
 router.put(
   '/data-plans/:planId',
   planIdValidation,
