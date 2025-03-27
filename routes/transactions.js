@@ -26,13 +26,11 @@ router.use(userExtractor);
 
 router.post('/webhook', (req, res) => {
   console.log('webhook response', req.body);
-  return res
-    .status(200)
-    .json({
-      status: 200,
-      message: 'webhook called successfully',
-      data: req.body,
-    });
+  return res.status(200).json({
+    status: 200,
+    message: 'webhook called successfully',
+    data: req.body,
+  });
 });
 
 router.get(
@@ -116,6 +114,13 @@ router.get(
   validateHeaders,
   validateRequest,
   TransactionController.fetchDataPlans
+);
+
+router.get(
+  '/data-plans/ogdams',
+  validateHeaders,
+  validateRequest,
+  TransactionController.fetchOgdamsData
 );
 
 // get networks
