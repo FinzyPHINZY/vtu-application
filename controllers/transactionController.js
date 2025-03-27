@@ -856,3 +856,43 @@ export const getNetworkList = async (req, res, next) => {
     next(error);
   }
 };
+
+export const fetchOgdamsData = async (req, res, next) => {
+  try {
+    console.log(process.env.OGDAMS_API_KEY);
+
+    const responseOgdams = await axios.get(
+      `${process.env.OGDAMS_ENDPOINT}/api/v4/get/data/plans`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OGDAMS_API_KEY}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      }
+    );
+
+    const { data, status } = responseOgdams.data;
+
+    if (!status) {
+      throw new ApiError(400, false, 'Failed to fetch OGDAMS data');
+    }
+
+    const airtelPlans = data.AIRTEL.filter((plan) => plan.type === 'AWOOF');
+
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: 'Data fetched successfully',
+        data: airtelPlans,
+      });
+  } catch (error) {
+    console.log(
+      'Failed to fetch data',
+      error?.response || error?.message || error
+    );
+
+    next(error);
+  }
+};
