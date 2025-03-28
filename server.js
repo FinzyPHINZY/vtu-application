@@ -10,6 +10,8 @@ import connectDB from './Config/Database.js';
 import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
 import { initialize } from './services/safeHavenAuth.js';
 
+import generateSignature from './services/signature.js';
+
 // routes
 import userRouter from './routes/user.js';
 import servicesRoutes from './routes/services.js';
@@ -57,8 +59,18 @@ app.use(requestLogger);
 app.use(passport.initialize());
 import './Config/passport.js';
 
-// Endpoints
+const signature = generateSignature({
+  virtualAccountName: 'john doe',
+  identityType: 'BVN',
+  licenseNumber: 'RC12345',
+  email: 'hello@johndoe.com',
+  customerName: 'john doe',
+  accountReference: 'ACC_VIR_JOHN_923847',
+});
 
+console.log(signature);
+
+// Endpoints
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
