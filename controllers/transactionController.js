@@ -880,16 +880,37 @@ export const fetchOgdamsData = async (req, res, next) => {
 
     const airtelPlans = data.AIRTEL.filter((plan) => plan.type === 'AWOOF');
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: 'Data fetched successfully',
-        data: airtelPlans,
-      });
+    return res.status(200).json({
+      success: true,
+      message: 'Data fetched successfully',
+      data: airtelPlans,
+    });
   } catch (error) {
     console.log(
       'Failed to fetch data',
+      error?.response || error?.message || error
+    );
+
+    next(error);
+  }
+};
+
+export const purchaseOgdamsData = async (req, res, next) => {
+  try {
+    console.log('buying the data');
+
+    const response = await axios.post(
+      `${process.env.OGDAMS_ENDPOINT}/api/v1/vend/data.php`
+    );
+
+    const { data } = response.data;
+
+    return res
+      .status(200)
+      .json({ success: true, message: 'Data purchase successful' });
+  } catch (error) {
+    console.error(
+      'Failed to purchase airtel bundle',
       error?.response || error?.message || error
     );
 
