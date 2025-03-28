@@ -11,6 +11,8 @@ function generateSignature(params) {
     .map((key) => `${key}=${params[key]}`)
     .join('&');
 
+  console.log('signing string', signingString);
+
   const sign = crypto.createSign('RSA-SHA256');
   sign.update(signingString);
   sign.end();
