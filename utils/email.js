@@ -226,14 +226,14 @@ export const generateTransactionReceipt = (
 
     <div class="details">
       <p><span>Type:</span> ${transaction.serviceType}</p>
-      <p><span>Amount:</span> ${transaction.amount}</p>
+      <p><span>Amount:</span> ${transaction.sellingPrice}</p>
       <p><span>Status:</span> ${transaction.status}</p>
       <p><span>Reference:</span> ${transaction.reference}</p>
       <p><span>Date:</span> ${transaction.createdAt}</p>
     </div>
     <div class="footer">
       <p>Thank you for using our service, ${user.firstName}!</p>
-      <p>If you have any questions, contact our support team at <a href="mailto:support@bolddata.com">support@bolddata.com</a>.</p>
+      <p>If you have any questions, contact our support team at <a href="mailto:support@bolddata.com">bolddata80@gmail.com</a>.</p>
       <p>&copy; ${new Date().getFullYear()} Bold Data. All Rights Reserved.</p>
     </div>
   </div>

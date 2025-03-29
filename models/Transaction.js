@@ -29,6 +29,17 @@ const transactionSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    sellingPrice: {
+      type: Number,
+      default: function () {
+        return this.amount;
+      },
+      min: 0,
+    },
+    profit: {
+      type: Number,
+      default: 0,
+    },
     currency: {
       type: String,
       default: 'NGN',

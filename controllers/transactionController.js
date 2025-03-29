@@ -321,6 +321,8 @@ export const purchaseAirtime = async (req, res, next) => {
     const transactionDetails = {
       reference,
       serviceType: 'airtime',
+      amount, // For airtime, amount = sellingPrice since no profit
+      sellingPrice: amount, // Explicitly setting sellingPrice
       metadata: {
         network,
         mobile_number,
@@ -335,7 +337,7 @@ export const purchaseAirtime = async (req, res, next) => {
       transactionDetails
     );
 
-    const transactionDoc = await Transaction.find({ reference });
+    const transactionDoc = await Transaction.findById(transaction.toString());
 
     console.log('purchasing airtime');
 
@@ -372,12 +374,16 @@ export const purchaseAirtime = async (req, res, next) => {
       console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
       // Update transaction based on status
-      transactionDoc[0].status = 'success';
-      await transactionDoc[0].save();
+      transactionDoc.status = 'success';
+      transactionDoc.completedAt = new Date();
+      transactionDoc.processingTime =
+        transactionDoc.completedAt - transactionDoc.createdAt;
+
+      await transactionDoc.save();
       await user.save();
 
       // Send receipt
-      await sendTransactionReceipt(user, transactionDoc[0]);
+      await sendTransactionReceipt(user, transactionDoc);
 
       console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
@@ -387,12 +393,13 @@ export const purchaseAirtime = async (req, res, next) => {
         success: true,
         message: 'Airtime purchase successful',
         data: {
-          reference: transaction.reference,
+          reference: transactionDoc.reference,
           amount,
           network,
           mobile_number,
-          status: transaction.status,
-          timestamp: transaction.createdAt,
+          status: transactionDoc.status,
+          timestamp: transactionDoc.createdAt,
+          processingTime: transactionDoc.processingTime,
         },
       });
     } catch (error) {
@@ -404,8 +411,11 @@ export const purchaseAirtime = async (req, res, next) => {
 
       // Reverse the transaction
       user.accountBalance += amount;
-      transactionDoc[0].status = 'failed';
-      await transactionDoc[0].save();
+      transactionDoc.status = 'failed';
+      transactionDoc.failureReason =
+        error.response?.data?.message || 'Provider API failure';
+
+      await transactionDoc.save();
       await user.save();
 
       throw new ApiError(
@@ -423,7 +433,7 @@ export const purchaseAirtime = async (req, res, next) => {
 
 export const purchaseData = async (req, res, next) => {
   try {
-    const { network, mobile_number, plan, Ported_number, amount } = req.body;
+    const { network, mobile_number, plan, Ported_number } = req.body;
 
     // Validate request body
     if (!network || !mobile_number || !plan || Ported_number === undefined) {
@@ -444,27 +454,50 @@ export const purchaseData = async (req, res, next) => {
       throw new ApiError(400, false, 'Invalid network provider ID');
     }
 
+    // Get the plan details including sellingPrice
+    const planDoc = await DataPlan.findOne({
+      data_id: plan,
+      isAvailable: true,
+    });
+
+    if (!planDoc) {
+      throw new ApiError(404, false, 'Data plan not found or unavailable');
+    }
+
     // validate user balance
-    const user = await validateBalance(req.user.id, amount);
+    const user = await validateBalance(req.user.id, planDoc.sellingPrice);
 
     // create reference
     const reference = generateRandomReference('DAT', user.firstName);
+
+    const profit = planDoc.sellingPrice - planDoc.amount;
 
     // process the transaction
     const transactionDetails = {
       reference,
       serviceType: 'data',
+      amount: planDoc.amount,
+      sellingPrice: planDoc.sellingPrice,
+      profit,
       metadata: {
         network,
         mobile_number,
-        plan,
         Ported_number,
+        plan: {
+          id: planDoc.data_id,
+          name: planDoc.planType,
+          size: planDoc.size,
+          validity: planDoc.validity,
+          costPrice: planDoc.amount,
+          sellingPrice: planDoc.sellingPrice,
+          profit,
+        },
       },
     };
 
     const transaction = await processTransaction(
       user,
-      amount,
+      planDoc.sellingPrice,
       transactionDetails
     );
 
@@ -479,7 +512,7 @@ export const purchaseData = async (req, res, next) => {
         {
           network,
           mobile_number,
-          plan,
+          plan: planDoc.data_id,
           Ported_number,
         },
         {
@@ -502,6 +535,9 @@ export const purchaseData = async (req, res, next) => {
       }
       // update transaction status
       transactionDoc.status = 'success';
+      transactionDoc.completedAt = new Date();
+      transactionDoc.processingTime =
+        transactionDoc.completedAt - transactionDoc.createdAt;
 
       await transactionDoc.save();
       await user.save();
@@ -512,17 +548,24 @@ export const purchaseData = async (req, res, next) => {
 
       console.log(`Data bundle purchase successful for user: ${req.user.id}`);
 
-      await logUserActivity(user._id, 'data', { amount });
+      await logUserActivity(user._id, 'data', { amount: planDoc.sellingPrice });
 
       return res.status(200).json({
         success: true,
         message: 'Data purchase successful',
         data: {
           reference: transactionDoc.reference,
-          amount,
+          amount: planDoc.sellingPrice,
+          costPrice: planDoc.amount,
           network,
+          profit,
           mobile_number,
-          plan,
+          plan: {
+            id: planDoc.data_id,
+            name: planDoc.planType,
+            size: planDoc.size,
+            validity: planDoc.validity,
+          },
           status: transactionDoc.status,
           timestamp: transactionDoc.createdAt,
         },
@@ -532,8 +575,11 @@ export const purchaseData = async (req, res, next) => {
       console.error('DataStation API call failed:', error.data);
 
       // Reverse the transaction
-      user.accountBalance += amount;
+      user.accountBalance += planDoc.sellingPrice;
       transactionDoc.status = 'failed';
+      transactionDoc.failureReason =
+        error.response?.data?.message || 'Provider API failure';
+
       await transactionDoc.save();
       await user.save();
 
@@ -560,26 +606,47 @@ export const payCableTV = async (req, res, next) => {
       throw new ApiError(400, false, 'Missing required fields');
     }
 
+    const planDoc = await CablePlan.findOne({
+      cablePlanID: cableplan,
+      cablename,
+      isAvailable: true,
+    });
+
+    if (!planDoc) {
+      throw new ApiError(404, false, 'Cable plan not found or unavailable');
+    }
+
     // validate user balance
-    const user = await validateBalance(req.user.id, amount);
+    const user = await validateBalance(req.user.id, planDoc.sellingPrice);
 
     // create external reference
     const reference = generateRandomReference('CAB_TV', user.firstName);
+
+    const profit = planDoc.sellingPrice - planDoc.amount;
 
     // Process the transaction
     const transactionDetails = {
       reference,
       serviceType: 'tvSubscription',
+      amount: planDoc.amount,
+      sellingPrice: planDoc.sellingPrice,
+      profit,
       metadata: {
         cablename,
-        cableplan,
+        cableplan: {
+          id: planDoc.cablePlanID,
+          name: planDoc.cablename,
+          costPrice: planDoc.amount,
+          sellingPrice: planDoc.sellingPrice,
+          profit,
+        },
         smart_card_number,
       },
     };
 
     const transaction = await processTransaction(
       user,
-      amount,
+      planDoc.sellingPrice,
       transactionDetails
     );
 
@@ -593,7 +660,7 @@ export const payCableTV = async (req, res, next) => {
         'https://datastationapi.com/api/cablesub/',
         {
           cablename,
-          cableplan,
+          cableplan: planDoc.cablePlanID,
           smart_card_number,
         },
         {
@@ -616,6 +683,9 @@ export const payCableTV = async (req, res, next) => {
       }
 
       transactionDoc.status = 'success';
+      transactionDoc.completedAt = new Date();
+      transactionDoc.processingTime =
+        transactionDoc.completedAt - transactionDoc.createdAt;
 
       await transactionDoc.save();
       await user.save();
@@ -625,16 +695,24 @@ export const payCableTV = async (req, res, next) => {
 
       console.log('Cable TV Subscription successful');
 
-      await logUserActivity(user._id, 'cable_tv', { amount });
+      await logUserActivity(user._id, 'cable_tv', {
+        amount: planDoc.sellingPrice,
+      });
 
       return res.status(200).json({
         success: true,
         message: 'Cable Subscription purchase successful',
         data: {
           reference,
-          amount,
+          amount: planDoc.sellingPrice, // Return selling price
+          costPrice: planDoc.amount, // Original cost
+          profit,
           cablename,
-          cableplan,
+          plan: {
+            id: planDoc.cablePlanID,
+            name: planDoc.cablename,
+          },
+          smart_card_number,
           status: transactionDoc.status,
           timestamp: transactionDoc.createdAt,
         },
@@ -644,6 +722,8 @@ export const payCableTV = async (req, res, next) => {
 
       user.accountBalance += amount;
       transactionDoc.status = 'failed';
+      transactionDoc.failureReason =
+        error.response?.data?.message || 'Provider API failure';
       await transactionDoc.save();
       await user.save();
 
@@ -664,6 +744,15 @@ export const payUtilityBill = async (req, res, next) => {
   try {
     const { disco_name, meter_number, amount, meterType } = req.body;
 
+    if (!disco_name || !meter_number || !amount || !meterType) {
+      throw new ApiError(400, false, 'Missing required fields');
+    }
+
+    // Validate amount
+    if (amount <= 0) {
+      throw new ApiError(400, false, 'Amount must be greater than 0');
+    }
+
     // validate user balance
     const user = await validateBalance(req.user.id, amount);
 
@@ -673,6 +762,8 @@ export const payUtilityBill = async (req, res, next) => {
     const transactionDetails = {
       reference,
       serviceType: 'electricity',
+      amount, // Original amount
+      sellingPrice: amount, // Same as amount for utility bills
       metadata: {
         disco_name,
         meter_number,
@@ -713,6 +804,9 @@ export const payUtilityBill = async (req, res, next) => {
       }
 
       transactionDoc.status = 'success';
+      transactionDoc.completedAt = new Date();
+      transactionDoc.processingTime =
+        transactionDoc.completedAt - transactionDoc.createdAt;
 
       await transactionDoc.save();
       await user.save();
@@ -727,13 +821,14 @@ export const payUtilityBill = async (req, res, next) => {
         success: true,
         message: 'Utility bill payment successful',
         data: {
-          reference,
+          reference: transactionDoc.reference,
           amount,
           disco_name,
           meter_number,
           meterType,
           status: transactionDoc.status,
           timestamp: transactionDoc.createdAt,
+          processingTime: transactionDoc.processingTime,
         },
       });
     } catch (error) {
@@ -741,6 +836,8 @@ export const payUtilityBill = async (req, res, next) => {
 
       user.accountBalance += amount;
       transactionDoc.status = 'failed';
+      transactionDoc.failureReason =
+        error.response?.data?.message || 'Provider API failure';
 
       await transactionDoc.save();
       await user.save();
@@ -783,17 +880,34 @@ export const getTransactions = async (req, res, next) => {
 
 export const getCablePlans = async (req, res, next) => {
   try {
-    const plans = await CablePlan.find().sort({ cablePlanID: 1 });
+    const { cablename } = req.query; // Optional filtering by provider
+
+    const filter = { isAvailable: true };
+    if (cablename) {
+      filter.cablename = cablename;
+    }
+
+    const plans = await CablePlan.find(filter)
+      .sort({ sellingPrice: 1, cablePlanID: 1 })
+      .select('-__v -createdAt -updatedAt');
+
+    res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 
     res.json({
       success: true,
       message: 'Cable plans retrieved successfully',
       data: plans,
+      count: plans.length,
     });
   } catch (error) {
     console.error('Failed to fetch cable plans:', error);
 
-    next(error);
+    // More specific error handling
+    if (error.name === 'CastError') {
+      return next(new ApiError(400, false, 'Invalid query parameters'));
+    }
+
+    next(new ApiError(500, false, 'Failed to retrieve cable plans'));
   }
 };
 
@@ -829,16 +943,38 @@ export const getElectricityCompanies = async (req, res, next) => {
 
 export const fetchDataPlans = async (req, res, next) => {
   try {
-    const plans = await DataPlan.find();
+    const { network } = req.query; // Optional network filter
+
+    const filter = { isAvailable: true };
+    if (network) {
+      filter.network = network;
+      if (![1, 2, 3, 4].includes(Number(network))) {
+        throw new ApiError(400, false, 'Invalid network provider ID');
+      }
+    }
+
+    const plans = await DataPlan.find(filter)
+      .sort({ sellingPrice: 1, data_id: 1 })
+      .select('-__v -createdAt -updatedAt');
+
+    res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 
     res.json({
       success: true,
       message: 'Data plans retrieved successfully',
       data: plans,
+      count: plans.length,
+      ...(network && { filteredBy: { network } }),
     });
   } catch (error) {
-    console.error('Failed to fetch cable plans:', error);
-    next(error);
+    console.error('Failed to fetch data plans:', error);
+
+    // More specific error handling
+    if (error.name === 'CastError') {
+      return next(new ApiError(400, false, 'Invalid query parameters'));
+    }
+
+    next(new ApiError(500, false, 'Failed to retrieve data plans'));
   }
 };
 
