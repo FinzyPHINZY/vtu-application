@@ -87,9 +87,12 @@ const transactionSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true },
-  { _id: false } // to prrevent MongoDB from creating a separate ObjectId for each transaction
+  { timestamps: true, _id: false } // to prrevent MongoDB from creating a separate ObjectId for each transaction
 );
+
+transactionSchema.index({ serviceType: 1, createdAt: 1 });
+transactionSchema.index({ 'metadata.network': 1, createdAt: 1 });
+transactionSchema.index({ profit: 1 });
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
 

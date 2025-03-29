@@ -154,3 +154,81 @@ export const fetchActiveUsers = async (req, res, next) => {
     next(error);
   }
 };
+
+export const calcProfit = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    const match = {
+      status: 'success',
+      serviceType: {
+        $in: ['data', 'airtime', 'electricity', 'tvSubscription'],
+      },
+    };
+
+    if (startDate || endDate) {
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate);
+    }
+
+    // First aggregation - get totals across all services
+    const overallResults = await Transaction.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: null,
+          totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
+          totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
+          totalCost: { $sum: { $ifNull: ['$amount', 0] } },
+          totalCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Second aggregation - get breakdown by service type
+    const breakdownResults = await Transaction.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: '$serviceType',
+          profit: { $sum: { $ifNull: ['$profit', 0] } },
+          sales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
+          cost: { $sum: { $ifNull: ['$amount', 0] } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { profit: -1 } }, // Sort by most profitable first
+    ]);
+
+    // Format the breakdown into a more accessible object
+    const breakdown = breakdownResults.reduce((acc, curr) => {
+      acc[curr._id] = {
+        profit: curr.profit,
+        sales: curr.sales,
+        cost: curr.cost,
+        count: curr.count,
+      };
+      return acc;
+    }, {});
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...(overallResults[0] || {
+          totalProfit: 0,
+          totalSales: 0,
+          totalCost: 0,
+          totalCount: 0,
+        }),
+        breakdown,
+      },
+    });
+  } catch (error) {
+    console.error(
+      'Failed to calculate profit',
+      error?.response || error?.message || error
+    );
+    next(error);
+  }
+};
