@@ -82,6 +82,16 @@ router.post(
   TransactionController.payUtilityBill
 );
 
+router.post(
+  '/data/ogdams',
+  validateHeaders,
+  requireTransactionPin,
+  transactionPinValidation,
+  validateRequest,
+  validateTransactionPin,
+  TransactionController.purchaseOgdamsData
+);
+
 // // VAS Transaction endpoints
 
 // get cable plans

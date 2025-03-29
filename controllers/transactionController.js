@@ -899,15 +899,22 @@ export const purchaseOgdamsData = async (req, res, next) => {
   try {
     console.log('buying the data');
 
+    console.log(req.body);
+
+    const { networkId, planId, phoneNumber, reference } = req.body;
+    const payload = { networkId, planId, phoneNumber, reference };
+
     const response = await axios.post(
-      `${process.env.OGDAMS_ENDPOINT}/api/v1/vend/data.php`
+      `${process.env.OGDAMS_ENDPOINT}/api/v1/vend/data.php`,
+      { payload },
+      {}
     );
 
     const { data } = response.data;
 
     return res
       .status(200)
-      .json({ success: true, message: 'Data purchase successful' });
+      .json({ success: true, message: 'Data purchase successful', data });
   } catch (error) {
     console.error(
       'Failed to purchase airtel bundle',
