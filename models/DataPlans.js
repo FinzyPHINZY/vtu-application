@@ -18,7 +18,7 @@ const dataPlanSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  sellingPrince: {
+  sellingPrice: {
     type: Number,
     required: true,
     default: function () {
@@ -44,6 +44,9 @@ const dataPlanSchema = new mongoose.Schema({
     default: true,
   },
 });
+
+dataPlanSchema.index({ network: 1, isAvailable: 1 }); // Compound index
+dataPlanSchema.index({ sellingPrice: 1 }); // Single field index for sorting
 
 const DataPlan = mongoose.model('DataPlan', dataPlanSchema);
 

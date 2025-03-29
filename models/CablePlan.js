@@ -31,6 +31,8 @@ const cablePlanSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+cablePlanSchema.index({ cablename: 1, isAvailable: 1 }); // Compound index
+
 const CablePlan = mongoose.model('CablePlan', cablePlanSchema);
 
 export default CablePlan;
