@@ -15,6 +15,18 @@ const cablePlanSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    sellingPrice: {
+      type: Number,
+      required: true,
+      default: function () {
+        return this.amount;
+      },
+    },
+    isAvailable: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
   },
   { timestamps: true }
 );
