@@ -87,7 +87,7 @@ const transactionSchema = new mongoose.Schema(
       },
     ],
   },
-  { timestamps: true, _id: false } // to prrevent MongoDB from creating a separate ObjectId for each transaction
+  { timestamps: true } // to prrevent MongoDB from creating a separate ObjectId for each transaction
 );
 
 transactionSchema.index({ serviceType: 1, createdAt: 1 });
