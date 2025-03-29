@@ -38,7 +38,7 @@ export const fetchAndUpdatePlans = async (req, res, next) => {
     for (const plan of tvPlans) {
       const newPlan = {
         cablePlanID: Number(plan.cableplan_id),
-        cablename: plan.cableplan_id,
+        cablename: plan.cable,
         amount: plan.plan_amount,
       };
 
