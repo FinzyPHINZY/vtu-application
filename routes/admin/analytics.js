@@ -27,4 +27,7 @@ router.get('/summary', AnalyticsControllers.getTransactionsSummary);
 
 router.get('/active-users', AnalyticsControllers.fetchActiveUsers);
 
+// Get total profits
+router.get('/profits', AnalyticsControllers.calcProfit);
+
 export default router;
