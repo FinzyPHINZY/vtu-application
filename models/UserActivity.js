@@ -9,17 +9,6 @@ const userActivitySchema = new mongoose.Schema({
   },
   activityType: {
     type: String,
-    enum: [
-      'login',
-      'deposit',
-      'transfer',
-      'topup',
-      'data',
-      'cable_tv',
-      'utility',
-      'profile_update',
-      'others',
-    ],
   },
   timestamp: {
     type: Date,

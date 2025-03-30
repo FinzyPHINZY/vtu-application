@@ -2,6 +2,7 @@ import axios from 'axios';
 import CablePlan from '../../models/CablePlan.js';
 import DataPlan from '../../models/DataPlans.js';
 import ApiError from '../../utils/error.js';
+import { logUserActivity } from '../../utils/userActivity.js';
 
 export const fetchAndUpdatePlans = async (req, res, next) => {
   try {
@@ -84,10 +85,9 @@ export const fetchAndUpdatePlans = async (req, res, next) => {
 export const updateDataPlan = async (req, res, next) => {
   try {
     const { planId } = req.params;
-    const { amount } = req.body;
+    const { sellingPrice, isAvailable } = req.body;
 
     const existingPlan = await DataPlan.findById(planId);
-
     if (!existingPlan) {
       throw new ApiError(404, false, 'Data plan not found');
     }
@@ -100,25 +100,66 @@ export const updateDataPlan = async (req, res, next) => {
     //   );
     // }
 
-    const updatedPlan = await DataPlan.findByIdAndUpdate(
-      planId,
-      { amount },
-      { new: true, runValidators: true }
-    );
+    if (sellingPrice !== undefined) {
+      if (typeof sellingPrice !== 'number' || sellingPrice <= 0) {
+        throw new ApiError(
+          400,
+          false,
+          'Selling price must be a positive number'
+        );
+      }
+
+      if (sellingPrice < existingPlan.amount) {
+        throw new ApiError(
+          400,
+          false,
+          'Selling price cannot be less than cost price',
+          {
+            costPrice: existingPlan.amount,
+            attemptedSellingPrice: sellingPrice,
+          }
+        );
+      }
+    }
+
+    const updateFields = {};
+    if (isAvailable !== undefined) updateFields.isAvailable = isAvailable;
+    if (sellingPrice !== undefined) updateFields.sellingPrice = sellingPrice;
+
+    const updatedPlan = await DataPlan.findByIdAndUpdate(planId, updateFields, {
+      new: true,
+      runValidators: true,
+      select: '-__v', // Exclude version key from response
+    });
 
     if (!updatedPlan) {
       throw new ApiError(404, false, 'Data plan not found');
     }
 
-    console.log(`Data plan updated: ${planId}`, {
-      adminId: req.user.id,
-      updates: { amount },
+    // Log the update
+    console.log('Data plan updated', {
+      planId,
+      updatedBy: req.user.id,
+      changes: updateFields,
+      timestamp: new Date().toISOString(),
+    });
+
+    await logUserActivity(req.user.id, 'update_data_plan', {
+      planId,
+      changes: updateFields,
     });
 
     res.status(200).json({
       success: true,
       message: 'Data plan updated successfully',
-      data: updatedPlan,
+      data: {
+        id: updatedPlan._id,
+        network: updatedPlan.network,
+        planType: updatedPlan.planType,
+        isAvailable: updatedPlan.isAvailable,
+        sellingPrice: updatedPlan.sellingPrice,
+        previousSellingPrice: existingPlan.sellingPrice,
+      },
     });
   } catch (error) {
     console.error(`Failed to update data plan ${req.params.planId}:`, error);
@@ -129,7 +170,7 @@ export const updateDataPlan = async (req, res, next) => {
 export const updateCablePlan = async (req, res, next) => {
   try {
     const { planId } = req.params;
-    const { amount } = req.body;
+    const { sellingPrice, isAvailable } = req.body;
 
     const existingPlan = await CablePlan.findById(planId);
 
@@ -145,10 +186,40 @@ export const updateCablePlan = async (req, res, next) => {
     //   );
     // }
 
+    if (sellingPrice !== undefined) {
+      if (typeof sellingPrice !== 'number' || sellingPrice <= 0) {
+        throw new ApiError(
+          400,
+          false,
+          'Selling price must be a positive number'
+        );
+      }
+
+      if (sellingPrice < existingPlan.amount) {
+        throw new ApiError(
+          400,
+          false,
+          'Selling price cannot be less than cost price',
+          {
+            costPrice: existingPlan.amount,
+            attemptedSellingPrice: sellingPrice,
+          }
+        );
+      }
+    }
+
+    const updateFields = {};
+    if (isAvailable !== undefined) updateFields.isAvailable = isAvailable;
+    if (sellingPrice !== undefined) updateFields.sellingPrice = sellingPrice;
+
     const updatedCablePlan = await CablePlan.findByIdAndUpdate(
       planId,
-      { amount },
-      { new: true, runValidators: true }
+      updateFields,
+      {
+        new: true,
+        runValidators: true,
+        select: '-__v', // Exclude version key from response
+      }
     );
 
     if (!updatedCablePlan) {
@@ -156,14 +227,27 @@ export const updateCablePlan = async (req, res, next) => {
     }
 
     console.log(`Cable plan updated: ${planId}`, {
-      adminId: req.user.id,
-      updates: { amount },
+      updatedBy: req.user.id,
+      changes: updateFields,
+      timestamp: new Date().toISOString(),
+    });
+
+    await logUserActivity(req.user.id, 'update_cable_plan', {
+      planId,
+      changes: updateFields,
     });
 
     res.status(200).json({
       success: true,
       message: 'Cable plan updated successfully',
-      data: updatedCablePlan,
+      data: {
+        id: updatedCablePlan._id,
+        cablePlanID: updatedCablePlan.cablePlanID,
+        cablename: updatedCablePlan.cablename,
+        isAvailable: updatedCablePlan.isAvailable,
+        sellingPrice: updatedCablePlan.sellingPrice,
+        previousSellingPrice: existingPlan.sellingPrice,
+      },
     });
   } catch (error) {
     console.error(`Failed to update cable plan ${req.params.planId}:`, error);

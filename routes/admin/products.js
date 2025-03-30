@@ -29,7 +29,7 @@ router.get(
   ProductController.fetchAndUpdatePlans
 );
 
-router.put(
+router.patch(
   '/data-plans/:planId',
   planIdValidation,
   dataPlanValidation,
@@ -37,7 +37,7 @@ router.put(
   ProductController.updateDataPlan
 );
 
-router.put(
+router.patch(
   '/cable-plans/:planId',
   planIdValidation,
   cablePlanValidation,
