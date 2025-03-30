@@ -882,7 +882,7 @@ export const getCablePlans = async (req, res, next) => {
   try {
     const { cablename } = req.query; // Optional filtering by provider
 
-    const filter = { isAvailable: true };
+    const filter = {};
     if (cablename) {
       filter.cablename = cablename;
     }
@@ -945,7 +945,7 @@ export const fetchDataPlans = async (req, res, next) => {
   try {
     const { network } = req.query; // Optional network filter
 
-    const filter = { isAvailable: true };
+    const filter = {};
     if (network) {
       filter.network = network;
       if (![1, 2, 3, 4].includes(Number(network))) {
