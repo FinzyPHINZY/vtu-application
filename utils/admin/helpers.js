@@ -1,4 +1,6 @@
 import { body, param, query } from 'express-validator';
+import DataPlan from '../../models/DataPlans.js';
+import CablePlan from '../../models/CablePlan.js';
 
 export const revenueValidation = [
   query('period')
@@ -7,51 +9,126 @@ export const revenueValidation = [
     .withMessage('Invalid period specified'),
 ];
 
+// export const dataPlanValidation = [
+//   body('amount')
+//     .isFloat({ min: 0 })
+//     .withMessage('Amount must be a positive number'),
+// ];
+
 export const dataPlanValidation = [
-  body('amount')
-    .isFloat({ min: 0 })
-    .withMessage('Amount must be a positive number'),
+  param('planId').isMongoId().withMessage('Invalid plan ID format'),
+
+  body().custom((_, { req }) => {
+    const { isAvailable, sellingPrice } = req.body;
+
+    if (isAvailable === undefined && sellingPrice === undefined) {
+      throw new Error(
+        'At least one field (isAvailable or sellingPrice) must be provided'
+      );
+    }
+    return true;
+  }),
+
+  body('isAvailable')
+    .optional()
+    .isBoolean()
+    .withMessage('isAvailable must be a boolean value')
+    .toBoolean(),
+
+  body('sellingPrice')
+    .optional()
+    .isFloat({ min: 0.01 })
+    .withMessage('Selling price must be a positive number greater than 0')
+    .custom(async (sellingPrice, { req }) => {
+      if (sellingPrice) {
+        const plan = await DataPlan.findById(req.params.planId);
+        if (plan && sellingPrice < plan.amount) {
+          throw new Error('Selling price cannot be less than cost price');
+        }
+      }
+      return true;
+    })
+    .toFloat(),
 ];
 
 export const createDataPlanValidation = [
-  body('data_id').isFloat().withMessage('Data Id must be a number'),
-  body('network')
-    .isString()
-    .trim()
-    .notEmpty()
-    .withMessage('Network is required'),
-  body('planType')
-    .isString()
-    .trim()
-    .notEmpty()
-    .withMessage('Plan Type is required'),
   body('amount')
-    .isFloat({ min: 0 })
-    .withMessage('Amount must be a positive number'),
-  body('size').isString().trim().notEmpty().withMessage('Size is required'),
-  body('validity')
-    .isString()
-    .trim()
-    .notEmpty()
-    .withMessage('Validity is required'),
+    .isFloat({ min: 0.01 })
+    .withMessage('Amount must be a positive number greater than 0')
+    .toFloat(),
+
+  body('sellingPrice')
+    .optional()
+    .isFloat({ min: 0.01 })
+    .withMessage('Selling price must be a positive number greater than 0')
+    .toFloat(),
+
+  // Include other necessary fields for creation
+  body('network').notEmpty().withMessage('Network is required'),
+  body('planType').notEmpty().withMessage('Plan type is required'),
+  body('size').notEmpty().withMessage('Data size is required'),
+  body('validity').notEmpty().withMessage('Validity period is required'),
 ];
 
 export const cablePlanValidation = [
-  body('amount')
-    .isFloat({ min: 0 })
-    .withMessage('Amount must be a positive number'),
+  param('planId').isMongoId().withMessage('Invalid cable plan ID format'),
+
+  body().custom((_, { req }) => {
+    const { isAvailable, sellingPrice } = req.body;
+    if (isAvailable === undefined && sellingPrice === undefined) {
+      throw new Error(
+        'At least one field (isAvailable or sellingPrice) must be provided'
+      );
+    }
+    return true;
+  }),
+
+  body('isAvailable')
+    .optional()
+    .isBoolean()
+    .withMessage('isAvailable must be a boolean value')
+    .toBoolean(),
+
+  body('sellingPrice')
+    .optional()
+    .isFloat({ min: 0.01 })
+    .withMessage('Selling price must be a positive number greater than 0')
+    .custom(async (sellingPrice, { req }) => {
+      if (sellingPrice) {
+        const plan = await CablePlan.findById(req.params.planId);
+        if (plan && sellingPrice < plan.amount) {
+          throw new Error('Selling price cannot be less than cost price');
+        }
+      }
+      return true;
+    })
+    .toFloat(),
 ];
 
 export const createCablePlanValidation = [
-  body('cablePlanID').isFloat().withMessage('Cable plan id is required'),
+  body('cablePlanID')
+    .isInt({ min: 1 })
+    .withMessage('Plan ID must be a positive integer'),
+
   body('cablename')
-    .isString()
     .trim()
     .notEmpty()
-    .withMessage('cable name is required'),
+    .withMessage('Cable provider name is required'),
+
   body('amount')
-    .isFloat({ min: 0 })
-    .withMessage('Amount must be a positive number'),
+    .isFloat({ min: 0.01 })
+    .withMessage('Cost price must be a positive number'),
+
+  body('sellingPrice')
+    .optional()
+    .isFloat({ min: 0.01 })
+    .withMessage('Selling price must be a positive number'),
+
+  body('isAvailable')
+    .optional()
+    .isBoolean()
+    .withMessage('Availability must be a boolean')
+    .toBoolean(),
 ];
 
 export const planIdValidation = [
