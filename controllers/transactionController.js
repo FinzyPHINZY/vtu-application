@@ -891,7 +891,7 @@ export const getCablePlans = async (req, res, next) => {
       .sort({ sellingPrice: 1, cablePlanID: 1 })
       .select('-__v -createdAt -updatedAt');
 
-    res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    // res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 
     res.json({
       success: true,
@@ -957,7 +957,7 @@ export const fetchDataPlans = async (req, res, next) => {
       .sort({ sellingPrice: 1, data_id: 1 })
       .select('-__v -createdAt -updatedAt');
 
-    res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    // res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 
     res.json({
       success: true,
