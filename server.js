@@ -10,7 +10,7 @@ import connectDB from './Config/Database.js';
 import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
 import { initialize } from './services/safeHavenAuth.js';
 
-import generateSignature from './services/signature.js';
+import { generateNonceStr, generateSignature } from './services/palmpay.js';
 
 // routes
 import userRouter from './routes/user.js';
@@ -35,7 +35,7 @@ const PORT = process.env.PORT || 7000;
 connectDB();
 
 // Initialize cron jobs
-import './cron-jobs/deposit.js';
+// import './cron-jobs/deposit.js';
 
 (async () => {
   try {
@@ -59,16 +59,25 @@ app.use(requestLogger);
 app.use(passport.initialize());
 import './Config/passport.js';
 
+const requestTime = Date.now();
+const nonceStr = generateNonceStr();
+
+console.log('request time ==>>==', requestTime);
+console.log('nonceStr', nonceStr);
+
 const signature = generateSignature({
-  virtualAccountName: 'john doe',
+  virtualAccountName: 'Boluwatife Adeyemi',
   identityType: 'BVN',
   licenseNumber: 'RC12345',
-  email: 'hello@johndoe.com',
-  customerName: 'john doe',
-  accountReference: 'ACC_VIR_JOHN_923847',
+  email: 'finzyphinzy@gmail.com',
+  customerName: 'Boluwatife Adeyemi',
+  accountReference: 'ACC_VIR_Boluwatife_923847',
+  version: 'V2.0',
+  requestTime,
+  nonceStr,
 });
 
-console.log(signature);
+console.log('SIGNATURE ===>>>', signature);
 
 // Endpoints
 app.get('/', (req, res) => {

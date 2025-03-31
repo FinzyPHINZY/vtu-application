@@ -1,4 +1,4 @@
-import generateSignature from './services/signature.js';
+import generateSignature from './services/palmpay.js';
 const data = {
   status: true,
   data: {
