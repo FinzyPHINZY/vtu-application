@@ -10,8 +10,6 @@ import connectDB from './Config/Database.js';
 import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
 import { initialize } from './services/safeHavenAuth.js';
 
-import { generateNonceStr, generateSignature } from './services/palmpay.js';
-
 // routes
 import userRouter from './routes/user.js';
 import servicesRoutes from './routes/services.js';
@@ -20,6 +18,7 @@ import oauthRoutes from './routes/oauth.js';
 import verificationRoutes from './routes/verification.js';
 import accountRoutes from './routes/account.js';
 import transactionRoutes from './routes/transactions.js';
+import depositRoutes from './routes/palmpay.js';
 import transferRoutes from './routes/transfers.js';
 import analyticsRoutes from './routes/admin/analytics.js';
 import productsRoutes from './routes/admin/products.js';
@@ -58,26 +57,6 @@ app.use(requestLogger);
 
 app.use(passport.initialize());
 import './Config/passport.js';
-
-const requestTime = Date.now();
-const nonceStr = generateNonceStr();
-
-console.log('request time ==>>==', requestTime);
-console.log('nonceStr', nonceStr);
-
-const signature = generateSignature({
-  virtualAccountName: 'Boluwatife Adeyemi',
-  identityType: 'BVN',
-  licenseNumber: 'RC12345',
-  email: 'finzyphinzy@gmail.com',
-  customerName: 'Boluwatife Adeyemi',
-  accountReference: 'ACC_VIR_Boluwatife_923847',
-  version: 'V2.0',
-  requestTime,
-  nonceStr,
-});
-
-console.log('SIGNATURE ===>>>', signature);
 
 // Endpoints
 app.get('/', (req, res) => {
@@ -145,6 +124,7 @@ app.use('/api/account', accountRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/transfers', transferRoutes);
+app.use('/api/deposit', depositRoutes);
 
 // admin endpoints
 app.use('/api/admin/system-control', systemControlRoutes);

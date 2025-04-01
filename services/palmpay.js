@@ -1,10 +1,9 @@
 import dotenv from 'dotenv';
 import crypto from 'node:crypto';
-import fs from 'node:fs';
 dotenv.config();
 
-// const privateKey = process.env.PALMPAY_PRIVATE_KEY;
-const privateKey = fs.readFileSync('./private_key.pem', 'utf8');
+const privateKey = process.env.PALMPAY_MERCHANT_PRIVATE_KEY;
+// const privateKey = fs.readFileSync('./private_key.pem', 'utf8');
 
 export function generateSignature(params) {
   const sortedKeys = Object.keys(params).sort();
@@ -17,7 +16,7 @@ export function generateSignature(params) {
   sign.update(signingString);
   sign.end();
 
-  const signature = sign.sign('privateKey', 'base64');
+  const signature = sign.sign(privateKey, 'base64');
 
   return signature;
 }
