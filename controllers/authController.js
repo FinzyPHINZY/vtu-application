@@ -8,10 +8,7 @@ import { generateOtpEmailTemplate } from '../utils/email.js';
 import sendEmail from '../services/emailService.js';
 import { getAuthorizationToken } from '../services/safeHavenAuth.js';
 import ApiError from '../utils/error.js';
-import { OAuth2Client } from 'google-auth-library';
 import { logUserActivity } from '../utils/userActivity.js';
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const requestOtp = async (req, res, next) => {
   try {
@@ -22,9 +19,9 @@ export const requestOtp = async (req, res, next) => {
     }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser?.isVerified) {
-      throw new ApiError(409, false, 'Email already registered');
-    }
+    // if (existingUser?.isVerified) {
+    //   throw new ApiError(409, false, 'Email already registered');
+    // }
 
     // generate a four digit otp
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -41,7 +38,7 @@ export const requestOtp = async (req, res, next) => {
 
     const html = generateOtpEmailTemplate(otp, email);
     // Send OTP email
-    await sendEmail(email, 'Registration OTP', html);
+    await sendEmail(email, 'Authentication OTP', html);
 
     if (!existingUser) {
       await User.create({ email });
@@ -57,7 +54,7 @@ export const requestOtp = async (req, res, next) => {
   }
 };
 
-export const verifyOtp = async (req, res) => {
+export const verifyOtp = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
 
@@ -78,18 +75,103 @@ export const verifyOtp = async (req, res) => {
       throw new ApiError(404, false, 'User not found');
     }
 
-    otpRecord.verified = true;
-    user.isVerified = true;
-    await user.save();
-    await otpRecord.save();
+    if (!user.firstName) {
+      otpRecord.verified = true;
+      user.isVerified = true;
 
-    await OTP.deleteOne({ email });
+      await user.save();
+      await otpRecord.save();
 
-    res.status(200).json({
-      success: true,
-      message: 'OTP verified successfully',
-      email,
-    });
+      await OTP.deleteOne({ email });
+
+      await logUserActivity(user._id, 'signup', { ip: req.ip });
+
+      res.status(200).json({
+        success: true,
+        message: 'OTP verified successfully',
+        email,
+      });
+    } else {
+      if (user.isGoogleUser) {
+        throw new ApiError(400, false, 'Please sign in with Google');
+      }
+
+      if (!user.isVerified) {
+        throw new ApiError(400, false, 'User is not verified');
+      }
+
+      const refreshToken = await getAuthorizationToken();
+
+      const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
+      const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
+
+      const body = {
+        grant_type: 'refresh_token',
+        client_id: CLIENT_ID,
+        client_assertion: CLIENT_ASSERTION,
+        client_assertion_type:
+          'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+        refresh_token: refreshToken,
+      };
+
+      console.log('generating safe haven token');
+      const response = await axios.post(
+        `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+        body
+      );
+
+      if (response.data.error) {
+        throw new ApiError(403, false, response.data.error);
+      }
+
+      console.log('successfully generated safe haven token');
+
+      const { access_token, expires_in, ibs_client_id } = response.data;
+
+      user.safeHavenAccessToken = {
+        access_token,
+        ibs_client_id,
+      };
+      await user.save();
+
+      const userForToken = {
+        id: user._id,
+        safeHavenAccessToken: {
+          access_token,
+          expires_in,
+          ibs_client_id,
+        },
+      };
+
+      const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
+        expiresIn: '1d',
+      });
+
+      await logUserActivity(user._id, 'login', { ip: req.ip });
+
+      await OTP.deleteOne({ email });
+
+      res.status(200).json({
+        success: true,
+        message: 'Signed in successfully',
+        data: {
+          _id: user._id,
+          email: user.email,
+          role: user.role,
+          accountBalance: user.accountBalance,
+          hasSetTransactionPin: user.hasSetTransactionPin,
+          isVerified: user.isVerified,
+          status: user.status,
+          isGoogleUser: true,
+          accountDetails: user.accountDetails,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phoneNumber: user.phoneNumber,
+        },
+        token,
+        expires_in,
+      });
+    }
   } catch (error) {
     console.error('OTP verification failed', error);
     next(error);
@@ -98,7 +180,7 @@ export const verifyOtp = async (req, res) => {
 
 export const completeSignUp = async (req, res) => {
   try {
-    const { firstName, lastName, email, phoneNumber, password } = req.body;
+    const { firstName, lastName, email, phoneNumber } = req.body;
 
     if (!firstName.length || !lastName.length) {
       throw new ApiError(
@@ -116,7 +198,6 @@ export const completeSignUp = async (req, res) => {
     existingUser.firstName = firstName;
     existingUser.lastName = lastName;
     existingUser.phoneNumber = phoneNumber;
-    existingUser.password = await bcrypt.hash(password, 10);
 
     existingUser.accountBalance = 0;
     existingUser.accountDetails = {
@@ -249,130 +330,5 @@ export const login = async (req, res, next) => {
       'Error during login',
       error?.response || error?.message || error
     );
-  }
-};
-
-// google login
-export const googleLogin = async (req, res) => {
-  try {
-    const { email, googleId, firstName, lastName } = req.user;
-
-    // Find or create user
-    let user = await User.findOne({ email });
-
-    if (user) {
-      if (!user.googleId) {
-        user.googleId = googleId;
-        user.isGoogleUser = true;
-        user.isVerified = true;
-        if (!user.firstName) user.firstName = firstName || 'Unknown';
-        if (!user.lastName) user.lastName = lastName || 'Unknown';
-        await user.save();
-      } else if (user.googleId !== googleId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email already associated with different Google account',
-        });
-      }
-    } else {
-      // Create new user with Google credentials
-      user = await User.create({
-        email,
-        googleId,
-        isVerified: true,
-        isGoogleUser: true,
-        phoneNumber: null,
-        firstName,
-        lastName,
-        accountBalance: 0,
-        accountDetails: {
-          bankName: '',
-          accountName: `${firstName || ''} ${lastName || ''}`,
-          accountType: 'Current',
-          accountBalance: '0',
-          status: 'Pending',
-        },
-      });
-    }
-
-    // if (user && user.isGoogleUser !== true) {
-    //   throw new ApiError(400, false, 'Please login with EMAIL and PASSWORD');
-    // }
-
-    // Get Safe Haven token
-
-    const refreshToken = await getAuthorizationToken();
-
-    const body = {
-      grant_type: 'refresh_token',
-      client_id: process.env.SAFE_HAVEN_CLIENT_ID,
-      client_assertion: process.env.SAFE_HAVEN_CLIENT_ASSERTION,
-      client_assertion_type:
-        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-      refresh_token: refreshToken,
-    };
-
-    let safeHavenResponse;
-    try {
-      safeHavenResponse = await axios.post(
-        `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-        body
-      );
-    } catch (error) {
-      console.error(
-        'Failed to get Safe Haven token:',
-        error.response?.data || error.message
-      );
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to authenticate with Safe Haven',
-      });
-    }
-
-    const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
-
-    user.safeHavenAccessToken = {
-      access_token,
-      ibs_client_id,
-    };
-    await user.save();
-
-    // Create JWT token
-    const userForToken = {
-      id: user._id,
-      safeHavenAccessToken: {
-        access_token,
-        expires_in,
-        ibs_client_id,
-      },
-    };
-
-    const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
-      expiresIn: '1d',
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: 'Signed in successfully',
-      data: {
-        _id: user._id,
-        email: user.email,
-        role: user.role,
-        accountBalance: user.accountBalance,
-        hasSetTransactionPin: user.hasSetTransactionPin,
-        isVerified: user.isVerified,
-        status: user.status,
-        isGoogleUser: true,
-        accountDetails: user.accountDetails,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        phoneNumber: user.phoneNumber,
-      },
-      token,
-      expires_in,
-    });
-  } catch (error) {
-    console.error('Google login failed:', error);
-    res.status(500).json({ success: false, message: 'Google login failed' });
   }
 };
