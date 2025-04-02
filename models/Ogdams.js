@@ -43,7 +43,7 @@ const ogDamsSchema = new mongoose.Schema({
   source: {
     type: String,
     enum: ['ogdams', 'datastation'],
-    default: 'datastation',
+    default: 'ogdams',
   },
   isAvailable: {
     type: Boolean,
