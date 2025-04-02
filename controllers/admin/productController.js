@@ -3,6 +3,7 @@ import CablePlan from '../../models/CablePlan.js';
 import DataPlan from '../../models/DataPlans.js';
 import ApiError from '../../utils/error.js';
 import { logUserActivity } from '../../utils/userActivity.js';
+import ogDams from '../../models/Ogdams.js';
 
 export const fetchAndUpdatePlans = async (req, res, next) => {
   try {
@@ -78,6 +79,62 @@ export const fetchAndUpdatePlans = async (req, res, next) => {
       'ERROR: Failed to update plans',
       error?.response || error?.message || error
     );
+    next(error);
+  }
+};
+
+export const fetchandUpdateOgdamsData = async (req, res, next) => {
+  try {
+    const responseOgdams = await axios.get(
+      `${process.env.OGDAMS_ENDPOINT}/api/v4/get/data/plans`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OGDAMS_API_KEY}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      }
+    );
+
+    const { data, status } = responseOgdams.data;
+
+    if (!status) {
+      throw new ApiError(400, false, 'Failed to fetch OGDAMS data');
+    }
+
+    const airtelPlans = data.AIRTEL.filter((plan) => plan.type === 'AWOOF');
+
+    const parsedPlans = [];
+
+    for (const plan of airtelPlans) {
+      const newPlan = {
+        networkId: plan.networkId,
+        planId: plan.planId,
+        name: plan.name,
+        validity: plan.validity,
+        currency: plan.currency,
+        amount: Number(plan.ourPrice),
+        sellingPrice: Number(plan.ourPrice),
+        type: plan.type,
+      };
+
+      parsedPlans.push(newPlan);
+    }
+
+    await ogDams.deleteMany({});
+
+    await ogDams.insertMany(parsedPlans);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Data fetched and updated successfully',
+    });
+  } catch (error) {
+    console.log(
+      'Failed to fetch data',
+      error?.response || error?.message || error
+    );
+
     next(error);
   }
 };

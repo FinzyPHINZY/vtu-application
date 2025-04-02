@@ -29,6 +29,13 @@ router.get(
   ProductController.fetchAndUpdatePlans
 );
 
+router.get(
+  '/update-ogdams',
+  validateHeaders,
+  validateRequest,
+  ProductController.fetchandUpdateOgdamsData
+);
+
 router.patch(
   '/data-plans/:planId',
   planIdValidation,

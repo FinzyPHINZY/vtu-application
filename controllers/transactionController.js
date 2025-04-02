@@ -16,7 +16,6 @@ import ElectricityCompany from '../models/ElectricityCompanies.js';
 import NetworkList from '../models/Networklist.js';
 import { logUserActivity } from '../utils/userActivity.js';
 import ogDams from '../models/Ogdams.js';
-import User from '../models/User.js';
 
 // const executeTransfer = async (req, res, next) => {
 //   try {
@@ -997,50 +996,16 @@ export const getNetworkList = async (req, res, next) => {
 
 export const fetchOgdamsData = async (req, res, next) => {
   try {
-    const responseOgdams = await axios.get(
-      `${process.env.OGDAMS_ENDPOINT}/api/v4/get/data/plans`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OGDAMS_API_KEY}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-      }
-    );
-
-    const { data, status } = responseOgdams.data;
-
-    if (!status) {
-      throw new ApiError(400, false, 'Failed to fetch OGDAMS data');
-    }
-
-    const airtelPlans = data.AIRTEL.filter((plan) => plan.type === 'AWOOF');
-
-    const parsedPlans = [];
-
-    for (const plan of airtelPlans) {
-      const newPlan = {
-        networkId: plan.networkId,
-        planId: plan.planId,
-        name: plan.name,
-        validity: plan.validity,
-        currency: plan.currency,
-        amount: Number(plan.ourPrice),
-        sellingPrice: Number(plan.ourPrice),
-        type: plan.type,
-      };
-
-      parsedPlans.push(newPlan);
-    }
-
-    await ogDams.deleteMany({});
-
-    await ogDams.insertMany(parsedPlans);
+    const plans = await ogDams
+      .find({})
+      .sort({ sellingPrice: 1, planId: 1 })
+      .select('-__v -createdAt -updatedAt');
 
     return res.status(200).json({
       success: true,
-      message: 'Data fetched successfully',
-      data: parsedPlans,
+      message: 'Data plans fetched successfully',
+      data: plans,
+      count: plans.length,
     });
   } catch (error) {
     console.log(
