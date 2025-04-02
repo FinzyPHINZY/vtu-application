@@ -38,7 +38,7 @@ export const requestOtp = async (req, res, next) => {
 
     const html = generateOtpEmailTemplate(otp, email);
     // Send OTP email
-    await sendEmail(email, 'Registration OTP', html);
+    await sendEmail(email, 'Authentication OTP', html);
 
     if (!existingUser) {
       await User.create({ email });
