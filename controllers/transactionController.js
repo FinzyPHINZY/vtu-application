@@ -15,6 +15,8 @@ import DataPlan from '../models/DataPlans.js';
 import ElectricityCompany from '../models/ElectricityCompanies.js';
 import NetworkList from '../models/Networklist.js';
 import { logUserActivity } from '../utils/userActivity.js';
+import ogDams from '../models/Ogdams.js';
+import User from '../models/User.js';
 
 // const executeTransfer = async (req, res, next) => {
 //   try {
@@ -995,8 +997,6 @@ export const getNetworkList = async (req, res, next) => {
 
 export const fetchOgdamsData = async (req, res, next) => {
   try {
-    console.log(process.env.OGDAMS_API_KEY);
-
     const responseOgdams = await axios.get(
       `${process.env.OGDAMS_ENDPOINT}/api/v4/get/data/plans`,
       {
@@ -1016,10 +1016,31 @@ export const fetchOgdamsData = async (req, res, next) => {
 
     const airtelPlans = data.AIRTEL.filter((plan) => plan.type === 'AWOOF');
 
+    const parsedPlans = [];
+
+    for (const plan of airtelPlans) {
+      const newPlan = {
+        networkId: plan.networkId,
+        planId: plan.planId,
+        name: plan.name,
+        validity: plan.validity,
+        currency: plan.currency,
+        amount: Number(plan.ourPrice),
+        sellingPrice: Number(plan.ourPrice),
+        type: plan.type,
+      };
+
+      parsedPlans.push(newPlan);
+    }
+
+    await ogDams.deleteMany({});
+
+    await ogDams.insertMany(parsedPlans);
+
     return res.status(200).json({
       success: true,
       message: 'Data fetched successfully',
-      data: airtelPlans,
+      data: parsedPlans,
     });
   } catch (error) {
     console.log(
@@ -1033,24 +1054,156 @@ export const fetchOgdamsData = async (req, res, next) => {
 
 export const purchaseOgdamsData = async (req, res, next) => {
   try {
-    console.log('buying the data');
+    const { planId, phoneNumber } = req.body;
 
-    console.log(req.body);
+    if (!phoneNumber || !planId) {
+      throw new ApiError(400, false, 'Missing required fields');
+    }
 
-    const { networkId, planId, phoneNumber, reference } = req.body;
-    const payload = { networkId, planId, phoneNumber, reference };
+    if (!isValidPhoneNumber(phoneNumber)) {
+      throw new ApiError(
+        400,
+        false,
+        'Invalid phone number format. Must be in format 0XXXXXXXXXX'
+      );
+    }
 
-    const response = await axios.post(
-      `${process.env.OGDAMS_ENDPOINT}/api/v1/vend/data.php`,
-      { payload },
-      {}
+    const planDoc = await ogDams.findOne({
+      planId,
+      isAvailable: true,
+    });
+
+    if (!planDoc) {
+      throw new ApiError(404, false, 'Data plan not found or unavailable');
+    }
+
+    const user = await validateBalance(req.user.id, planDoc.sellingPrice);
+
+    const reference = generateRandomReference('DAT', user.firstName);
+
+    const profit = planDoc.sellingPrice - planDoc.amount;
+
+    const transactionDetails = {
+      reference,
+      serviceType: 'data',
+      amount: planDoc.amount,
+      sellingPrice: planDoc.sellingPrice,
+      profit,
+      metadata: {
+        network: 2,
+        mobile_number: phoneNumber,
+        plan: {
+          id: planDoc.planId,
+          name: planDoc.name,
+          size: planDoc.name,
+          validity: planDoc.validity,
+          costPrice: planDoc.amount,
+          sellingPrice: planDoc.sellingPrice,
+          profit,
+        },
+      },
+    };
+
+    const transaction = await processTransaction(
+      user,
+      planDoc.sellingPrice,
+      transactionDetails
     );
 
-    const { data } = response.data;
+    const transactionDoc = await Transaction.findById(transaction.toString());
 
-    return res
-      .status(200)
-      .json({ success: true, message: 'Data purchase successful', data });
+    console.log('purchasing data');
+
+    try {
+      const payload = {
+        networkId: 2,
+
+        planId,
+        phoneNumber,
+        reference,
+      };
+
+      const response = await axios.post(
+        `${process.env.OGDAMS_ENDPOINT}/api/v1/vend/data`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.OGDAMS_API_KEY}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      const { status, data } = response.data;
+
+      if (status !== true) {
+        throw new ApiError(
+          400,
+          false,
+          'Failed from provider. Try again',
+          api_response
+        );
+      }
+
+      // update transaction status
+      transactionDoc.status = 'success';
+      transactionDoc.completedAt = new Date();
+      transactionDoc.processingTime =
+        transactionDoc.completedAt - transactionDoc.createdAt;
+
+      await transactionDoc.save();
+      await user.save();
+
+      // send receipt
+      await sendTransactionReceipt(user, transactionDoc);
+
+      console.log(`Data bundle purchase successful for user: ${req.user.id}`);
+
+      await logUserActivity(user._id, 'data', { amount: planDoc.sellingPrice });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Data purchase successful',
+        data: {
+          reference: transactionDoc.reference,
+          amount: planDoc.sellingPrice,
+          costPrice: planDoc.amount,
+          networkId: 2,
+          profit,
+          phoneNumber,
+          plan: {
+            id: planDoc.planId,
+            name: planDoc.name,
+            size: planDoc.size,
+            validity: planDoc.validity,
+          },
+          status: transactionDoc.status,
+          timestamp: transactionDoc.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error(
+        'OGDAMS API call failed:',
+        error?.response || error?.message || error
+      );
+
+      // Reverse the transaction
+      user.accountBalance += planDoc.sellingPrice;
+      transactionDoc.status = 'failed';
+      transactionDoc.failureReason =
+        error.response?.data?.message || 'Provider API failure';
+
+      await transactionDoc.save();
+      await user.save();
+
+      throw new ApiError(
+        error.response?.status || 500,
+        false,
+        error.response?.data?.message || 'Data purchase failed',
+        error.response?.data
+      );
+    }
   } catch (error) {
     console.error(
       'Failed to purchase airtel bundle',
