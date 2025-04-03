@@ -399,3 +399,181 @@ export const login = async (req, res, next) => {
     );
   }
 };
+
+// google login
+
+export const googleLogin = async (req, res) => {
+  try {
+    const { email, googleId, firstName, lastName } = req.user;
+
+    // Find or create user
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = googleId;
+
+        user.isGoogleUser = true;
+
+        user.isVerified = true;
+
+        if (!user.firstName) user.firstName = firstName || 'Unknown';
+
+        if (!user.lastName) user.lastName = lastName || 'Unknown';
+
+        await user.save();
+      } else if (user.googleId !== googleId) {
+        return res.status(400).json({
+          success: false,
+
+          message: 'Email already associated with different Google account',
+        });
+      }
+    } else {
+      // Create new user with Google credentials
+
+      user = await User.create({
+        email,
+
+        googleId,
+
+        isVerified: true,
+
+        isGoogleUser: true,
+
+        phoneNumber: null,
+
+        firstName,
+
+        lastName,
+
+        accountBalance: 0,
+
+        accountDetails: {
+          bankName: '',
+
+          accountName: `${firstName || ''} ${lastName || ''}`,
+
+          accountType: 'Current',
+
+          accountBalance: '0',
+
+          status: 'Pending',
+        },
+      });
+    }
+
+    // if (user && user.isGoogleUser !== true) {
+
+    //   throw new ApiError(400, false, 'Please login with EMAIL and PASSWORD');
+
+    // }
+
+    // Get Safe Haven token
+
+    const refreshToken = await getAuthorizationToken();
+
+    const body = {
+      grant_type: 'refresh_token',
+
+      client_id: process.env.SAFE_HAVEN_CLIENT_ID,
+
+      client_assertion: process.env.SAFE_HAVEN_CLIENT_ASSERTION,
+
+      client_assertion_type:
+        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+
+      refresh_token: refreshToken,
+    };
+
+    let safeHavenResponse;
+
+    try {
+      safeHavenResponse = await axios.post(
+        `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+
+        body
+      );
+    } catch (error) {
+      console.error(
+        'Failed to get Safe Haven token:',
+
+        error.response?.data || error.message
+      );
+
+      return res.status(500).json({
+        success: false,
+
+        message: 'Failed to authenticate with Safe Haven',
+      });
+    }
+
+    const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
+
+    user.safeHavenAccessToken = {
+      access_token,
+      ibs_client_id,
+    };
+
+    await user.save();
+
+    // Create JWT token
+
+    const userForToken = {
+      id: user._id,
+
+      safeHavenAccessToken: {
+        access_token,
+
+        expires_in,
+
+        ibs_client_id,
+      },
+    };
+
+    const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
+
+    return res.status(200).json({
+      success: true,
+
+      message: 'Signed in successfully',
+
+      data: {
+        _id: user._id,
+
+        email: user.email,
+
+        role: user.role,
+
+        accountBalance: user.accountBalance,
+
+        hasSetTransactionPin: user.hasSetTransactionPin,
+
+        isVerified: user.isVerified,
+
+        status: user.status,
+
+        isGoogleUser: true,
+
+        accountDetails: user.accountDetails,
+
+        firstName: user.firstName,
+
+        lastName: user.lastName,
+
+        phoneNumber: user.phoneNumber,
+      },
+
+      token,
+
+      expires_in,
+    });
+  } catch (error) {
+    console.error('Google login failed:', error);
+
+    res.status(500).json({ success: false, message: 'Google login failed' });
+  }
+};
