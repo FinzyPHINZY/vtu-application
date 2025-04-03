@@ -43,9 +43,9 @@ const transactionSchema = new mongoose.Schema(
     },
     virtualAccountId: {
       type: String,
-      required: (doc) => {
-        return doc?.serviceType === 'deposit';
-      },
+      // required: (doc) => {
+      //   return doc?.serviceType === 'deposit';
+      // },
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
