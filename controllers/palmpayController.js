@@ -122,6 +122,11 @@ export const updateVirtualAccountStatus = async (req, res, next) => {
   try {
     const { virtualAccountNo } = req.body;
 
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      throw new ApiError(404, false, 'User not found');
+    }
+
     const nonceStr = generateNonceStr();
 
     const payload = {
@@ -132,7 +137,16 @@ export const updateVirtualAccountStatus = async (req, res, next) => {
       nonceStr,
     };
 
-    const Signature = generateSignature(payload);
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
+
+    const isVerified = rsaVerify(
+      md5(sortParams(payload)).toUpperCase(),
+      generatedSignature,
+      process.env.PALMPAY_PUBLIC_KEY,
+      'SHA1withRSA'
+    );
+
+    console.log('Signature Verified:', isVerified);
 
     const response = await axios.post(
       `${process.env.PALMPAY_BASE_URL}/api/v2/virtual/account/label/update`,
@@ -142,7 +156,7 @@ export const updateVirtualAccountStatus = async (req, res, next) => {
           Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
           CountryCode: 'NG',
           'Content-Type': 'application/json;charset=UTF-8',
-          Signature,
+          Signature: generatedSignature,
         },
       }
     );
@@ -214,7 +228,12 @@ export const queryVirtualAccount = async (req, res, next) => {
   try {
     const { virtualAccountNo } = req.body;
 
-    const nonceStr = generateNonceStr;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      throw new ApiError(404, false, 'User not found');
+    }
+
+    const nonceStr = generateNonceStr();
 
     const payload = {
       requestTime: Date.now(),
@@ -223,7 +242,7 @@ export const queryVirtualAccount = async (req, res, next) => {
       virtualAccountNo,
     };
 
-    const Signature = generateSignature(payload);
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
 
     const response = await axios.post(
       `${process.env.PALMPAY_BASE_URL}/api/v2/virtual/account/label/queryOne`,
@@ -233,18 +252,31 @@ export const queryVirtualAccount = async (req, res, next) => {
           Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
           'Content-Type': 'application/json;charset=UTF-8',
           CountryCode: 'NG',
-          Signature,
+          Signature: generatedSignature,
         },
       }
     );
 
-    const { data } = response;
-    console.log(data);
+    if (response.status !== 200) {
+      throw new ApiError(
+        400,
+        false,
+        'Failed to query virtual account',
+        response.data
+      );
+    }
+
+    const { data } = response.data;
 
     return res.status(200).json({
       success: true,
       message: 'Virtual account fetched successfully',
-      data,
+      data: {
+        accountName: data.virtualAccountName,
+        accountNumber: data.virtualAccountNo,
+        email: data.email,
+        customerName: data.customerName,
+      },
     });
   } catch (error) {
     console.error(
