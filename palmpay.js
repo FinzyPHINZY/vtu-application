@@ -22,13 +22,13 @@ const PEM_END_PUBLIC = '\n-----END PUBLIC KEY-----';
 // Function to sign the request body using RSA-SHA1 algorithm
 export function sign(params, privateKey) {
   let parseStr = sortParams(params);
-  console.log('parseStr:', parseStr);
+  // console.log('parseStr:', parseStr);
 
   parseStr = md5(parseStr).toUpperCase();
-  console.log('MD5:', parseStr);
+  // console.log('MD5:', parseStr);
 
   const str = rsaSign(parseStr, privateKey, HashMap.SHA1withRSA);
-  console.log('Signature: ', str);
+  // console.log('Signature: ', str);
 
   return str;
 }

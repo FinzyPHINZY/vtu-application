@@ -1,38 +1,41 @@
 import axios from 'axios';
+import md5 from 'md5';
+
 import User from '../models/User.js';
+import { rsaVerify, sign, sortParams } from '../palmpay.js';
+import { generateNonceStr, generateSignature } from '../services/palmpay.js';
 import ApiError from '../utils/error.js';
 import { generateRandomReference } from '../utils/helpers.js';
-import { generateNonceStr, generateSignature } from '../services/palmpay.js';
-import { formatKey, rsaVerify, sign, sortParams } from '../palmpay.js';
-import md5 from 'md5';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-// Manually define __dirname in ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Construct the correct path to the private key
-const privateKeyPath = path.join(__dirname, './private_key.pem');
-const publicKeyPath = path.join(__dirname, './public_key.pem');
-const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
-const publicKey = fs.readFileSync(publicKeyPath, 'utf8');
+import Transaction from '../models/Transaction.js';
+import { logUserActivity } from '../utils/userActivity.js';
 
 export const createVirtualAccount = async (req, res, next) => {
   try {
+    const { amount } = req.body;
+
+    // Validate amount
+    if (!amount || amount <= 0) {
+      throw new ApiError(
+        400,
+        false,
+        'Amount must be a positive number',
+        `Amount: ${amount}`
+      );
+    }
+
     const user = await User.findById(req.user.id);
     if (!user) {
       throw new ApiError(404, false, 'User not found');
     }
 
     const accountReference = generateRandomReference('VIR_ACC', user.firstName);
+
     const nonceStr = generateNonceStr();
 
     const payload = {
       virtualAccountName: `${user.firstName} ${user.lastName}`,
       identityType: 'company',
-      licenceNumber: 'RC12345',
+      licenseNumber: 'RC12345',
       email: user.email,
       customerName: `${user.firstName} ${user.lastName}`,
       accountReference,
@@ -41,19 +44,15 @@ export const createVirtualAccount = async (req, res, next) => {
       nonceStr,
     };
 
-    // const generatedSignature = sign(payload, formatKey(privateKey, 'private'));
-
-    const generatedSignature = sign(payload, privateKey);
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
 
     const isVerified = rsaVerify(
       md5(sortParams(payload)).toUpperCase(),
       generatedSignature,
-      publicKey,
+      process.env.PALMPAY_PUBLIC_KEY,
       'SHA1withRSA'
     );
     console.log('Signature Verified:', isVerified);
-
-    console.log(process.env.PALMPAY_APP_ID === 'L250320160232739149981');
 
     const response = await axios.post(
       `${process.env.PALMPAY_BASE_URL}/api/v2/virtual/account/label/create`,
@@ -68,14 +67,46 @@ export const createVirtualAccount = async (req, res, next) => {
       }
     );
 
-    const { data } = response;
+    if (response.status !== 200) {
+      throw new ApiError(
+        400,
+        false,
+        'Failed to create virtual account',
+        response.data
+      );
+    }
 
-    console.log(data);
+    const { data } = response.data;
+
+    const transaction = await Transaction.create({
+      reference: accountReference,
+      type: 'credit',
+      serviceType: 'deposit',
+      amount: amount,
+      status: 'pending',
+      metadata: {
+        virtualAccountName: data.virtualAccountName,
+        accountNumber: data.virtualAccountNo,
+        status: data.status,
+      },
+    });
+
+    user.transactions.push(transaction._id);
+    await user.save();
+
+    await logUserActivity(user._id, 'others', {
+      details: 'Virtual Account Creation',
+    });
 
     return res.status(200).json({
       success: true,
       message: 'Virtual Account created successfully',
-      data,
+      data: {
+        virtualAccountName: data.virtualAccountName,
+        virtualAccountNo: data.virtualAccountNo,
+        status: data.status,
+        reference: data.accountReference,
+      },
     });
   } catch (error) {
     console.error(
