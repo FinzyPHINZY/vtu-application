@@ -259,7 +259,7 @@ export const completeSignUp = async (req, res) => {
       expiresIn: '1d',
     });
 
-    await logUserActivity(user._id, 'login', { ip: req.ip });
+    await logUserActivity(existingUser._id, 'login', { ip: req.ip });
 
     return res.status(201).json({
       success: true,
