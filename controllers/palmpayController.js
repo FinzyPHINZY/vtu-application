@@ -191,7 +191,15 @@ export const deleteVirtualAccount = async (req, res, next) => {
       virtualAccountNo,
     };
 
-    const Signature = generateSignature(payload);
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
+
+    const isVerified = rsaVerify(
+      md5(sortParams(payload)).toUpperCase(),
+      generatedSignature,
+      process.env.PALMPAY_PUBLIC_KEY,
+      'SHA1withRSA'
+    );
+    console.log('Signature Verified:', isVerified);
 
     const response = await axios.post(
       `${process.env.PALMPAY_BASE_URL}/api/v2/virtual/account/label/delete`,
@@ -201,18 +209,23 @@ export const deleteVirtualAccount = async (req, res, next) => {
           Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
           'Content-Type': 'application/json;charset=UTF-8',
           CountryCode: 'NG',
-          Signature,
+          Signature: generatedSignature,
         },
       }
     );
 
-    const { data } = response;
-    console.log(data);
+    if (response.status !== 200) {
+      throw new ApiError(
+        400,
+        false,
+        'Failed to delete virtual account',
+        response.data
+      );
+    }
 
     return res.status(200).json({
       success: true,
       message: 'Deleted virtual account successfully',
-      data,
     });
   } catch (error) {
     console.error(
