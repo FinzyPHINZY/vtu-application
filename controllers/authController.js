@@ -210,9 +210,76 @@ export const completeSignUp = async (req, res) => {
 
     await existingUser.save();
 
+    const refreshToken = await getAuthorizationToken();
+
+    const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
+    const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
+
+    const body = {
+      grant_type: 'refresh_token',
+      client_id: CLIENT_ID,
+      client_assertion: CLIENT_ASSERTION,
+      client_assertion_type:
+        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+      refresh_token: refreshToken,
+    };
+
+    console.log('generating safe haven token');
+
+    const response = await axios.post(
+      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+      body
+    );
+
+    if (response.data.error) {
+      throw new ApiError(403, false, response.data.error);
+    }
+
+    console.log('successfully generated safe haven token');
+
+    const { access_token, expires_in, ibs_client_id } = response.data;
+
+    existingUser.safeHavenAccessToken = {
+      access_token,
+      ibs_client_id,
+    };
+
+    await existingUser.save();
+
+    const userForToken = {
+      id: existingUser._id,
+      safeHavenAccessToken: {
+        access_token,
+        expires_in,
+        ibs_client_id,
+      },
+    };
+
+    const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
+      expiresIn: '1d',
+    });
+
+    await logUserActivity(user._id, 'login', { ip: req.ip });
+
     return res.status(201).json({
       success: true,
       message: 'Signed up successfully',
+      data: {
+        _id: existingUser._id,
+        email: existingUser.email,
+        role: existingUser.role,
+        accountBalance: existingUser.accountBalance,
+        hasSetTransactionPin: existingUser.hasSetTransactionPin,
+        isVerified: existingUser.isVerified,
+        status: existingUser.status,
+        isGoogleUser: true,
+        accountDetails: existingUser.accountDetails,
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        phoneNumber: existingUser.phoneNumber,
+      },
+      token,
+      expires_in,
     });
   } catch (error) {
     console.error('Error during Signup: ', error);
