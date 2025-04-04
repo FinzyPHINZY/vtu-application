@@ -277,6 +277,14 @@ export const getDateRange = (period) => {
       prevEndDate.setMonth(prevEndDate.getMonth() - 1);
       break;
 
+    case 'yearly':
+      startDate = new Date(now.getFullYear(), 0, 1); // January 1st
+      endDate = new Date(now.getFullYear(), 11, 31); // December 31st
+
+      prevStartDate = new Date(now.getFullYear() - 1, 0, 1);
+      prevEndDate = new Date(now.getFullYear() - 1, 11, 31);
+      break;
+
     default:
       throw new Error('Invalid period');
   }
