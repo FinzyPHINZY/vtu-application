@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 7000;
 connectDB();
 
 // Initialize cron jobs
-import './cron-jobs/deposit.js';
+// import './cron-jobs/deposit.js';
 
 (async () => {
   try {
