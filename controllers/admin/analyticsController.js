@@ -12,7 +12,7 @@ export const getRevenue = async (req, res, next) => {
   try {
     const { period } = req.query;
 
-    if (!period || !['weekly', 'monthly', 'yearly'].includes(period)) {
+    if (!period || !['daily', 'weekly', 'monthly', 'yearly'].includes(period)) {
       throw new ApiError(400, false, 'Invalid period', period);
     }
 
@@ -158,6 +158,17 @@ export const fetchActiveUsers = async (req, res, next) => {
 export const calcProfit = async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;
+
+    if (startDate && isNaN(new Date(startDate).getTime())) {
+      throw new ApiError(
+        400,
+        false,
+        'Invalid startDate format (use YYYY-MM-DD)'
+      );
+    }
+    if (endDate && isNaN(new Date(endDate).getTime())) {
+      throw new ApiError(400, false, 'Invalid endDate format (use YYYY-MM-DD)');
+    }
 
     const match = {
       status: 'success',
