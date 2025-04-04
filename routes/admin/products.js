@@ -37,6 +37,14 @@ router.get(
 );
 
 router.patch(
+  '/update-ogdams/:planId',
+  planIdValidation,
+  dataPlanValidation,
+  validateRequest,
+  ProductController.updateOgdamsDataPlan
+);
+
+router.patch(
   '/data-plans/:planId',
   planIdValidation,
   dataPlanValidation,

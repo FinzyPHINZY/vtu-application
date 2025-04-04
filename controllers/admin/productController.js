@@ -427,3 +427,87 @@ export const deleteCablePlan = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateOgdamsDataPlan = async (req, res, next) => {
+  try {
+    const { planId } = req.params;
+    const { sellingPrice, isAvailable } = req.body;
+
+    const existingPlan = await ogDams.findById(planId);
+    if (!existingPlan) {
+      throw new ApiError(404, false, 'Data plan not found', planId);
+    }
+
+    // if (amount < existingPlan.amount) {
+    //   throw new ApiError(
+    //     400,
+    //     false,
+    //     'New amount cannot be less than existing price'
+    //   );
+    // }
+
+    if (sellingPrice !== undefined) {
+      if (typeof sellingPrice !== 'number' || sellingPrice <= 0) {
+        throw new ApiError(
+          400,
+          false,
+          'Selling price must be a positive number'
+        );
+      }
+
+      if (sellingPrice < existingPlan.amount) {
+        throw new ApiError(
+          400,
+          false,
+          'Selling price cannot be less than cost price',
+          {
+            costPrice: existingPlan.amount,
+            attemptedSellingPrice: sellingPrice,
+          }
+        );
+      }
+    }
+
+    const updateFields = {};
+    if (isAvailable !== undefined) updateFields.isAvailable = isAvailable;
+    if (sellingPrice !== undefined) updateFields.sellingPrice = sellingPrice;
+
+    const updatedPlan = await ogDams.findByIdAndUpdate(planId, updateFields, {
+      new: true,
+      runValidators: true,
+      select: '-__v',
+    });
+
+    if (!updatedPlan) {
+      throw new ApiError(404, false, 'Data plan not found');
+    }
+
+    console.log('Data plan updated', {
+      planId,
+      updatedBy: req.user.id,
+      changes: updateFields,
+      timestamp: new Date().toISOString(),
+    });
+
+    await logUserActivity(req.user.id, 'update_data_plam', {
+      planId,
+      changes: updateFields,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Data plan updated successfully',
+      data: {
+        id: updatedPlan._id,
+        network: updatedPlan.name,
+        planType: updatedPlan.type,
+        isAvailable: updatedPlan.isAvailable,
+        sellingPrice: updatedPlan.sellingPrice,
+        previousSellingPrice: existingPlan.sellingPrice,
+      },
+    });
+  } catch (error) {
+    console.error(`Failed to update data plan ${req.params.planId}:`, error);
+    next(error);
+  }
+};
