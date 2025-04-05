@@ -12,6 +12,9 @@ import {
 const router = express.Router();
 
 router.use(checkSystemStatus);
+
+router.post('/webhooks', PalmpayController.handlePalmPayWebhook);
+
 router.use(tokenExtractor);
 router.use(userExtractor);
 
