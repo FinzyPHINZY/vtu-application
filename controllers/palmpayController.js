@@ -154,7 +154,6 @@ export const updateVirtualAccountStatus = async (req, res, next) => {
       {
         headers: {
           Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
-          CountryCode: 'NG',
           'Content-Type': 'application/json;charset=UTF-8',
           Signature: generatedSignature,
         },
@@ -287,6 +286,7 @@ export const queryVirtualAccount = async (req, res, next) => {
       data: {
         accountName: data.virtualAccountName,
         accountNumber: data.virtualAccountNo,
+        status: data.status,
         email: data.email,
         customerName: data.customerName,
       },
@@ -300,3 +300,258 @@ export const queryVirtualAccount = async (req, res, next) => {
     next(error);
   }
 };
+
+export const handlePalmPayWebhook = async (req, res, next) => {
+  try {
+    // 1. Verify the incoming webhook signature
+    const signature = req.headers.signature;
+    if (!signature) {
+      throw new ApiError(401, false, 'Missing signature header');
+    }
+
+    // 2. Sort and verify the payload
+    const sortedParams = sortParams(req.body);
+    const verifyResult = rsaVerify(
+      md5(sortedParams).toUpperCase(),
+      signature,
+      process.env.PALMPAY_PUBLIC_KEY,
+      'SHA1withRSA'
+    );
+
+    if (!verifyResult) {
+      throw new ApiError(401, false, 'Invalid webhook signature');
+    }
+
+    const webhookData = req.body;
+    console.log(
+      'Received PalmPay webhook:',
+      JSON.stringify(webhookData, null, 2)
+    );
+
+    // 3. Handle different webhook event types
+    switch (webhookData.eventType) {
+      case 'VIRTUAL_ACCOUNT_PAYMENT':
+        await handleVirtualAccountPayment(webhookData);
+        break;
+
+      case 'TRANSFER_SUCCESS':
+        await handleTransferSuccess(webhookData);
+        break;
+
+      case 'TRANSFER_FAILED':
+        await handleTransferFailed(webhookData);
+        break;
+
+      case 'DISPUTE':
+        await handleDispute(webhookData);
+        break;
+
+      default:
+        console.warn('Unhandled PalmPay webhook event:', webhookData.eventType);
+        return res.status(200).json({
+          success: true,
+          message: 'Webhook received but not processed',
+        });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: 'Webhook processed successfully' });
+  } catch (error) {
+    console.error(
+      'Failed to process PalmPay webhook:',
+      error?.response || error?.message || error
+    );
+    next(error);
+  }
+};
+
+// Handle virtual account payment notifications
+async function handleVirtualAccountPayment(webhookData) {
+  const {
+    virtualAccountNo,
+    amount,
+    transactionReference,
+    paymentReference,
+    paymentDate,
+    payerName,
+    payerPhone,
+    remark,
+  } = webhookData;
+
+  // Find transaction by virtual account number
+  const transaction = await Transaction.findOne({
+    'metadata.accountNumber': virtualAccountNo,
+    status: 'pending',
+  });
+
+  if (!transaction) {
+    console.warn(
+      `Transaction not found for virtual account: ${virtualAccountNo}`
+    );
+    return;
+  }
+
+  // Update transaction status
+  transaction.status = 'completed';
+  transaction.paymentReference = paymentReference;
+  transaction.metadata.payerName = payerName;
+  transaction.metadata.payerPhone = payerPhone;
+  transaction.metadata.paymentDate = paymentDate;
+  transaction.metadata.remark = remark;
+  await transaction.save();
+
+  // Find user and update balance
+  const user = await User.findById(transaction.user);
+  if (user) {
+    user.balance += amount;
+    await user.save();
+
+    // Log user activity
+    await logUserActivity(user._id, 'deposit', {
+      amount,
+      reference: transactionReference,
+      newBalance: user.balance,
+    });
+  }
+
+  console.log(
+    `Successfully processed payment for virtual account: ${virtualAccountNo}`
+  );
+}
+
+// Handle successful transfers
+async function handleTransferSuccess(webhookData) {
+  const {
+    transactionReference,
+    amount,
+    fee,
+    recipientAccount,
+    recipientName,
+    recipientBank,
+    status,
+    timestamp,
+  } = webhookData;
+
+  // Find transaction by reference
+  const transaction = await Transaction.findOne({
+    reference: transactionReference,
+    type: 'debit',
+    serviceType: 'transfer',
+  });
+
+  if (!transaction) {
+    console.warn(`Transfer transaction not found: ${transactionReference}`);
+    return;
+  }
+
+  // Update transaction status
+  transaction.status = 'completed';
+  transaction.metadata.fee = fee;
+  transaction.metadata.recipientDetails = {
+    account: recipientAccount,
+    name: recipientName,
+    bank: recipientBank,
+  };
+  await transaction.save();
+
+  const user = await User.findById(transaction.user);
+  if (user) {
+    await logUserActivity(user._id, 'transfer', {
+      amount,
+      fee,
+      recipient: recipientName,
+      reference: transactionReference,
+    });
+  }
+
+  console.log(`Successfully processed transfer: ${transactionReference}`);
+}
+
+// Handle failed transfers
+async function handleTransferFailed(webhookData) {
+  const {
+    transactionReference,
+    amount,
+    recipientAccount,
+    recipientName,
+    reason,
+    timestamp,
+  } = webhookData;
+
+  const transaction = await Transaction.findOne({
+    reference: transactionReference,
+    type: 'debit',
+    serviceType: 'transfer',
+  });
+
+  if (!transaction) {
+    console.warn(`Transfer transaction not found: ${transactionReference}`);
+    return;
+  }
+
+  transaction.status = 'failed';
+  transaction.metadata.failureReason = reason;
+  transaction.metadata.recipientAccount = recipientAccount;
+  transaction.metadata.recipientName = recipientName;
+  await transaction.save();
+
+  // Find user and refund balance if needed
+  const user = await User.findById(transaction.user);
+  if (user) {
+    user.balance += amount;
+    await user.save();
+
+    await logUserActivity(user._id, 'transfer_failed', {
+      amount,
+      reference: transactionReference,
+      reason,
+      newBalance: user.balance,
+    });
+  }
+
+  console.log(`Marked transfer as failed: ${transactionReference}`);
+}
+
+// Handle dispute notifications
+async function handleDispute(webhookData) {
+  const {
+    transactionReference,
+    disputeReference,
+    amount,
+    reason,
+    status,
+    timestamp,
+  } = webhookData;
+
+  const transaction = await Transaction.findOne({
+    reference: transactionReference,
+  });
+
+  if (!transaction) {
+    console.warn(`Transaction not found for dispute: ${transactionReference}`);
+    return;
+  }
+
+  // Create or update dispute record
+  transaction.dispute = {
+    reference: disputeReference,
+    reason,
+    status,
+    openedAt: timestamp,
+  };
+  await transaction.save();
+
+  const user = await User.findById(transaction.user);
+  if (user) {
+    await logUserActivity(user._id, 'dispute', {
+      amount,
+      transactionReference,
+      disputeReference,
+      reason,
+      status,
+    });
+  }
+
+  console.log(`Processed dispute for transaction: ${transactionReference}`);
+}
