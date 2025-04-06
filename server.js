@@ -46,6 +46,9 @@ connectDB();
   }
 })();
 
+
+app.set("trust proxy", true);
+
 // Middleware
 app.use(express.json());
 app.use(morgan('dev'));
