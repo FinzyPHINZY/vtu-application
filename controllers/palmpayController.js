@@ -319,8 +319,6 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 		// const requestIp = match ? match[1] : null;
 		const requestIp = forwarded ? forwarded.split(",")[0].trim() : req.ip;
 
-		console.log(req.headers);
-		console.log(forwarded);
 		console.log(requestIp, process.env.PALMPAY_IP);
 
 		console.log("request body", req.body);
