@@ -419,7 +419,7 @@ async function handlePaymentSuccess(paymentData) {
 	if (user) {
 		console.log("log8");
 
-		user.balance += amount;
+		user.accountBalance += amount;
 		await user.save();
 
 		await logUserActivity(user._id, "payment_received", {
