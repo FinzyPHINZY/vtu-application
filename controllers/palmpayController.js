@@ -315,25 +315,25 @@ export const queryVirtualAccount = async (req, res, next) => {
 export const handlePalmpayWebhook = async (req, res, next) => {
 	try {
 		const forwarded = req.headers["x-forwarded-for"];
-		// const match = forwarded ? forwarded.match(/for=([\d.]+)/) : null;
-		// const requestIp = match ? match[1] : null;
 		const requestIp = forwarded ? forwarded.split(",")[0].trim() : req.ip;
 
-		console.log(requestIp, process.env.PALMPAY_IP);
-
-		console.log("request body", req.body);
-
 		if (requestIp !== process.env.PALMPAY_IP) {
-			console.error("Invalid IP address:", requestIp);
 			throw new ApiError(403, false, "Unauthorized request origin");
 		}
 
-		const signature = req.headers["x-bold-signature"];
+		if (req.body.orderStatus !== 1) {
+			return res.status(200).json({
+				success: true,
+				message: "Webhook received but not processed (non-successful payment)",
+			});
+		}
+
+		const signature = req.body.sign;
 
 		const isVerified = rsaVerify(
 			md5(sortParams(req.body)).toUpperCase(),
-			req.body.sign,
-			process.env.PALMPAY_MERCHANT_PUBLIC_KEY,
+			signature,
+			process.env.PALMPAY_PRIVATE_KEY,
 			"SHA1withRSA",
 		);
 		console.log("Signature Verified:", isVerified);
@@ -342,21 +342,7 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 		// 	throw new ApiError(401, false, "Invalid webhook signature");
 		// }
 
-		const event = req.body;
-
-		switch (event.type) {
-			case "payment.success":
-				await handlePaymentSuccess(event);
-				break;
-			case "payment.failed":
-				await handlePaymentFailed(event);
-				break;
-			case "chargeback":
-				await handleChargeback(event);
-				break;
-			default:
-				console.warn("Unhandled palmpay event type:", event.type);
-		}
+		await handlePaymentSuccess(req.body);
 
 		res.status(200).json({ success: true });
 	} catch (error) {
@@ -365,33 +351,50 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 	}
 };
 
-async function handlePaymentSuccess(event) {
+async function handlePaymentSuccess(paymentData) {
 	const {
-		transactionId,
-		merchantReference,
-		amount,
+		accountReference,
+		orderNo,
+		payerAccountNo,
+		payerBankName,
+		payerAccountName,
+		virtualAccountNo,
+		virtualAccountName,
+		orderAmount,
 		currency,
-		customerEmail,
-		customerName,
-		timestamp,
-	} = event.data;
+		reference,
+		createdTime,
+		updateTime,
+		sessionId,
+		appId,
+	} = paymentData;
 
 	const transaction = await Transaction.findOne({
-		reference: merchantReference,
+		reference: accountReference,
 	});
 
 	if (!transaction) {
 		throw new ApiError(404, false, "Transaction not found");
 	}
 
+	transaction.amount = orderAmount / 100;
+
 	// update transaction status
 	transaction.status = "completed";
 	transaction.metadata = {
 		...transaction.metadata,
-		bolddDataTransactionId: transactionId,
-		customerEmail,
-		customerName,
-		completedat: new Date(timestamp),
+		orderNo,
+		payerAccountNo,
+		payerBankName,
+		payerAccountName,
+		virtualAccountNo,
+		virtualAccountName,
+		currency,
+		paymentReference: reference,
+		sessionId,
+		appId,
+		createdTime: new Date(createdTime),
+		updatedTime: new Date(updateTime),
 	};
 
 	await transaction.save();
@@ -403,14 +406,16 @@ async function handlePaymentSuccess(event) {
 		await user.save();
 
 		await logUserActivity(user._id, "payment_received", {
-			amount,
+			amount: transaction.amount,
 			currency,
-			transactionId,
+			transactionId: orderNo,
 			newBalance: user.balance,
+			paymentMethod: `${payerBankName} (${payerAccountNo})`,
+			payerName: payerAccountName,
 		});
 	}
 
-	console.log(`Processed successful payment for transaction ${transactionId}`);
+	console.log(`Processed successful payment for transaction ${orderNo}`);
 }
 
 async function handlePaymentFailed(event) {
