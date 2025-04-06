@@ -162,6 +162,15 @@ export const updateVirtualAccountStatus = async (req, res, next) => {
 			},
 		);
 
+		if (response.status !== 200) {
+			throw new ApiError(
+				400,
+				false,
+				"Failed to create update account status",
+				response.data,
+			);
+		}
+
 		const { data } = response;
 		console.log(data);
 
@@ -305,10 +314,11 @@ export const queryVirtualAccount = async (req, res, next) => {
 
 export const handlePalmpayWebhook = async (req, res, next) => {
 	try {
-		const forwarded = req.headers.forwarded;
+		const forwarded = req.headers["forwarded"];
 		const match = forwarded ? forwarded.match(/for=([\d.]+)/) : null;
 		const requestIp = match ? match[1] : null;
 
+		console.log(req.headers);
 		console.log(forwarded);
 		console.log(requestIp, process.env.PALMPAY_IP);
 
