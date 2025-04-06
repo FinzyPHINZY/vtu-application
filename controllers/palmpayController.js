@@ -330,6 +330,8 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
 		const signature = req.body.sign;
 
+		console.log("log1");
+
 		const isVerified = rsaVerify(
 			md5(sortParams(req.body)).toUpperCase(),
 			signature,
@@ -341,8 +343,11 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 		// if (!isVerified) {
 		// 	throw new ApiError(401, false, "Invalid webhook signature");
 		// }
+		console.log("log2");
 
 		await handlePaymentSuccess(req.body);
+
+		console.log("log100");
 
 		res.status(200).json({ success: true });
 	} catch (error) {
@@ -352,6 +357,8 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 };
 
 async function handlePaymentSuccess(paymentData) {
+	console.log("log3");
+
 	const {
 		accountReference,
 		orderNo,
@@ -373,9 +380,13 @@ async function handlePaymentSuccess(paymentData) {
 		reference: accountReference,
 	});
 
+	console.log("log4");
+
 	if (!transaction) {
 		throw new ApiError(404, false, "Transaction not found");
 	}
+
+	console.log("log5");
 
 	transaction.amount = orderAmount / 100;
 
@@ -397,11 +408,17 @@ async function handlePaymentSuccess(paymentData) {
 		updatedTime: new Date(updateTime),
 	};
 
+	console.log("log6");
+
 	await transaction.save();
+
+	console.log("log7");
 
 	// find and update user balance
 	const user = await User.findById(transaction.user);
 	if (user) {
+		console.log("log8");
+
 		user.balance += amount;
 		await user.save();
 
@@ -414,6 +431,8 @@ async function handlePaymentSuccess(paymentData) {
 			payerName: payerAccountName,
 		});
 	}
+
+	console.log("log9");
 
 	console.log(`Processed successful payment for transaction ${orderNo}`);
 }
