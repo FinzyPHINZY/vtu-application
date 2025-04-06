@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.use(checkSystemStatus);
 
-router.post('/palmpay-webhook', PalmpayController.handlePalmPayWebhook);
+router.post('/palmpay-webhook', PalmpayController.handlePalmpayWebhook);
 
 router.use(tokenExtractor);
 router.use(userExtractor);
