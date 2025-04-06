@@ -77,7 +77,11 @@ export const createVirtualAccount = async (req, res, next) => {
       );
     }
 
+    console.log(response.data)
+
     const { data } = response.data;
+
+
 
     console.log(data)
 
