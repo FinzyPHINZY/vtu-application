@@ -155,6 +155,7 @@ export const updateVirtualAccountStatus = async (req, res, next) => {
 			{
 				headers: {
 					Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
+					CountryCode: "NG",
 					"Content-Type": "application/json;charset=UTF-8",
 					Signature: generatedSignature,
 				},
