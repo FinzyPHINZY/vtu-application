@@ -314,6 +314,8 @@ export const handlePalmpayWebhook = async (req, res, next) => {
     const match = forwarded ? forwarded.match(/for=([\d.]+)/) : null;
     const requestIp = match ? match[1] : null;
 
+    console.log(requestIp, process.env.PALMPAY_IP)
+
     if (requestIp !== process.env.PALMPAY_IP) {
       console.error('Invalid IP address:', requestIp);
       throw new ApiError(403, false, 'Unauthorized request origin');
