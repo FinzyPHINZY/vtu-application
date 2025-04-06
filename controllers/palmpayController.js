@@ -391,7 +391,7 @@ async function handlePaymentSuccess(paymentData) {
 	transaction.amount = orderAmount / 100;
 
 	// update transaction status
-	transaction.status = "completed";
+	transaction.status = "success";
 	transaction.metadata = {
 		...transaction.metadata,
 		orderNo,
