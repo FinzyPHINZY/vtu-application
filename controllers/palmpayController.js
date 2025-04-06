@@ -399,6 +399,8 @@ async function handlePaymentSuccess(paymentData) {
 
 	await transaction.save();
 
+	console.log(transaction.user);
+
 	// find and update user balance
 	const user = await User.findById(transaction.user);
 
