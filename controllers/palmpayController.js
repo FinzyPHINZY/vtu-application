@@ -318,7 +318,7 @@ export const handlePalmpayWebhook = async (req, res, next) => {
     const isVerified = rsaVerify(
       md5(sortParams(req.body)).toUpperCase(),
       signature,
-      process.env.PALMPAY_PUBLIC_KEY,
+      process.env.PALMPAY_MERCHANT_PUBLIC_KEY,
       'SHA1withRSA'
     );
     console.log('Signature Verified:', isVerified);
