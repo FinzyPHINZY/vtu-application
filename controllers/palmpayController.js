@@ -36,7 +36,7 @@ export const createVirtualAccount = async (req, res, next) => {
     const payload = {
       virtualAccountName: `${user.firstName} ${user.lastName}`,
       identityType: 'company',
-      licenseNumber: 'RC12345',
+      licenseNumber: process.env.BOLDDATA_LICENSE_NUMBER,
       email: user.email,
       customerName: `${user.firstName} ${user.lastName}`,
       accountReference,
