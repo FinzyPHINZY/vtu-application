@@ -1,325 +1,173 @@
-import mongoose from 'mongoose';
+const crypto = require('node:crypto');
+const Transaction = require('../models/Transaction');
+const User = require('../models/User');
+const ApiError = require('../utils/error');
+const { logUserActivity } = require('../utils/userActivity');
+const config = require('../config');
 
-import DataPlans from './models/DataPlans.js';
+// Configuration
+const BOLD_DATA_IP = '47.254.157.75'; // Replace with actual BoldData IP
+const SIGNATURE_SECRET = config.boldData.webhookSecret;
 
-const gloDataPlans = [
-  {
-    data_id: 7,
-    network: 'MTN',
-    planType: 'SME',
-    amount: 257,
-    size: '1.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 8,
-    network: 'MTN',
-    planType: 'SME',
-    amount: 514,
-    size: '2.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 43,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 2820,
-    size: '10.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 44,
-    network: 'MTN',
-    planType: 'SME',
-    amount: 771,
-    size: '3.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 49,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 72,
-    size: '250.0 MB',
-    validity: '30 days',
-  },
-  {
-    data_id: 208,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 282,
-    size: '1.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 209,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 564,
-    size: '2.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 210,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 846,
-    size: '3.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 211,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 1410,
-    size: '5.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 212,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 141,
-    size: '500.0 MB',
-    validity: '30 days',
-  },
-  {
-    data_id: 213,
-    network: 'MTN',
-    planType: 'SME',
-    amount: 2570,
-    size: '10.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 214,
-    network: 'MTN',
-    planType: 'SME',
-    amount: 128.5,
-    size: '500.0 MB',
-    validity: '30 days',
-  },
-  {
-    data_id: 215,
-    network: 'MTN',
-    planType: 'GIFTING',
-    amount: 199,
-    size: '1.0 GB',
-    validity: '1 day',
-  },
-  {
-    data_id: 216,
-    network: 'MTN',
-    planType: 'GIFTING',
-    amount: 499,
-    size: '3.5 GB',
-    validity: '2 days',
-  },
-  {
-    data_id: 217,
-    network: 'MTN',
-    planType: 'GIFTING',
-    amount: 1999,
-    size: '15.0 GB',
-    validity: '7 days',
-  },
-  {
-    data_id: 222,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 5640,
-    size: '20.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 223,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 4230,
-    size: '15.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 231,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 278,
-    size: '1.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 233,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 556,
-    size: '2.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 234,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 834,
-    size: '3.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 235,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 1390,
-    size: '5.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 236,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 2780,
-    size: '10.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 237,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 10880,
-    size: '40.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 253,
-    network: 'MTN',
-    planType: 'DATA COUPONS',
-    amount: 486,
-    size: '2.0 GB',
-    validity: 'Monthly',
-  },
-  {
-    data_id: 254,
-    network: 'MTN',
-    planType: 'DATA COUPONS',
-    amount: 243,
-    size: '1.0 GB',
-    validity: 'Monthly',
-  },
-  {
-    data_id: 256,
-    network: 'MTN',
-    planType: 'DATA COUPONS',
-    amount: 1215,
-    size: '5.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 257,
-    network: 'MTN',
-    planType: 'DATA COUPONS',
-    amount: 729,
-    size: '3.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 259,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 139,
-    size: '500.0 MB',
-    validity: '30 days',
-  },
-  {
-    data_id: 260,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 50,
-    size: '150.0 MB',
-    validity: '30 days',
-  },
-  {
-    data_id: 266,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 408,
-    size: '1.5 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 269,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 1088,
-    size: '4.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 270,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 1668,
-    size: '6.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 271,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 1946,
-    size: '7.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 272,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 9430,
-    size: '35.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 273,
-    network: 'MTN',
-    planType: 'SME2',
-    amount: 11120,
-    size: '40.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 274,
-    network: 'MTN',
-    planType: 'DATA COUPONS',
-    amount: 121.5,
-    size: '500.0 MB',
-    validity: 'Monthly',
-  },
-  {
-    data_id: 291,
-    network: 'MTN',
-    planType: 'SME',
-    amount: 1285,
-    size: '5.0 GB',
-    validity: '30 days',
-  },
-  {
-    data_id: 292,
-    network: 'MTN',
-    planType: 'CORPORATE GIFTING',
-    amount: 18,
-    size: '50.0 MB',
-    validity: '30 days',
-  },
-];
-
-const seedDatabase = async () => {
+async function handleBoldDataWebhook(req, res, next) {
   try {
-    // await DataPlans.deleteMany(); // Clears previous records
-    await DataPlans.insertMany(gloDataPlans);
+    // 1. Verify the request origin
+    const forwarded = req.headers.forwarded;
+    const match = forwarded ? forwarded.match(/for=([\d.]+)/) : null;
+    const requestIp = match ? match[1] : null;
 
-    console.log('data plans seeded successfully!');
-    mongoose.connection.close();
+    if (requestIp !== BOLD_DATA_IP) {
+      console.error('Invalid IP address:', requestIp);
+      throw new ApiError(403, 'Unauthorized request origin');
+    }
+
+    // 2. Verify the webhook signature
+    const signature = req.headers['x-bold-signature'];
+    const expectedSignature = crypto
+      .createHmac('sha256', SIGNATURE_SECRET)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      throw new ApiError(401, 'Invalid webhook signature');
+    }
+
+    const event = req.body;
+
+    // 3. Process different event types
+    switch (event.type) {
+      case 'payment.success':
+        await handlePaymentSuccess(event);
+        break;
+      case 'payment.failed':
+        await handlePaymentFailed(event);
+        break;
+      case 'chargeback':
+        await handleChargeback(event);
+        break;
+      default:
+        console.warn('Unhandled BoldData event type:', event.type);
+    }
+
+    // 4. Send success response
+    res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Error seeding data plans', error);
-    mongoose.connection.close();
+    console.error('BoldData webhook error:', error);
+    next(error);
   }
-};
+}
 
-export default seedDatabase;
+async function handlePaymentSuccess(event) {
+  const {
+    transactionId,
+    merchantReference,
+    amount,
+    currency,
+    customerEmail,
+    customerName,
+    timestamp,
+  } = event.data;
+
+  // Find the transaction
+  const transaction = await Transaction.findOne({
+    reference: merchantReference,
+  });
+  if (!transaction) {
+    throw new ApiError(404, 'Transaction not found');
+  }
+
+  // Update transaction status
+  transaction.status = 'completed';
+  transaction.metadata = {
+    ...transaction.metadata,
+    boldDataTransactionId: transactionId,
+    customerEmail,
+    customerName,
+    completedAt: new Date(timestamp),
+  };
+  await transaction.save();
+
+  // Find and update user balance
+  const user = await User.findById(transaction.user);
+  if (user) {
+    user.balance += amount;
+    await user.save();
+
+    // Log activity
+    await logUserActivity(user._id, 'payment_received', {
+      amount,
+      currency,
+      transactionId,
+      newBalance: user.balance,
+    });
+  }
+
+  console.log(`Processed successful payment for transaction ${transactionId}`);
+}
+
+async function handlePaymentFailed(event) {
+  const { transactionId, merchantReference, reason } = event.data;
+
+  const transaction = await Transaction.findOne({
+    reference: merchantReference,
+  });
+  if (!transaction) {
+    throw new ApiError(404, 'Transaction not found');
+  }
+
+  transaction.status = 'failed';
+  transaction.metadata = {
+    ...transaction.metadata,
+    failureReason: reason,
+    boldDataTransactionId: transactionId,
+  };
+  await transaction.save();
+
+  console.log(`Marked transaction ${transactionId} as failed: ${reason}`);
+}
+
+async function handleChargeback(event) {
+  const { transactionId, originalTransactionId, amount, reason } = event.data;
+
+  // Find the original transaction
+  const transaction = await Transaction.findOne({
+    'metadata.boldDataTransactionId': originalTransactionId,
+  });
+  if (!transaction) {
+    throw new ApiError(404, 'Original transaction not found');
+  }
+
+  // Create chargeback record
+  const chargeback = new Transaction({
+    type: 'debit',
+    serviceType: 'chargeback',
+    amount: amount,
+    status: 'completed',
+    reference: `CB-${transactionId}`,
+    metadata: {
+      originalTransaction: originalTransactionId,
+      reason: reason,
+      processedAt: new Date(),
+    },
+    user: transaction.user,
+  });
+  await chargeback.save();
+
+  // Update user balance if needed
+  const user = await User.findById(transaction.user);
+  if (user) {
+    user.balance -= amount;
+    await user.save();
+    await logUserActivity(user._id, 'chargeback', {
+      amount,
+      originalTransactionId,
+      newBalance: user.balance,
+    });
+  }
+
+  console.log(`Processed chargeback for transaction ${originalTransactionId}`);
+}
+
+module.exports = {
+  handleBoldDataWebhook,
+};
