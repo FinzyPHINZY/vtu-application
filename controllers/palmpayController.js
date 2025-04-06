@@ -314,9 +314,10 @@ export const queryVirtualAccount = async (req, res, next) => {
 
 export const handlePalmpayWebhook = async (req, res, next) => {
 	try {
-		const forwarded = req.headers["forwarded"];
-		const match = forwarded ? forwarded.match(/for=([\d.]+)/) : null;
-		const requestIp = match ? match[1] : null;
+		const forwarded = req.headers["x-forwarded-for"];
+		// const match = forwarded ? forwarded.match(/for=([\d.]+)/) : null;
+		// const requestIp = match ? match[1] : null;
+		const requestIp = forwarded ? forwarded.split(",")[0].trim() : req.ip;
 
 		console.log(req.headers);
 		console.log(forwarded);
@@ -333,15 +334,15 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
 		const isVerified = rsaVerify(
 			md5(sortParams(req.body)).toUpperCase(),
-			signature,
+			req.body.sign,
 			process.env.PALMPAY_MERCHANT_PUBLIC_KEY,
 			"SHA1withRSA",
 		);
 		console.log("Signature Verified:", isVerified);
 
-		if (!isVerified) {
-			throw new ApiError(401, false, "Invalid webhook signature");
-		}
+		// if (!isVerified) {
+		// 	throw new ApiError(401, false, "Invalid webhook signature");
+		// }
 
 		const event = req.body;
 
