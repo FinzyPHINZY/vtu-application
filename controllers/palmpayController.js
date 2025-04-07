@@ -338,7 +338,7 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			return res.status(200).json({ success: true });
 		}
 
-		await handlePaymentSuccess(req.body);
+		await handlePaymentSuccess(req.body).catch(console.error);
 
 		return res.status(200).json({ success: true });
 	} catch (error) {
