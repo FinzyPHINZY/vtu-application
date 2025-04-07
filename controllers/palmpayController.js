@@ -314,7 +314,6 @@ export const queryVirtualAccount = async (req, res, next) => {
 };
 
 export const handlePalmpayWebhook = async (req, res, next) => {
-	console.log("request", req);
 	console.log("this is the request headers", req.headers);
 	try {
 		const forwarded = req.headers["x-forwarded-for"];
