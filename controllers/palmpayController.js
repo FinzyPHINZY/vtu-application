@@ -338,9 +338,7 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			return res.status(200).json({ success: true });
 		}
 
-		await handlePaymentSuccess(req.body).catch(console.error);
-
-		console.log("done with processing payment");
+		await handlePaymentAndDisableAccount(req.body);
 
 		return res.status(200).json({ success: true });
 	} catch (error) {
@@ -349,112 +347,115 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 	}
 };
 
-async function handlePaymentSuccess(paymentData) {
-	const {
-		accountReference,
-		orderNo,
-		payerAccountNo,
-		payerBankName,
-		payerAccountName,
-		virtualAccountNo,
-		virtualAccountName,
-		orderAmount,
-		currency,
-		reference,
-		createdTime,
-		updateTime,
-		sessionId,
-		appId,
-	} = paymentData;
+async function handlePaymentAndDisableAccount(paymentData) {
+	const session = await mongoose.startSession();
+	session.startTransaction();
 
-	// const transaction = await Transaction.findOne({
-	// 	reference: accountReference,
-	// });
-
-	const transaction = await Transaction.findOneAndUpdate(
-		{
-			reference: paymentData.accountReference,
-			status: { $ne: "success" }, // Only update if not already successful
-		},
-		{
-			$set: {
-				amount: paymentData.orderAmount / 100,
-				status: "success",
-				metadata: {
-					orderNo: paymentData.orderNo,
-					payerAccountNo: paymentData.payerAccountNo,
-					payerBankName: paymentData.payerBankName,
-					payerAccountName: paymentData.payerAccountName,
-					virtualAccountNo: paymentData.virtualAccountNo,
-					currency: paymentData.currency,
-					paymentReference: paymentData.reference,
-					appId: paymentData.appId,
-					processedAt: new Date(),
+	try {
+		const transaction = await Transaction.findOneAndUpdate(
+			{
+				reference: paymentData.accountReference,
+				status: { $ne: "success" },
+			},
+			{
+				$set: {
+					amount: paymentData.orderAmount / 100,
+					status: "success",
+					metadata: {
+						orderNo: paymentData.orderNo,
+						payerAccountNo: paymentData.payerAccountNo,
+						payerBankName: paymentData.payerBankName,
+						payerAccountName: paymentData.payerAccountName,
+						virtualAccountNo: paymentData.virtualAccountNo,
+						currency: paymentData.currency,
+						paymentReference: paymentData.reference,
+						appId: paymentData.appId,
+						processedAt: new Date(),
+					},
 				},
 			},
-		},
-		{ new: true },
-	);
+			{ new: true },
+		);
 
-	// if (!transaction) {
-	// 	throw new ApiError(404, false, "Transaction not found");
-	// }
+		if (!transaction) {
+			throw new Error("Transaction already processed or not found");
+		}
 
-	if (!transaction) {
-		console.log(`Transaction already processed: ${paymentData.orderNo}`);
-		return;
+		const user = await User.findByIdAndUpdate(
+			transaction.user,
+			{
+				$inc: { accountBalance: paymentData.orderAmount / 100 },
+			},
+			{ new: true, session },
+		);
+
+		const nonceStr = generateNonceStr();
+
+		const disablePayload = {
+			requestTime: Date.now(),
+			version: "V2.0",
+			virtualAccountNo: paymentData.virtualAccountNo,
+			status: "Disabled",
+			nonceStr,
+		};
+
+		const generatedSignature = sign(
+			disablePayload,
+			process.env.PALMPAY_PRIVATE_KEY,
+		);
+
+		const disableResponse = await axios.post(
+			`${process.env.PALMPAY_BASE_URL}/api/v2/virtual/account/label/update`,
+			disablePayload,
+			{
+				headers: {
+					Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
+					CountryCode: "NG",
+					"Content-Type": "application/json;charset=UTF-8",
+					Signature: generatedSignature,
+				},
+				timeout: 5000, // 5-second timeout for disable request
+			},
+		);
+
+		if (
+			disableResponse.status !== 200 ||
+			disableResponse.data?.code !== "000000"
+		) {
+			throw new Error("Failed to disable virtual account");
+		}
+
+		// await User.updateOne(
+		// 	{
+		// 		_id: user._id,
+		// 		"virtualAccounts.accountNo": paymentData.virtualAccountNo,
+		// 	},
+		// 	{
+		// 		$set: {
+		// 			"virtualAccounts.$.status": "disabled",
+		// 			"virtualAccounts.$.updatedAt": new Date(),
+		// 		},
+		// 	},
+		// 	{ session },
+		// );
+
+		await logUserActivity(user._id, "deposit", {
+			amount: paymentData.orderAmount / 100,
+			transactionId: paymentData.orderNo,
+			paymentMethod: `${paymentData.payerBankName} (${paymentData.payerAccountNo})`,
+		});
+
+		await session.commitTransaction();
+		console.log(
+			`Payment processed and account disabled for ${paymentData.orderNo}`,
+		);
+	} catch (error) {
+		await session.abortTransaction();
+		console.error("Error in payment processing:", error.message);
+		throw error;
+	} finally {
+		session.endSession();
 	}
-
-	await User.findByIdAndUpdate(transaction.user, {
-		$inc: { accountBalance: paymentData.orderAmount / 100 },
-	});
-
-	// transaction.amount = orderAmount / 100;
-
-	// // update transaction status
-	// transaction.status = "success";
-	// transaction.metadata = {
-	// 	...transaction.metadata,
-	// 	orderNo,
-	// 	payerAccountNo,
-	// 	payerBankName,
-	// 	payerAccountName,
-	// 	virtualAccountNo,
-	// 	virtualAccountName,
-	// 	currency,
-	// 	paymentReference: reference,
-	// 	sessionId,
-	// 	appId,
-	// 	createdTime: new Date(createdTime),
-	// 	updatedTime: new Date(updateTime),
-	// };
-
-	// await transaction.save();
-
-	// find and update user balance
-	// const user = await User.findById(transaction.user);
-
-	// if (user) {
-	// 	user.accountBalance += orderAmount / 100;
-	// 	await user.save();
-
-	// 	await logUserActivity(user._id, "deposit", {
-	// 		amount: transaction.amount,
-	// 		currency,
-	// 		transactionId: orderNo,
-	// 		newBalance: user.balance,
-	// 		paymentMethod: `${payerBankName} (${payerAccountNo})`,
-	// 		payerName: payerAccountName,
-	// 	});
-	// }
-
-	await logUserActivity(transaction.user, "deposit", {
-		amount: paymentData.orderAmount / 100,
-		transactionId: paymentData.orderNo,
-		paymentMethod: `${paymentData.payerBankName} (${paymentData.payerAccountNo})`,
-	});
-
-	console.log(`Processed successful payment for transaction ${orderNo}`);
 }
 
 async function handlePaymentFailed(event) {
