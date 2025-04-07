@@ -403,12 +403,11 @@ async function handlePaymentSuccess(paymentData) {
 	// find and update user balance
 	const user = await User.findById(transaction.user);
 
-	console.log(user);
 	if (user) {
 		user.accountBalance += orderAmount / 100;
 		await user.save();
 
-		await logUserActivity(user._id, "payment_received", {
+		await logUserActivity(user._id, "deposit", {
 			amount: transaction.amount,
 			currency,
 			transactionId: orderNo,
