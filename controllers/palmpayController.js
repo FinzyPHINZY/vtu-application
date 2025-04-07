@@ -329,6 +329,15 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			});
 		}
 
+		const existing = await Transaction.findOne({
+			"metadata.orderNo": req.body.orderNo,
+			status: "success",
+		});
+
+		if (existing) {
+			return res.status(200).json({ success: true });
+		}
+
 		await handlePaymentSuccess(req.body);
 
 		return res.status(200).json({ success: true });
