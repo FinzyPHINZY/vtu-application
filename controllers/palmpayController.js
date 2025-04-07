@@ -365,52 +365,92 @@ async function handlePaymentSuccess(paymentData) {
 		appId,
 	} = paymentData;
 
-	const transaction = await Transaction.findOne({
-		reference: accountReference,
-	});
+	// const transaction = await Transaction.findOne({
+	// 	reference: accountReference,
+	// });
+
+	const transaction = await Transaction.findOneAndUpdate(
+		{
+			reference: paymentData.accountReference,
+			status: { $ne: "success" }, // Only update if not already successful
+		},
+		{
+			$set: {
+				amount: paymentData.orderAmount / 100,
+				status: "success",
+				metadata: {
+					orderNo: paymentData.orderNo,
+					payerAccountNo: paymentData.payerAccountNo,
+					payerBankName: paymentData.payerBankName,
+					payerAccountName: paymentData.payerAccountName,
+					virtualAccountNo: paymentData.virtualAccountNo,
+					currency: paymentData.currency,
+					paymentReference: paymentData.reference,
+					appId: paymentData.appId,
+					processedAt: new Date(),
+				},
+			},
+		},
+		{ new: true },
+	);
+
+	// if (!transaction) {
+	// 	throw new ApiError(404, false, "Transaction not found");
+	// }
 
 	if (!transaction) {
-		throw new ApiError(404, false, "Transaction not found");
+		console.log(`Transaction already processed: ${paymentData.orderNo}`);
+		return;
 	}
 
-	transaction.amount = orderAmount / 100;
+	await User.findByIdAndUpdate(transaction.user, {
+		$inc: { accountBalance: paymentData.orderAmount / 100 },
+	});
 
-	// update transaction status
-	transaction.status = "success";
-	transaction.metadata = {
-		...transaction.metadata,
-		orderNo,
-		payerAccountNo,
-		payerBankName,
-		payerAccountName,
-		virtualAccountNo,
-		virtualAccountName,
-		currency,
-		paymentReference: reference,
-		sessionId,
-		appId,
-		createdTime: new Date(createdTime),
-		updatedTime: new Date(updateTime),
-	};
+	// transaction.amount = orderAmount / 100;
 
-	await transaction.save();
+	// // update transaction status
+	// transaction.status = "success";
+	// transaction.metadata = {
+	// 	...transaction.metadata,
+	// 	orderNo,
+	// 	payerAccountNo,
+	// 	payerBankName,
+	// 	payerAccountName,
+	// 	virtualAccountNo,
+	// 	virtualAccountName,
+	// 	currency,
+	// 	paymentReference: reference,
+	// 	sessionId,
+	// 	appId,
+	// 	createdTime: new Date(createdTime),
+	// 	updatedTime: new Date(updateTime),
+	// };
+
+	// await transaction.save();
 
 	// find and update user balance
-	const user = await User.findById(transaction.user);
+	// const user = await User.findById(transaction.user);
 
-	if (user) {
-		user.accountBalance += orderAmount / 100;
-		await user.save();
+	// if (user) {
+	// 	user.accountBalance += orderAmount / 100;
+	// 	await user.save();
 
-		await logUserActivity(user._id, "deposit", {
-			amount: transaction.amount,
-			currency,
-			transactionId: orderNo,
-			newBalance: user.balance,
-			paymentMethod: `${payerBankName} (${payerAccountNo})`,
-			payerName: payerAccountName,
-		});
-	}
+	// 	await logUserActivity(user._id, "deposit", {
+	// 		amount: transaction.amount,
+	// 		currency,
+	// 		transactionId: orderNo,
+	// 		newBalance: user.balance,
+	// 		paymentMethod: `${payerBankName} (${payerAccountNo})`,
+	// 		payerName: payerAccountName,
+	// 	});
+	// }
+
+	await logUserActivity(transaction.user, "deposit", {
+		amount: paymentData.orderAmount / 100,
+		transactionId: paymentData.orderNo,
+		paymentMethod: `${paymentData.payerBankName} (${paymentData.payerAccountNo})`,
+	});
 
 	console.log(`Processed successful payment for transaction ${orderNo}`);
 }
