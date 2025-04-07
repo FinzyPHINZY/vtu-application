@@ -318,6 +318,8 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 		const forwarded = req.headers["x-forwarded-for"];
 		const requestIp = forwarded ? forwarded.split(",")[0].trim() : req.ip;
 
+		console.log(requestIp, process.env.PALMPAY_IP);
+
 		if (requestIp !== process.env.PALMPAY_IP) {
 			throw new ApiError(403, false, "Unauthorized request origin");
 		}
