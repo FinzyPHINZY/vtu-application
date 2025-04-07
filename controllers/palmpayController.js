@@ -79,6 +79,11 @@ export const createVirtualAccount = async (req, res, next) => {
 
 		const { data } = response.data;
 
+		console.log(process.env.PALMPAY_APP_ID);
+
+		console.log(generatedSignature);
+
+		console.log(payload);
 		console.log(response.data);
 
 		const transaction = await Transaction.create({
