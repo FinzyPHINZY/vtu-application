@@ -46,7 +46,7 @@ connectDB();
 	}
 })();
 
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
 
 // Middleware
 app.use(express.json());
