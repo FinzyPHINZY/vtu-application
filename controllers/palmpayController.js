@@ -9,7 +9,6 @@ import ApiError from "../utils/error.js";
 import { generateRandomReference } from "../utils/helpers.js";
 import Transaction from "../models/Transaction.js";
 import { logUserActivity } from "../utils/userActivity.js";
-import mongoose from "mongoose";
 
 export const createVirtualAccount = async (req, res, next) => {
 	try {
@@ -339,7 +338,9 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			return res.status(200).json({ success: true });
 		}
 
-		await handlePaymentAndDisableAccount(req.body);
+		await handlePaymentSuccess(req.body).catch(console.error);
+
+		console.log("done with processing payment");
 
 		return res.status(200).json({ success: true });
 	} catch (error) {
@@ -348,115 +349,50 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 	}
 };
 
-async function handlePaymentAndDisableAccount(paymentData) {
-	const session = await mongoose.startSession();
-	session.startTransaction();
-
-	try {
-		const transaction = await Transaction.findOneAndUpdate(
-			{
-				reference: paymentData.accountReference,
-				status: { $ne: "success" },
-			},
-			{
-				$set: {
-					amount: paymentData.orderAmount / 100,
-					status: "success",
-					metadata: {
-						orderNo: paymentData.orderNo,
-						payerAccountNo: paymentData.payerAccountNo,
-						payerBankName: paymentData.payerBankName,
-						payerAccountName: paymentData.payerAccountName,
-						virtualAccountNo: paymentData.virtualAccountNo,
-						currency: paymentData.currency,
-						paymentReference: paymentData.reference,
-						appId: paymentData.appId,
-						processedAt: new Date(),
-					},
+async function handlePaymentSuccess(paymentData) {
+	const transaction = await Transaction.findOneAndUpdate(
+		{
+			reference: paymentData.accountReference,
+			status: { $ne: "success" },
+		},
+		{
+			$set: {
+				amount: paymentData.orderAmount / 100,
+				status: "success",
+				metadata: {
+					orderNo: paymentData.orderNo,
+					payerAccountNo: paymentData.payerAccountNo,
+					payerBankName: paymentData.payerBankName,
+					payerAccountName: paymentData.payerAccountName,
+					virtualAccountNo: paymentData.virtualAccountNo,
+					currency: paymentData.currency,
+					paymentReference: paymentData.reference,
+					appId: paymentData.appId,
+					processedAt: new Date(),
 				},
 			},
-			{ new: true },
-		);
+		},
+		{ new: true },
+	);
 
-		if (!transaction) {
-			throw new Error("Transaction already processed or not found");
-		}
-
-		const user = await User.findByIdAndUpdate(
-			transaction.user,
-			{
-				$inc: { accountBalance: paymentData.orderAmount / 100 },
-			},
-			{ new: true, session },
-		);
-
-		const nonceStr = generateNonceStr();
-
-		const disablePayload = {
-			requestTime: Date.now(),
-			version: "V2.0",
-			virtualAccountNo: paymentData.virtualAccountNo,
-			status: "Disabled",
-			nonceStr,
-		};
-
-		const generatedSignature = sign(
-			disablePayload,
-			process.env.PALMPAY_PRIVATE_KEY,
-		);
-
-		const disableResponse = await axios.post(
-			`${process.env.PALMPAY_BASE_URL}/api/v2/virtual/account/label/update`,
-			disablePayload,
-			{
-				headers: {
-					Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
-					CountryCode: "NG",
-					"Content-Type": "application/json;charset=UTF-8",
-					Signature: generatedSignature,
-				},
-				timeout: 5000, // 5-second timeout for disable request
-			},
-		);
-
-		if (
-			disableResponse.status !== 200 ||
-			disableResponse.data?.code !== "000000"
-		) {
-			throw new Error("Failed to disable virtual account");
-		}
-
-		// await User.updateOne(
-		// 	{
-		// 		_id: user._id,
-		// 		"virtualAccounts.accountNo": paymentData.virtualAccountNo,
-		// 	},
-		// 	{
-		// 		$set: {
-		// 			"virtualAccounts.$.status": "disabled",
-		// 			"virtualAccounts.$.updatedAt": new Date(),
-		// 		},
-		// 	},
-		// 	{ session },
-		// );
-
-		await logUserActivity(user._id, "deposit", {
-			amount: paymentData.orderAmount / 100,
-			transactionId: paymentData.orderNo,
-			paymentMethod: `${paymentData.payerBankName} (${paymentData.payerAccountNo})`,
-		});
-
-		await session.commitTransaction();
-		console.log(
-			`Payment processed and account disabled for ${paymentData.orderNo}`,
-		);
-	} catch (error) {
-		await session.abortTransaction();
-		console.error("Error in payment processing:", error.message);
-		throw error;
-	} finally {
-		session.endSession();
+	if (!transaction) {
+		console.log(`Transaction already processed: ${paymentData.orderNo}`);
+		return;
 	}
+
+	await User.findByIdAndUpdate(transaction.user, {
+		$inc: { accountBalance: paymentData.orderAmount / 100 },
+	});
+
+	await logUserActivity(transaction.user, "deposit", {
+		amount: paymentData.orderAmount / 100,
+		transactionId: paymentData.orderNo,
+		paymentMethod: `${paymentData.payerBankName} (${paymentData.payerAccountNo})`,
+	});
+
+	console.log(
+		`Processed successful payment for transaction ${paymentData.orderNo}`,
+	);
 }
 
 async function handlePaymentFailed(event) {
