@@ -331,21 +331,9 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
 		const signature = req.body.sign;
 
-		// const isVerified = rsaVerify(
-		// 	md5(sortParams(req.body)).toUpperCase(),
-		// 	signature,
-		// 	process.env.PALMPAY_PRIVATE_KEY,
-		// 	"SHA1withRSA",
-		// );
-		// console.log("Signature Verified:", isVerified);
-
-		// if (!isVerified) {
-		// 	throw new ApiError(401, false, "Invalid webhook signature");
-		// }
-
 		await handlePaymentSuccess(req.body);
 
-		res.status(200).json({ success: true });
+		return res.status(200).json({ success: true });
 	} catch (error) {
 		console.error("Palmpay webhook error:", error);
 		next(error);
