@@ -329,8 +329,6 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			});
 		}
 
-		const signature = req.body.sign;
-
 		await handlePaymentSuccess(req.body);
 
 		return res.status(200).json({ success: true });
