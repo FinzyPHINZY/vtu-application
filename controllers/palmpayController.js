@@ -9,6 +9,7 @@ import ApiError from "../utils/error.js";
 import { generateRandomReference } from "../utils/helpers.js";
 import Transaction from "../models/Transaction.js";
 import { logUserActivity } from "../utils/userActivity.js";
+import mongoose from "mongoose";
 
 export const createVirtualAccount = async (req, res, next) => {
 	try {
