@@ -80,6 +80,7 @@ export const createVirtualAccount = async (req, res, next) => {
 		const { data } = response.data;
 
 		const transaction = await Transaction.create({
+			user: user._id,
 			reference: accountReference,
 			type: "credit",
 			serviceType: "deposit",
