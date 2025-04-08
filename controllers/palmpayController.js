@@ -314,9 +314,12 @@ export const queryVirtualAccount = async (req, res, next) => {
 };
 
 export const handlePalmpayWebhook = async (req, res, next) => {
+	console.log("this is the request headers", req.headers);
 	try {
 		const forwarded = req.headers["x-forwarded-for"];
 		const requestIp = forwarded ? forwarded.split(",")[0].trim() : req.ip;
+
+		console.log(requestIp, process.env.PALMPAY_IP);
 
 		if (requestIp !== process.env.PALMPAY_IP) {
 			throw new ApiError(403, false, "Unauthorized request origin");
@@ -328,6 +331,14 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 				message: "Webhook received but not processed (non-successful payment)",
 			});
 		}
+
+		const isVerified = rsaVerify(
+			md5(sortParams(req.body)).toUpperCase(),
+			req.body.sign,
+			process.env.PALMPAY_PRIVATE_KEY,
+			"SHA1withRSA",
+		);
+		console.log("Signature Verified:", isVerified);
 
 		const existing = await Transaction.findOne({
 			"metadata.orderNo": req.body.orderNo,
