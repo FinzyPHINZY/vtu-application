@@ -332,6 +332,14 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			});
 		}
 
+		const isVerified = rsaVerify(
+			md5(sortParams(req.body)).toUpperCase(),
+			req.body.sign,
+			process.env.PALMPAY_PRIVATE_KEY,
+			"SHA1withRSA",
+		);
+		console.log("Signature Verified:", isVerified);
+
 		const existing = await Transaction.findOne({
 			"metadata.orderNo": req.body.orderNo,
 			status: "success",
