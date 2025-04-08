@@ -16,6 +16,7 @@
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
+    "bull": "^4.16.5",
     "compression": "^1.7.5",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.7",
@@ -30,6 +31,7 @@
     "jsonwebtoken": "^9.0.2",
     "jsrsasign": "^11.1.0",
     "md5": "^2.3.0",
+    "moment": "^2.30.1",
     "mongoose": "^8.9.2",
     "morgan": "^1.10.0",
     "node-cache": "^5.1.2",
@@ -43,5 +45,6 @@
   "devDependencies": {
     "nodemon": "^3.1.9",
     "vitest": "^2.1.8"
-  }
+  },
+  "packageManager": "pnpm@10.8.0+sha256.29bf2c5ceaea7991ee82eec15fe7162e0fad816d0c4a6b35a16c01d39274bf69"
 }

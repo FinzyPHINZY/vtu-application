@@ -178,3 +178,11 @@ MIT License
 ## Contact
 
 For inquiries, reach out to [finzyphinzyy@proton.me](mailto:finzyphinzyy@proton.me)
+
+<!-- workers -->
+
+```plain
+node workers/disableVA.worker.js
+# or
+pm2 start workers/disableVA.worker.js --name disable-va-worker
+```
