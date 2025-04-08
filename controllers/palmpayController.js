@@ -376,6 +376,8 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			},
 		);
 
+		console.log("added to queue already");
+
 		return res.status(200).json({ success: true });
 	} catch (error) {
 		console.error("Palmpay webhook error:", error);
