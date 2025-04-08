@@ -8,6 +8,8 @@ import ApiError from "../utils/error.js";
 
 config();
 
+console.log("🚀 disableVA worker is running...");
+
 disableVAQueue.process(async (job) => {
 	const { vaId, transactionId } = job.data;
 
@@ -86,3 +88,5 @@ disableVAQueue.on("completed", (job, result) => {
 disableVAQueue.on("progress", (job, progress) => {
 	console.log(`Job progress: ${progress}%`);
 });
+
+console.log("🚀 disableVA worker is running...");
