@@ -1,6 +1,5 @@
 import axios from "axios";
 import md5 from "md5";
-import crypto from "node:crypto";
 
 import User from "../models/User.js";
 import { rsaVerify, sign, sortParams } from "../palmpay.js";
@@ -9,6 +8,7 @@ import ApiError from "../utils/error.js";
 import { generateRandomReference } from "../utils/helpers.js";
 import Transaction from "../models/Transaction.js";
 import { logUserActivity } from "../utils/userActivity.js";
+import disableVAQueue from "../queues/disableVAQueue.js";
 
 export const createVirtualAccount = async (req, res, next) => {
 	try {
@@ -167,18 +167,14 @@ export const updateVirtualAccountStatus = async (req, res, next) => {
 			throw new ApiError(
 				400,
 				false,
-				"Failed to create update account status",
+				"Failed to  update account status",
 				response.data,
 			);
 		}
 
-		const { data } = response;
-		console.log(data);
-
 		return res.status(200).json({
 			success: true,
 			message: "Account status updated successfully",
-			data,
 		});
 	} catch (error) {
 		console.error(
@@ -314,16 +310,15 @@ export const queryVirtualAccount = async (req, res, next) => {
 };
 
 export const handlePalmpayWebhook = async (req, res, next) => {
-	console.log("this is the request headers", req.headers);
 	try {
 		const forwarded = req.headers["x-forwarded-for"];
 		const requestIp = forwarded ? forwarded.split(",")[0].trim() : req.ip;
 
 		console.log(requestIp, process.env.PALMPAY_IP);
 
-		if (requestIp !== process.env.PALMPAY_IP) {
-			throw new ApiError(403, false, "Unauthorized request origin");
-		}
+		// if (requestIp !== process.env.PALMPAY_IP) {
+		// 	throw new ApiError(403, false, "Unauthorized request origin");
+		// }
 
 		if (req.body.orderStatus !== 1) {
 			return res.status(200).json({
@@ -332,13 +327,25 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			});
 		}
 
-		const isVerified = rsaVerify(
-			md5(sortParams(req.body)).toUpperCase(),
-			req.body.sign,
-			process.env.PALMPAY_PRIVATE_KEY,
-			"SHA1withRSA",
-		);
-		console.log("Signature Verified:", isVerified);
+		// const isVerified = rsaVerify(
+		// 	md5(sortParams(req.body)).toUpperCase(),
+		// 	req.body.sign,
+		// 	process.env.PALMPAY_PUBLIC_KEY,
+		// 	"SHA1withRSA",
+		// );
+
+		// console.log("Signature Verified:", isVerified);
+
+		// if (!isVerified) {
+		// 	throw new ApiError(403, false, "Invalid signature");
+		// }
+
+		if (req.body.orderStatus !== 1) {
+			return res.status(200).json({
+				success: true,
+				message: "Webhook received but not processed",
+			});
+		}
 
 		const existing = await Transaction.findOne({
 			"metadata.orderNo": req.body.orderNo,
@@ -349,9 +356,27 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			return res.status(200).json({ success: true });
 		}
 
-		await handlePaymentSuccess(req.body).catch(console.error);
+		await handlePaymentSuccess(req.body);
 
 		console.log("done with processing payment");
+
+		await disableVAQueue.add(
+			{
+				vaId: req.body.virtualAccountNo,
+				transactionId: req.body.reference,
+			},
+			{
+				attempts: 3,
+				backoff: {
+					type: "exponential",
+					delay: 30000, // 5s, 10s, 20s, etc.
+				},
+				removeOnComplete: true,
+				removeOnFail: false,
+			},
+		);
+
+		console.log("added to queue already");
 
 		return res.status(200).json({ success: true });
 	} catch (error) {

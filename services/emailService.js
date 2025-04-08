@@ -19,6 +19,8 @@ const sendEmail = async (to, subject, html) => {
 	try {
 		console.log("log10");
 
+		console.log(transporter);
+
 		const info = await transporter.sendMail({
 			from: process.env.SMTP_FROM,
 			to,
