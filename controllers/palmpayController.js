@@ -316,9 +316,9 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
 		console.log(requestIp, process.env.PALMPAY_IP);
 
-		if (requestIp !== process.env.PALMPAY_IP) {
-			throw new ApiError(403, false, "Unauthorized request origin");
-		}
+		// if (requestIp !== process.env.PALMPAY_IP) {
+		// 	throw new ApiError(403, false, "Unauthorized request origin");
+		// }
 
 		if (req.body.orderStatus !== 1) {
 			return res.status(200).json({
@@ -327,14 +327,14 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 			});
 		}
 
-		const isVerified = rsaVerify(
-			md5(sortParams(req.body)).toUpperCase(),
-			req.body.sign,
-			process.env.PALMPAY_PUBLIC_KEY,
-			"SHA1withRSA",
-		);
+		// const isVerified = rsaVerify(
+		// 	md5(sortParams(req.body)).toUpperCase(),
+		// 	req.body.sign,
+		// 	process.env.PALMPAY_PUBLIC_KEY,
+		// 	"SHA1withRSA",
+		// );
 
-		console.log("Signature Verified:", isVerified);
+		// console.log("Signature Verified:", isVerified);
 
 		if (!isVerified) {
 			throw new ApiError(403, false, "Invalid signature");
