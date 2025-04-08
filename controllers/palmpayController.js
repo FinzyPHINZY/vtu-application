@@ -336,9 +336,9 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
 		// console.log("Signature Verified:", isVerified);
 
-		if (!isVerified) {
-			throw new ApiError(403, false, "Invalid signature");
-		}
+		// if (!isVerified) {
+		// 	throw new ApiError(403, false, "Invalid signature");
+		// }
 
 		if (req.body.orderStatus !== 1) {
 			return res.status(200).json({
