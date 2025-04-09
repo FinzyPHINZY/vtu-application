@@ -1,285 +1,259 @@
-import axios from 'axios';
-import ApiError from '../utils/error.js';
-import { generateRandomReference } from '../utils/helpers.js';
-import {
-  processTransaction,
-  sendTransactionReceipt,
-  validateBalance,
-} from '../utils/transaction.js';
-import Transaction from '../models/Transaction.js';
+import mongoose from "mongoose";
 
-const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
+import Transaction from "../models/Transaction.js";
+import ApiError from "../utils/error.js";
+import { generateRandomReference } from "../utils/helpers.js";
+import User from "../models/User.js";
+import { logUserActivity } from "../utils/userActivity.js";
 
-export const getBankList = async (req, res, next) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+export const createTransfer = async (req, res, next) => {
+	const session = await mongoose.startSession();
+	session.startTransaction();
 
-    console.log('Fetching bank list');
+	try {
+		const { recipientIdentifier, amount, note } = req.body;
+		const senderId = req.user.id;
 
-    const response = await axios.get(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers/banks`,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000, // 30 second timeout
-      }
-    );
+		// Validate input
+		if (!recipientIdentifier || !amount || amount <= 0) {
+			throw new ApiError(400, false, "Invalid recipient or amount");
+		}
 
-    const { data } = response.data;
+		if (recipientIdentifier === senderId.toString()) {
+			throw new ApiError(400, false, "Cannot transfer to yourself");
+		}
 
-    if (!data.statusCode === 403) {
-      throw new ApiError(400, false, data.message);
-    }
+		const sender = await User.findByIdAndUpdate(
+			senderId,
+			{ $inc: { accountBalance: -amount } },
+			{ new: true, session },
+		).select("accountBalance firstName");
 
-    console.log('Banks list retrieved successfully');
+		// const sender = await User.findById(senderId).session(session);
+		if (!sender) throw new ApiError(404, false, "Sender not found");
 
-    return res.status(201).json({
-      success: true,
-      message: 'Banks retrieved successfully',
-      data,
-    });
-  } catch (error) {
-    console.error(
-      'Failed to get bank list',
-      error.response.data.message || error.message
-    );
+		const availableBalance = sender.accountBalance;
+		if (availableBalance < 0) {
+			throw new ApiError(400, false, "Insufficient balance");
+		}
 
-    next(error);
-  }
-};
+		const recipient = await User.findOneAndUpdate(
+			{
+				$or: [
+					{ _id: recipientIdentifier },
+					{ email: recipientIdentifier },
+					{ phone: recipientIdentifier },
+				],
+				isVerified: true,
+			},
+			{ $inc: { accountBalance: amount } },
+			{ new: true, session },
+		).select("_id name");
 
-export const nameEnquiry = async (req, res, next) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+		// const recipient = await User.findOne({
+		// 	$or: [
+		// 		{ _id: recipientIdentifier },
+		// 		{ email: recipientIdentifier },
+		// 		{ phone: recipientIdentifier },
+		// 	],
+		// }).session(session);
 
-    const { bankCode, accountNumber } = req.body;
+		if (!recipient) throw new ApiError(404, false, "Recipient not found");
 
-    const payload = { bankCode, accountNumber };
+		const reference = generateRandomReference("TRF", sender.firstName);
+		const timestamp = new Date();
 
-    // post request to safe haven
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers/name-enquiry`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000, // 30 second timeout
-      }
-    );
+		// Create DEBIT transaction (sender)
+		const debitTx = new Transaction({
+			reference: `${reference}-DEBIT`,
+			serviceType: "bank_transfer",
+			user: senderId,
+			relatedUser: recipient._id,
+			amount,
+			type: "debit",
+			status: "success",
+			metadata: {
+				note: note || "",
+				currentBalance: sender.accountBalance,
+				counterparty: {
+					id: recipient._id,
+					name: recipient.name,
+				},
+			},
+			timestamp,
+		});
 
-    const { data } = response.data;
+		const creditTx = new Transaction({
+			reference: `${reference}-CREDIT`,
+			serviceType: "bank_transfer",
+			user: recipient._id,
+			relatedUser: senderId,
+			amount,
+			type: "credit",
+			status: "success",
+			metadata: {
+				note: note || "",
+				currentBalance: recipient.accountBalance + amount,
+				counterparty: {
+					id: senderId,
+					name: sender.firstName,
+				},
+			},
+			timestamp,
+		});
+		await Promise.all([debitTx.save({ session }), creditTx.save({ session })]);
 
-    console.log(data);
+		await session.commitTransaction();
 
-    if (!data.responseCode) {
-      throw new ApiError(400, false, 'Name enquiry failed');
-    }
+		// Log activities
+		await Promise.all([
+			logUserActivity(senderId, "transfer-out", {
+				amount,
+				recipient: recipient._id,
+				newBalance: sender.accountBalance,
+			}),
+			logUserActivity(recipient._id, "transfer-in", {
+				amount,
+				sender: senderId,
+				newBalance: recipient.accountBalance,
+			}),
+		]);
 
-    console.log(`Name enquiry successful for account: ${accountNumber}`);
+		await session.commitTransaction();
 
-    return res.status(200).json({
-      success: true,
-      message: 'Name enquiry successful',
-      data,
-    });
-  } catch (error) {
-    console.error('Failed to verify account information', error);
-
-    next(error);
-  }
-};
-
-export const executeTransfer = async (req, res, next) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const {
-      nameEnquiryReference,
-      beneficiaryBankCode,
-      beneficiaryAccountNumber,
-      amount,
-      saveBeneficiary = false,
-      narration = '',
-    } = req.body;
-
-    const user = await validateBalance(req.user.id, amount);
-
-    const reference = generateRandomReference('TRF', user.firstName);
-    console.log(reference);
-
-    const payload = {
-      nameEnquiryReference,
-      debitAccountNumber,
-      beneficiaryBankCode,
-      beneficiaryAccountNumber,
-      amount,
-      saveBeneficiary,
-      narration,
-      paymentReference: reference,
-    };
-
-    const transactionDetails = {
-      reference,
-      serviceType: 'bank_transfer',
-      metadata: {
-        beneficiaryAccount: beneficiaryAccountNumber,
-        beneficiaryBank: beneficiaryBankCode,
-        narration,
-      },
-    };
-
-    const transaction = await processTransaction(
-      user,
-      amount,
-      transactionDetails
-    );
-
-    console.log('Processing transfer...');
-
-    const transactionDoc = await Transaction.findById(transaction.toString());
-
-    try {
-      const response = await axios.post(
-        `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${access_token}`,
-            'Content-Type': 'application/json',
-            ClientID: ibs_client_id,
-          },
-          timeout: 30000, // 30 second timeout
-        }
-      );
-
-      const { data } = response;
-
-      transactionDoc.status = 'success';
-
-      await transactionDoc.save();
-      await user.save();
-
-      await sendTransactionReceipt(user, transactionDoc);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Bank transfer completed successfully',
-        data,
-      });
-    } catch (error) {
-      console.error('Cable Subscription Failed: ', error);
-
-      transactionDoc.status = 'failed';
-      await transactionDoc.save();
-
-      throw new ApiError(
-        error.response?.status || 500,
-        false,
-        error.response?.data?.message || 'Transfer failed',
-        error.response?.data
-      );
-    }
-  } catch (error) {
-    console.error('Funds Transfer Failed', error.response);
-
-    next(error);
-  }
-};
-
-export const checkTransferStatus = async (req, res, error) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
-
-    const { sessionId } = req.body;
-
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers/status`,
-      { sessionId },
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-      }
-    );
-
-    console.log(`Transaction status checked for ${sessionId}`);
-
-    const { data } = response.data;
-
-    console.log('Transfer status checked successfully');
-
-    return res.status(200).json({
-      success: true,
-      message: 'Transfer status fetched successfully',
-      data,
-    });
-  } catch (error) {
-    console.error('Failed to check transfer status', error.response.data);
-
-    next(error);
-  }
+		return res.status(201).json({
+			success: true,
+			message: "Transfer completed successfully",
+			data: {
+				transactionId: debitTx._id,
+				newBalance: sender.accountBalance,
+				recipient: {
+					id: recipient._id,
+					name: recipient.name,
+				},
+				// Include both transaction IDs for reference
+				transactions: {
+					debit: debitTx._id,
+					credit: creditTx._id,
+				},
+			},
+		});
+	} catch (error) {
+		await session.abortTransaction();
+		next(error);
+	} finally {
+		session.endSession();
+	}
 };
 
 export const getTransferHistory = async (req, res, next) => {
-  try {
-    const { access_token, ibs_client_id } = req.user.safeHavenAccessToken;
+	try {
+		const { page = 1, limit = 10, type = "debit" } = req.query;
+		const userId = req.user.id;
 
-    const {
-      accountId,
-      page = 0,
-      limit = 100,
-      fromDate,
-      toDate,
-      type,
-      status,
-    } = req.params;
+		const query = {
+			$or: [{ user: userId }, { recipient: userId }],
+			serviceType: "bank_transfer",
+		};
 
-    const queryParams = new URLSearchParams({
-      accountId,
-      page: page.toString(),
-      limit: limit.toString(),
-    });
+		if (type === "debit") query.user = userId;
+		if (type === "credit") query.recipient = userId;
 
-    if (fromDate) queryParams.append('fromDate', fromDate);
-    if (toDate) queryParams.append('toDate', toDate);
-    if (type) queryParams.append('type', type);
-    if (status) queryParams.append('status', status);
+		const transfers = await Transaction.find(query)
+			.populate(
+				type === "debit" ? "recipient" : "user",
+				"firstName lastName email phoneNumber",
+			)
+			.sort("-createdAt")
+			.limit(limit * 1)
+			.skip((page - 1) * limit);
 
-    const response = await axios.get(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/transfers?${queryParams.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-          'Content-Type': 'application/json',
-          ClientID: ibs_client_id,
-        },
-        timeout: 30000,
-      }
-    );
+		const count = await Transaction.countDocuments(query);
 
-    console.log(`Transfer history retrieved for ${accountId}`);
+		res.status(200).json({
+			success: true,
+			data: transfers,
+			pagination: {
+				total: count,
+				totalPages: Math.ceil(count / limit),
+				currentPage: page,
+				itemsPerPage: limit,
+			},
+		});
+	} catch (error) {
+		next(error);
+	}
+};
 
-    res.status(200).json({
-      success: true,
-      message: 'Transfer history retrieved successfully',
-      data: response.data.data,
-      pagination: {
-        currentPage: parseInt(page),
-        pageSize: parseInt(limit),
-        totalCount: response.data.totalCount,
-        totalPages: Math.ceil(response.data.totalCount / limit),
-      },
-    });
-  } catch (error) {
-    console.log('Transfer history retrieval failed', error);
-    next(error);
-  }
+export const verifyRecipient = async (req, res, next) => {
+	try {
+		const { recipientIdentifier } = req.body;
+		const senderId = req.user.id;
+
+		if (!recipientIdentifier) {
+			throw new ApiError(400, false, "Recipient identifier is required");
+		}
+
+		if (recipientIdentifier === senderId.toString()) {
+			throw new ApiError(400, false, "Cannot transfer to yourself");
+		}
+
+		const isValidObjectId =
+			mongoose.Types.ObjectId.isValid(recipientIdentifier);
+
+		const recipient = await User.findOne({
+			$or: [
+				// { _id: recipientIdentifier },
+				...(isValidObjectId ? [{ _id: recipientIdentifier }] : []),
+				{ email: recipientIdentifier },
+				{ phoneNumber: recipientIdentifier },
+			],
+		}).select("_id firstName lastName email phoneNumber lastActive isVerified");
+
+		if (!recipient) {
+			throw new ApiError(404, false, "Recipient not found");
+		}
+
+		if (!recipient.isVerified) {
+			throw new ApiError(400, false, "Recipient account is not verified");
+		}
+
+		console.log(recipient.email);
+		// Only show partial email/phone for privacy
+		const maskedEmail = recipient.email.replace(/(.{2})(.*)(@.*)/, "$1****$3");
+		const maskedPhone = recipient.phoneNumber.replace(
+			/(\d{3})\d+(\d{3})/,
+			"$1****$2",
+		);
+
+		const responseData = {
+			_id: recipient._id,
+			firstName: recipient.firstName,
+			lastName: recipient.lastName,
+			lastActive: recipient.lastActive,
+			identifierUsed: recipientIdentifier,
+		};
+
+		// Only include email/phone if they match the identifier
+		if (recipient.email === recipientIdentifier) {
+			// responseData.email = recipient.email;
+			responseData.phoneNumber = maskedPhone;
+		} else if (recipient.phoneNumber === recipientIdentifier) {
+			// responseData.phoneNumber = recipient.phoneNumber;
+			responseData.email = maskedEmail;
+		} else {
+			// If searched by ID, return both contact methods
+			responseData.email = recipient.email;
+			responseData.phoneNumber = recipient.phoneNumber;
+		}
+
+		res.status(200).json({
+			success: true,
+			message: "Recipient verified",
+			data: responseData,
+		});
+	} catch (error) {
+		console.error("Failed to verify recipient", error);
+		next(error);
+	}
 };
