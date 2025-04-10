@@ -5,12 +5,35 @@ import { generateNonceStr } from "../services/palmpay.js";
 import { rsaVerify, sign, sortParams } from "../palmpay.js";
 import md5 from "md5";
 import ApiError from "../utils/error.js";
+import { connection } from "../queues/disableVAQueue.js";
+import { Worker } from "bullmq";
 
 config();
 
 console.log("🚀 disableVA worker is running...");
 
-disableVAQueue.process(async (job) => {
+const mainWorkerOptions = {
+	connection,
+	concurrency: 5,
+	removeOnFail: { count: 0 },
+};
+
+export const disableVAWorker = new Worker(
+	"disableVAQueue",
+	async (job) => {
+		console.log(job.name);
+		console.log(job.data);
+		disableVirtualAccount(job);
+	},
+	mainWorkerOptions,
+);
+
+disableVAWorker.on("error", (err) => {
+	// log the error
+	console.error(`Error processing job: ${err}`);
+});
+
+const disableVirtualAccount = async (job) => {
 	const { vaId, transactionId } = job.data;
 
 	if (!vaId || !transactionId) {
@@ -66,6 +89,8 @@ disableVAQueue.process(async (job) => {
 			);
 		}
 
+		console.log(response.data);
+
 		console.log(`✅ VA ${vaId} disabled successfully`);
 
 		return response.data;
@@ -73,16 +98,14 @@ disableVAQueue.process(async (job) => {
 		console.error(`❌ Error disabling VA ${vaId}:`, error.message);
 		throw error;
 	}
-});
+};
 
 disableVAQueue.on("failed", (job, err) => {
 	console.error(`💥 Job failed for VA ${job.data.vaId}: ${err.message}`);
-	// Notify admin, send to Slack, etc.
 });
 
 disableVAQueue.on("completed", (job, result) => {
 	console.log(`Job completed for VA ${job.data.vaId}`);
-	// Send metrics to monitoring system
 });
 
 disableVAQueue.on("progress", (job, progress) => {

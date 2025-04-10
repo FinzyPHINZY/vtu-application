@@ -1,26 +1,37 @@
-import Queue from "bull";
+import { Queue, QueueEvents } from "bullmq";
 import { config } from "dotenv";
+import IORedis from "ioredis";
 
 config();
 
-const disableVAQueue = new Queue("disableVAQueue", {
-	redis: {
-		host: process.env.REDIS_HOST || "127.0.0.1",
-		port: process.env.REDIS_PORT || 6379,
+export const connection = new IORedis("redis://127.0.0.1:6379", {
+	enableOfflineQueue: false,
+	offlineQueue: false,
+	maxRetriesPerRequest: null,
+	retryStrategy: (times) => {
+		if (times > 10) {
+			console.log("REDIS: failed to connect arter 10 tries");
+			return null;
+		}
+
+		return 3000;
 	},
-	settings: {
-		maxStalledCount: 5,
-		stalledInterval: 30000,
-	},
-	defaultJobOptions: {
-		attempts: 5,
-		backoff: {
-			type: "exponential",
-			delay: 1000,
-		},
-		removeOnComplete: true,
-		removeOnFail: false,
-	},
+});
+
+export const disableVAQueue = new Queue("disableVAQueue", { connection });
+
+export const disableVAEvent = new QueueEvents("disableVAQueue", { connection });
+disableVAEvent.on("failed", ({ jobId, failedReason }) => {
+	logger.error(`Job ${jobId} failed with error ${failedReason}`);
+});
+
+disableVAEvent.on("waiting", (job) => {
+	// console.log(`A job with ID ${jobId} is waiting`);
+});
+
+disableVAEvent.on("completed", ({ jobId, returnvalue }) => {
+	console.log(`Job ${jobId} completed`, returnvalue);
+	// Called every time a job is completed in any worker
 });
 
 export default disableVAQueue;

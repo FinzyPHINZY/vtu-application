@@ -314,8 +314,6 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 		const forwarded = req.headers["x-forwarded-for"];
 		const requestIp = forwarded ? forwarded.split(",")[0].trim() : req.ip;
 
-		console.log(requestIp, process.env.PALMPAY_IP);
-
 		// if (requestIp !== process.env.PALMPAY_IP) {
 		// 	throw new ApiError(403, false, "Unauthorized request origin");
 		// }
@@ -360,21 +358,10 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
 		console.log("done with processing payment");
 
-		await disableVAQueue.add(
-			{
-				vaId: req.body.virtualAccountNo,
-				transactionId: req.body.reference,
-			},
-			{
-				attempts: 3,
-				backoff: {
-					type: "exponential",
-					delay: 30000, // 5s, 10s, 20s, etc.
-				},
-				removeOnComplete: true,
-				removeOnFail: false,
-			},
-		);
+		await disableVAQueue.add("palmpay-job", {
+			vaId: req.body.virtualAccountNo,
+			transactionId: req.body.reference,
+		});
 
 		console.log("added to queue already");
 

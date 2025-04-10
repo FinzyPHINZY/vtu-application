@@ -9,6 +9,8 @@ import cookieParser from "cookie-parser";
 import connectDB from "./Config/Database.js";
 import { errorHandler, limiter, requestLogger } from "./utils/middleware.js";
 import { initialize } from "./services/safeHavenAuth.js";
+import { startQueues } from "./workers/index.js";
+import disableVAQueue from "./queues/disableVAQueue.js";
 
 // routes
 import userRouter from "./routes/user.js";
@@ -32,9 +34,6 @@ const PORT = process.env.PORT || 7000;
 
 // Database connection
 connectDB();
-
-// Initialize cron jobs
-// import './cron-jobs/deposit.js';
 
 (async () => {
 	try {
@@ -139,7 +138,14 @@ app.use("/api/admin/system", systemControlRoutes);
 app.use(errorHandler);
 
 // Start the server and log a message to the console upon successful start
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+	startQueues();
+
+	await disableVAQueue.add("palmpay-job", {
+		vaId: "6624446429",
+		transactionId: "12345892ifjkds",
+	});
+
 	console.log(
 		`Server is running on http://localhost:${PORT} ...betta go catch it`,
 	);
