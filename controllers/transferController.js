@@ -1,259 +1,244 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-import Transaction from "../models/Transaction.js";
-import ApiError from "../utils/error.js";
-import { generateRandomReference } from "../utils/helpers.js";
-import User from "../models/User.js";
-import { logUserActivity } from "../utils/userActivity.js";
+import Transaction from '../models/Transaction.js';
+import ApiError from '../utils/error.js';
+import { generateRandomReference } from '../utils/helpers.js';
+import User from '../models/User.js';
+import { logUserActivity } from '../utils/userActivity.js';
 
 export const createTransfer = async (req, res, next) => {
-	const session = await mongoose.startSession();
-	session.startTransaction();
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-	try {
-		const { recipientIdentifier, amount, note } = req.body;
-		const senderId = req.user.id;
+  try {
+    const { recipientIdentifier, amount, note } = req.body;
 
-		// Validate input
-		if (!recipientIdentifier || !amount || amount <= 0) {
-			throw new ApiError(400, false, "Invalid recipient or amount");
-		}
+    console.log(req.body);
+    const senderId = req.user.id;
 
-		if (recipientIdentifier === senderId.toString()) {
-			throw new ApiError(400, false, "Cannot transfer to yourself");
-		}
+    // Validate input
+    if (!recipientIdentifier || !amount || amount <= 0) {
+      throw new ApiError(400, false, 'Invalid recipient or amount');
+    }
 
-		const sender = await User.findByIdAndUpdate(
-			senderId,
-			{ $inc: { accountBalance: -amount } },
-			{ new: true, session },
-		).select("accountBalance firstName");
+    if (recipientIdentifier === senderId.toString()) {
+      throw new ApiError(400, false, 'Cannot transfer to yourself');
+    }
 
-		// const sender = await User.findById(senderId).session(session);
-		if (!sender) throw new ApiError(404, false, "Sender not found");
+    const sender = await User.findByIdAndUpdate(
+      senderId,
+      { $inc: { accountBalance: -amount } },
+      { new: true, session }
+    ).select('accountBalance firstName');
 
-		const availableBalance = sender.accountBalance;
-		if (availableBalance < 0) {
-			throw new ApiError(400, false, "Insufficient balance");
-		}
+    // const sender = await User.findById(senderId).session(session);
+    if (!sender) throw new ApiError(404, false, 'Sender not found');
 
-		const recipient = await User.findOneAndUpdate(
-			{
-				$or: [
-					{ _id: recipientIdentifier },
-					{ email: recipientIdentifier },
-					{ phone: recipientIdentifier },
-				],
-				isVerified: true,
-			},
-			{ $inc: { accountBalance: amount } },
-			{ new: true, session },
-		).select("_id name");
+    const availableBalance = sender.accountBalance;
+    if (availableBalance < 0) {
+      throw new ApiError(400, false, 'Insufficient balance');
+    }
 
-		// const recipient = await User.findOne({
-		// 	$or: [
-		// 		{ _id: recipientIdentifier },
-		// 		{ email: recipientIdentifier },
-		// 		{ phone: recipientIdentifier },
-		// 	],
-		// }).session(session);
+    const recipient = await User.findOneAndUpdate(
+      {
+        $or: [
+          { _id: recipientIdentifier },
+          { email: recipientIdentifier },
+          { phone: recipientIdentifier },
+        ],
+        isVerified: true,
+      },
+      { $inc: { accountBalance: amount } },
+      { new: true, session }
+    ).select('_id name');
 
-		if (!recipient) throw new ApiError(404, false, "Recipient not found");
+    // const recipient = await User.findOne({
+    // 	$or: [
+    // 		{ _id: recipientIdentifier },
+    // 		{ email: recipientIdentifier },
+    // 		{ phone: recipientIdentifier },
+    // 	],
+    // }).session(session);
 
-		const reference = generateRandomReference("TRF", sender.firstName);
-		const timestamp = new Date();
+    if (!recipient) throw new ApiError(404, false, 'Recipient not found');
 
-		// Create DEBIT transaction (sender)
-		const debitTx = new Transaction({
-			reference: `${reference}-DEBIT`,
-			serviceType: "bank_transfer",
-			user: senderId,
-			relatedUser: recipient._id,
-			amount,
-			type: "debit",
-			status: "success",
-			metadata: {
-				note: note || "",
-				currentBalance: sender.accountBalance,
-				counterparty: {
-					id: recipient._id,
-					name: recipient.name,
-				},
-			},
-			timestamp,
-		});
+    const reference = generateRandomReference('TRF', sender.firstName);
+    const timestamp = new Date();
 
-		const creditTx = new Transaction({
-			reference: `${reference}-CREDIT`,
-			serviceType: "bank_transfer",
-			user: recipient._id,
-			relatedUser: senderId,
-			amount,
-			type: "credit",
-			status: "success",
-			metadata: {
-				note: note || "",
-				currentBalance: recipient.accountBalance + amount,
-				counterparty: {
-					id: senderId,
-					name: sender.firstName,
-				},
-			},
-			timestamp,
-		});
-		await Promise.all([debitTx.save({ session }), creditTx.save({ session })]);
+    // Create DEBIT transaction (sender)
+    const debitTx = new Transaction({
+      reference: `${reference}-DEBIT`,
+      serviceType: 'bank_transfer',
+      user: senderId,
+      relatedUser: recipient._id,
+      amount,
+      type: 'debit',
+      status: 'success',
+      metadata: {
+        note: note || '',
+        currentBalance: sender.accountBalance,
+        counterparty: {
+          id: recipient._id,
+          name: recipient.name,
+        },
+      },
+      timestamp,
+    });
 
-		await session.commitTransaction();
+    const creditTx = new Transaction({
+      reference: `${reference}-CREDIT`,
+      serviceType: 'bank_transfer',
+      user: recipient._id,
+      relatedUser: senderId,
+      amount,
+      type: 'credit',
+      status: 'success',
+      metadata: {
+        note: note || '',
+        currentBalance: recipient.accountBalance + amount,
+        counterparty: {
+          id: senderId,
+          name: sender.firstName,
+        },
+      },
+      timestamp,
+    });
+    await Promise.all([debitTx.save({ session }), creditTx.save({ session })]);
 
-		// Log activities
-		await Promise.all([
-			logUserActivity(senderId, "transfer-out", {
-				amount,
-				recipient: recipient._id,
-				newBalance: sender.accountBalance,
-			}),
-			logUserActivity(recipient._id, "transfer-in", {
-				amount,
-				sender: senderId,
-				newBalance: recipient.accountBalance,
-			}),
-		]);
+    await session.commitTransaction();
 
-		await session.commitTransaction();
+    // Log activities
+    await Promise.all([
+      logUserActivity(senderId, 'transfer-out', {
+        amount,
+        recipient: recipient._id,
+        newBalance: sender.accountBalance,
+      }),
+      logUserActivity(recipient._id, 'transfer-in', {
+        amount,
+        sender: senderId,
+        newBalance: recipient.accountBalance,
+      }),
+    ]);
 
-		return res.status(201).json({
-			success: true,
-			message: "Transfer completed successfully",
-			data: {
-				transactionId: debitTx._id,
-				newBalance: sender.accountBalance,
-				recipient: {
-					id: recipient._id,
-					name: recipient.name,
-				},
-				// Include both transaction IDs for reference
-				transactions: {
-					debit: debitTx._id,
-					credit: creditTx._id,
-				},
-			},
-		});
-	} catch (error) {
-		await session.abortTransaction();
-		next(error);
-	} finally {
-		session.endSession();
-	}
+    await session.commitTransaction();
+
+    return res.status(201).json({
+      success: true,
+      message: 'Transfer completed successfully',
+      data: {
+        transactionId: debitTx._id,
+        newBalance: sender.accountBalance,
+        recipient: {
+          id: recipient._id,
+          name: recipient.name,
+        },
+        // Include both transaction IDs for reference
+        transactions: {
+          debit: debitTx._id,
+          credit: creditTx._id,
+        },
+      },
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    next(error);
+  } finally {
+    session.endSession();
+  }
 };
 
 export const getTransferHistory = async (req, res, next) => {
-	try {
-		const { page = 1, limit = 10, type = "debit" } = req.query;
-		const userId = req.user.id;
+  try {
+    const { page = 1, limit = 10, type = 'debit' } = req.query;
+    const userId = req.user.id;
 
-		const query = {
-			$or: [{ user: userId }, { recipient: userId }],
-			serviceType: "bank_transfer",
-		};
+    const query = {
+      $or: [{ user: userId }, { recipient: userId }],
+      serviceType: 'bank_transfer',
+    };
 
-		if (type === "debit") query.user = userId;
-		if (type === "credit") query.recipient = userId;
+    if (type === 'debit') query.user = userId;
+    if (type === 'credit') query.recipient = userId;
 
-		const transfers = await Transaction.find(query)
-			.populate(
-				type === "debit" ? "recipient" : "user",
-				"firstName lastName email phoneNumber",
-			)
-			.sort("-createdAt")
-			.limit(limit * 1)
-			.skip((page - 1) * limit);
+    const transfers = await Transaction.find(query)
+      .populate(
+        type === 'debit' ? 'recipient' : 'user',
+        'firstName lastName email phoneNumber'
+      )
+      .sort('-createdAt')
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
 
-		const count = await Transaction.countDocuments(query);
+    const count = await Transaction.countDocuments(query);
 
-		res.status(200).json({
-			success: true,
-			data: transfers,
-			pagination: {
-				total: count,
-				totalPages: Math.ceil(count / limit),
-				currentPage: page,
-				itemsPerPage: limit,
-			},
-		});
-	} catch (error) {
-		next(error);
-	}
+    res.status(200).json({
+      success: true,
+      data: transfers,
+      pagination: {
+        total: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const verifyRecipient = async (req, res, next) => {
-	try {
-		const { recipientIdentifier } = req.body;
-		const senderId = req.user.id;
+  try {
+    const { email } = req.body;
+    const senderId = req.user.id;
 
-		if (!recipientIdentifier) {
-			throw new ApiError(400, false, "Recipient identifier is required");
-		}
+    if (!email) {
+      throw new ApiError(400, false, 'Recipient email is required');
+    }
 
-		if (recipientIdentifier === senderId.toString()) {
-			throw new ApiError(400, false, "Cannot transfer to yourself");
-		}
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new ApiError(400, false, 'Invalid email format');
+    }
 
-		const isValidObjectId =
-			mongoose.Types.ObjectId.isValid(recipientIdentifier);
+    const sender = await User.findById(senderId).select('email');
 
-		const recipient = await User.findOne({
-			$or: [
-				// { _id: recipientIdentifier },
-				...(isValidObjectId ? [{ _id: recipientIdentifier }] : []),
-				{ email: recipientIdentifier },
-				{ phoneNumber: recipientIdentifier },
-			],
-		}).select("_id firstName lastName email phoneNumber lastActive isVerified");
+    if (sender?.email === email) {
+      throw new ApiError(400, false, 'Cannot transfer to yourself');
+    }
 
-		if (!recipient) {
-			throw new ApiError(404, false, "Recipient not found");
-		}
+    const recipient = await User.findOne({ email }).select(
+      '_id firstName lastName email isVerified lastActive'
+    );
 
-		if (!recipient.isVerified) {
-			throw new ApiError(400, false, "Recipient account is not verified");
-		}
+    if (!recipient) {
+      throw new ApiError(404, false, 'Recipient not found');
+    }
 
-		console.log(recipient.email);
-		// Only show partial email/phone for privacy
-		const maskedEmail = recipient.email.replace(/(.{2})(.*)(@.*)/, "$1****$3");
-		const maskedPhone = recipient.phoneNumber.replace(
-			/(\d{3})\d+(\d{3})/,
-			"$1****$2",
-		);
+    if (!recipient.isVerified) {
+      throw new ApiError(400, false, 'Recipient account is not verified');
+    }
 
-		const responseData = {
-			_id: recipient._id,
-			firstName: recipient.firstName,
-			lastName: recipient.lastName,
-			lastActive: recipient.lastActive,
-			identifierUsed: recipientIdentifier,
-		};
+    const [username, domain] = recipient.email.split('@');
+    const maskedEmail = `${username[0]}${'*'.repeat(
+      Math.max(0, username.length - 2)
+    )}${username.slice(-1)}@${domain}`;
 
-		// Only include email/phone if they match the identifier
-		if (recipient.email === recipientIdentifier) {
-			// responseData.email = recipient.email;
-			responseData.phoneNumber = maskedPhone;
-		} else if (recipient.phoneNumber === recipientIdentifier) {
-			// responseData.phoneNumber = recipient.phoneNumber;
-			responseData.email = maskedEmail;
-		} else {
-			// If searched by ID, return both contact methods
-			responseData.email = recipient.email;
-			responseData.phoneNumber = recipient.phoneNumber;
-		}
+    const responseData = {
+      _id: recipient._id,
+      firstName: recipient.firstName,
+      lastName: recipient.lastName,
+      lastActive: recipient.lastActive,
+      email: maskedEmail, // Always return masked email
+      isVerified: recipient.isVerified,
+    };
 
-		res.status(200).json({
-			success: true,
-			message: "Recipient verified",
-			data: responseData,
-		});
-	} catch (error) {
-		console.error("Failed to verify recipient", error);
-		next(error);
-	}
+    return res.status(200).json({
+      success: true,
+      message: 'Recipient verified',
+      data: responseData,
+    });
+  } catch (error) {
+    console.error('Failed to verify recipient', error);
+    next(error);
+  }
 };
