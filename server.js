@@ -139,12 +139,12 @@ app.use(errorHandler);
 
 // Start the server and log a message to the console upon successful start
 app.listen(PORT, async () => {
-	startQueues();
+	// startQueues();
 
-	await disableVAQueue.add("palmpay-job", {
-		vaId: "6624446429",
-		transactionId: "12345892ifjkds",
-	});
+	// await disableVAQueue.add("palmpay-job", {
+	// 	vaId: "6624446429",
+	// 	transactionId: "12345892ifjkds",
+	// });
 
 	console.log(
 		`Server is running on http://localhost:${PORT} ...betta go catch it`,
