@@ -5,6 +5,7 @@ import { generatePasswordResetEmailTemplate } from '../utils/email.js';
 import sendEmail from '../services/emailService.js';
 import ApiError from '../utils/error.js';
 import { logUserActivity } from '../utils/userActivity.js';
+import cloudinary from '../Config/cloudinary.js';
 
 export const fetchUser = async (req, res) => {
   try {
@@ -236,5 +237,56 @@ export const setTransactionPin = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+export const updateProfilePicture = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw new ApiError(400, false, 'Please upload an image file');
+    }
+
+    const bufferToDataURI = (mimetype, buffer) => {
+      const base64 = buffer.toString('base64');
+      return `data:${mimetype};base64,${base64}`;
+    };
+
+    const fileDataUri = bufferToDataURI(req.file.mimetype, req.file.buffer);
+
+    const result = await cloudinary.uploader.upload(fileDataUri, {
+      folder: 'profile-pictures',
+      transformation: [{ width: 300, height: 300, crop: 'fill' }],
+    });
+
+    const user = await User.findOneAndUpdate(
+      {
+        _id: req.user.id,
+      },
+      {
+        originalImageUrl: result.secure_url,
+        thumbnailUrl: result.secure_url,
+        uploadTimestamp: new Date(),
+      },
+      { upsert: true, new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile picture uploaded successfully',
+      data: {
+        originalImageUrl: user.originalImageUrl,
+        thumbnailUrl: user.thumbnailUrl,
+      },
+    });
+  } catch (error) {
+    if (error.message === 'File too large') {
+      console.log('Failed to upload image', error);
+      throw new ApiError(
+        400,
+        false,
+        'File size too large. Maximum size is 5MB'
+      );
+    }
+    next(error);
   }
 };
