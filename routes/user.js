@@ -1,4 +1,6 @@
 import express from 'express';
+import multer from 'multer';
+
 import * as UserController from '../controllers/userController.js';
 import {
   authorizeRoles,
@@ -12,21 +14,27 @@ import {
   registrationValidation,
   transactionPinValidation,
 } from '../utils/helpers.js';
+
 const router = express.Router();
 
-// Route        GET /api/user/:id
-// Description  Fetch details of a specific user by ID
-// Access       Private (Admin or the user themselves)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Not an image! Please upload an image.'));
+    }
+  },
+});
+
 router.get('/', tokenExtractor, userExtractor, UserController.fetchUser);
 
-// Route        GET /api/user
-// Description  Fetch a list of all users
-// Access       Private (Admin only)
 router.get('/list-users', authorizeRoles('admin'), UserController.fetchUsers);
 
-// Route       PUT /api/user/:id/role
-// Desc        Update user role
-// Access      Admin only
 router.put('/:id/role', authorizeRoles('admin'), UserController.updateUserRole);
 
 router.post(
@@ -53,6 +61,14 @@ router.post(
   transactionPinValidation,
   validateRequest,
   UserController.setTransactionPin
+);
+
+router.post(
+  '/upload-profile-picture',
+  tokenExtractor,
+  userExtractor,
+  upload.single('image'),
+  UserController.updateProfilePicture
 );
 
 export default router;
