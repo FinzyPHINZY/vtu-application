@@ -17,21 +17,20 @@ import {
 
 const router = express.Router();
 
-router.use(validateHeaders);
 router.use(tokenExtractor);
 router.use(userExtractor);
+router.use(validateHeaders);
+
 router.use(adminAuth);
 
 router.get(
   '/update-data',
-  validateHeaders,
   validateRequest,
   ProductController.fetchAndUpdatePlans
 );
 
 router.get(
   '/update-ogdams',
-  validateHeaders,
   validateRequest,
   ProductController.fetchandUpdateOgdamsData
 );
@@ -86,6 +85,12 @@ router.delete(
   planIdValidation,
   validateRequest,
   ProductController.deleteCablePlan
+);
+
+router.put(
+  '/utility-discount',
+  validateRequest,
+  ProductController.updateUtilityDiscount
 );
 
 export default router;
