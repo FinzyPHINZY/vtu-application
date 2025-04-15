@@ -51,6 +51,15 @@ export async function getActiveUsers(timeframe) {
   return activeUserCount;
 }
 
+export async function getTransactingUsers(startDate, endDate) {
+  const transactingUsers = await Transaction.distinct('user', {
+    status: 'success',
+    createdAt: { $gte: startDate, $lte: endDate },
+  }).countDocuments();
+
+  return transactingUsers;
+}
+
 // Get activity breakdown
 export async function getActivityBreakdown(timeframe = 'monthly') {
   const now = new Date();

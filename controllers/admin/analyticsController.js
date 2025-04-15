@@ -6,6 +6,7 @@ import ApiError from '../../utils/error.js';
 import {
   getActiveUsers,
   getActivityBreakdown,
+  getTransactingUsers,
   getUserRetention,
 } from '../../utils/userActivity.js';
 
@@ -165,6 +166,12 @@ export const getTransactionsSummary = async (req, res, next) => {
 
 export const fetchActiveUsers = async (req, res, next) => {
   try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
     const data = {
       totalUsers: await User.countDocuments(),
       activeUsers: {
@@ -172,6 +179,9 @@ export const fetchActiveUsers = async (req, res, next) => {
         weekly: await getActiveUsers('weekly'),
         monthly: await getActiveUsers('monthly'),
         quarterly: await getActiveUsers('quarterly'),
+      },
+      transactingUsers: {
+        daily: await getTransactingUsers(todayStart, todayEnd),
       },
       activityBreakdown: await getActivityBreakdown(),
       retention: await getUserRetention(),
@@ -398,34 +408,6 @@ export const calcProfit = async (req, res, next) => {
         },
       },
     ]);
-
-    // const overallResults = await Transaction.aggregate([
-    //   { $match: match },
-    //   {
-    //     $group: {
-    //       _id: null,
-    //       //  totalProfit: { $sum: '$profit' }
-    //       totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
-    //       totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
-    //       totalCost: { $sum: { $ifNull: ['$amount', 0] } },
-    //       totalCount: { $sum: 1 },
-    //     },
-    //   },
-    // ]);
-
-    // const breakdownResults = await Transaction.aggregate([
-    //   { $match: match },
-    //   {
-    //     $group: {
-    //       _id: '$serviceType',
-    //       profit: { $sum: { $ifNull: ['$profit', 0] } },
-    //       sales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
-    //       totalCost: { $sum: { $ifNull: ['$metadata.plan.costPrice', 0] } },
-    //       // cost: { $sum: { $ifNull: ['$amount', 0] } },
-    //       count: { $sum: 1 },
-    //     },
-    //   },
-    // ]);
 
     res.status(200).json({
       success: true,
