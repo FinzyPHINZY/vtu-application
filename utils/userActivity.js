@@ -1,5 +1,6 @@
 import UserActivity from '../models/UserActivity.js';
 import User from '../models/User.js';
+import Transaction from '../models/Transaction.js';
 
 export const logUserActivity = async (userId, activityType, metadata = {}) => {
   try {
