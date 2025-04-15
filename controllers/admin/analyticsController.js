@@ -193,19 +193,139 @@ export const fetchActiveUsers = async (req, res, next) => {
   }
 };
 
+// export const calcProfit = async (req, res, next) => {
+//   try {
+//     const { startDate, endDate } = req.query;
+
+//     if (startDate && Number.isNaN(new Date(startDate).getTime())) {
+//       throw new ApiError(
+//         400,
+//         false,
+//         'Invalid startDate format (use YYYY-MM-DD)'
+//       );
+//     }
+//     if (endDate && Number.isNaN(new Date(endDate).getTime())) {
+//       throw new ApiError(400, false, 'Invalid endDate format (use YYYY-MM-DD)');
+//     }
+
+//     const match = {
+//       status: 'success',
+//       serviceType: {
+//         $in: ['data', 'airtime', 'electricity', 'tvSubscription'],
+//       },
+//     };
+
+//     if (startDate || endDate) {
+//       match.createdAt = {};
+//       if (startDate) match.createdAt.$gte = new Date(startDate);
+//       if (endDate) match.createdAt.$lte = new Date(endDate);
+//     }
+
+//     // First aggregation - get totals across all services
+// const overallResults = await Transaction.aggregate([
+//   { $match: match },
+//   {
+//     $group: {
+//       _id: null,
+//       totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
+//       totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
+//       totalCost: { $sum: { $ifNull: ['$amount', 0] } },
+//       totalCount: { $sum: 1 },
+//     },
+//   },
+// ]);
+
+// Second aggregation - get breakdown by service type
+// const breakdownResults = await Transaction.aggregate([
+//   { $match: match },
+//   {
+//     $group: {
+//       _id: '$serviceType',
+//       profit: { $sum: { $ifNull: ['$profit', 0] } },
+//       sales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
+//       cost: { $sum: { $ifNull: ['$amount', 0] } },
+//       count: { $sum: 1 },
+//     },
+//   },
+//   { $sort: { profit: -1 } }, // Sort by most profitable first
+// ]);
+
+//     // Format the breakdown into a more accessible object
+//     const breakdown = breakdownResults.reduce((acc, curr) => {
+//       acc[curr._id] = {
+//         profit: curr.profit,
+//         sales: curr.sales,
+//         cost: curr.cost,
+//         count: curr.count,
+//       };
+//       return acc;
+//     }, {});
+
+//     return res.status(200).json({
+//       success: true,
+//       data: {
+//         ...(overallResults[0] || {
+//           totalProfit: 0,
+//           totalSales: 0,
+//           totalCost: 0,
+//           totalCount: 0,
+//         }),
+//         breakdown,
+//       },
+//     });
+//   } catch (error) {
+//     console.error(
+//       'Failed to calculate profit',
+//       error?.response || error?.message || error
+//     );
+//     next(error);
+//   }
+// };
+
 export const calcProfit = async (req, res, next) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { range, customDate } = req.query;
 
-    if (startDate && Number.isNaN(new Date(startDate).getTime())) {
+    const allowedRanges = ['daily', 'weekly', 'monthly'];
+    if (range && !allowedRanges.includes(range)) {
       throw new ApiError(
         400,
         false,
-        'Invalid startDate format (use YYYY-MM-DD)'
+        `Invalid range. Use: ${allowedRanges.join(', ')}`
       );
     }
-    if (endDate && Number.isNaN(new Date(endDate).getTime())) {
-      throw new ApiError(400, false, 'Invalid endDate format (use YYYY-MM-DD)');
+
+    let startDate;
+    let endDate;
+    const referenceDate = customDate ? new Date(customDate) : new Date();
+
+    switch (range) {
+      case 'daily':
+        startDate = new Date(referenceDate);
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date(referenceDate);
+        endDate.setUTCHours(23, 59, 59, 999);
+        break;
+
+      case 'weekly':
+        startDate = new Date(referenceDate);
+        startDate.setUTCDate(startDate.getUTCDate() - 6);
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date(referenceDate);
+        endDate.setUTCHours(23, 59, 59, 999);
+        break;
+
+      case 'monthly':
+        startDate = new Date(referenceDate);
+        startDate.setUTCDate(1);
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date(referenceDate);
+        endDate.setUTCMonth(endDate.getUTCMonth() + 1, 0);
+        endDate.setUTCHours(23, 59, 59, 999);
+        break;
+
+      default:
+        break;
     }
 
     const match = {
@@ -215,18 +335,17 @@ export const calcProfit = async (req, res, next) => {
       },
     };
 
-    if (startDate || endDate) {
-      match.createdAt = {};
-      if (startDate) match.createdAt.$gte = new Date(startDate);
-      if (endDate) match.createdAt.$lte = new Date(endDate);
+    if (range) {
+      match.createdAt = { $gte: startDate, $lte: endDate };
     }
 
-    // First aggregation - get totals across all services
+    // Rest of your aggregation logic remains the same...
     const overallResults = await Transaction.aggregate([
       { $match: match },
       {
         $group: {
           _id: null,
+          //  totalProfit: { $sum: '$profit' }
           totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
           totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
           totalCost: { $sum: { $ifNull: ['$amount', 0] } },
@@ -235,7 +354,6 @@ export const calcProfit = async (req, res, next) => {
       },
     ]);
 
-    // Second aggregation - get breakdown by service type
     const breakdownResults = await Transaction.aggregate([
       { $match: match },
       {
@@ -247,21 +365,9 @@ export const calcProfit = async (req, res, next) => {
           count: { $sum: 1 },
         },
       },
-      { $sort: { profit: -1 } }, // Sort by most profitable first
     ]);
 
-    // Format the breakdown into a more accessible object
-    const breakdown = breakdownResults.reduce((acc, curr) => {
-      acc[curr._id] = {
-        profit: curr.profit,
-        sales: curr.sales,
-        cost: curr.cost,
-        count: curr.count,
-      };
-      return acc;
-    }, {});
-
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: {
         ...(overallResults[0] || {
@@ -270,14 +376,15 @@ export const calcProfit = async (req, res, next) => {
           totalCost: 0,
           totalCount: 0,
         }),
-        breakdown,
+        breakdown: breakdownResults.reduce(
+          (acc, curr) => ({ ...acc, [curr._id]: curr }),
+          {}
+        ),
+        meta: { range, startDate, endDate }, // Optional: return time range details
       },
     });
   } catch (error) {
-    console.error(
-      'Failed to calculate profit',
-      error?.response || error?.message || error
-    );
+    console.log('failed to calculate profit', error);
     next(error);
   }
 };
