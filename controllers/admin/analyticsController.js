@@ -348,7 +348,7 @@ export const calcProfit = async (req, res, next) => {
           //  totalProfit: { $sum: '$profit' }
           totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
           totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
-          totalCost: { $sum: { $ifNull: ['$metadata.plan.costPrice', 0] } },
+          totalCost: { $sum: { $ifNull: ['$amount', 0] } },
           totalCount: { $sum: 1 },
         },
       },
@@ -362,6 +362,7 @@ export const calcProfit = async (req, res, next) => {
           profit: { $sum: { $ifNull: ['$profit', 0] } },
           sales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
           totalCost: { $sum: { $ifNull: ['$metadata.plan.costPrice', 0] } },
+          // cost: { $sum: { $ifNull: ['$amount', 0] } },
           count: { $sum: 1 },
         },
       },
