@@ -339,16 +339,31 @@ export const calcProfit = async (req, res, next) => {
       match.createdAt = { $gte: startDate, $lte: endDate };
     }
 
-    // Rest of your aggregation logic remains the same...
     const overallResults = await Transaction.aggregate([
       { $match: match },
       {
+        $addFields: {
+          actualCost: {
+            $cond: {
+              if: { $ifNull: ['$metadata.plan.costPrice', false] },
+              then: '$metadata.plan.costPrice',
+              else: {
+                $cond: {
+                  if: { $eq: ['$serviceType', 'airtime'] },
+                  then: { $subtract: ['$sellingPrice', '$profit'] }, // For airtime: cost = sellingPrice - profit
+                  else: '$amount', // Fallback for other types
+                },
+              },
+            },
+          },
+        },
+      },
+      {
         $group: {
           _id: null,
-          //  totalProfit: { $sum: '$profit' }
           totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
           totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
-          totalCost: { $sum: { $ifNull: ['$amount', 0] } },
+          totalCost: { $sum: { $ifNull: ['$actualCost', 0] } },
           totalCount: { $sum: 1 },
         },
       },
@@ -357,16 +372,60 @@ export const calcProfit = async (req, res, next) => {
     const breakdownResults = await Transaction.aggregate([
       { $match: match },
       {
+        $addFields: {
+          actualCost: {
+            $cond: {
+              if: { $ifNull: ['$metadata.plan.costPrice', false] },
+              then: '$metadata.plan.costPrice',
+              else: {
+                $cond: {
+                  if: { $eq: ['$serviceType', 'airtime'] },
+                  then: { $subtract: ['$sellingPrice', '$profit'] },
+                  else: '$amount',
+                },
+              },
+            },
+          },
+        },
+      },
+      {
         $group: {
           _id: '$serviceType',
           profit: { $sum: { $ifNull: ['$profit', 0] } },
           sales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
-          totalCost: { $sum: { $ifNull: ['$metadata.plan.costPrice', 0] } },
-          // cost: { $sum: { $ifNull: ['$amount', 0] } },
+          totalCost: { $sum: { $ifNull: ['$actualCost', 0] } },
           count: { $sum: 1 },
         },
       },
     ]);
+
+    // const overallResults = await Transaction.aggregate([
+    //   { $match: match },
+    //   {
+    //     $group: {
+    //       _id: null,
+    //       //  totalProfit: { $sum: '$profit' }
+    //       totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
+    //       totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
+    //       totalCost: { $sum: { $ifNull: ['$amount', 0] } },
+    //       totalCount: { $sum: 1 },
+    //     },
+    //   },
+    // ]);
+
+    // const breakdownResults = await Transaction.aggregate([
+    //   { $match: match },
+    //   {
+    //     $group: {
+    //       _id: '$serviceType',
+    //       profit: { $sum: { $ifNull: ['$profit', 0] } },
+    //       sales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
+    //       totalCost: { $sum: { $ifNull: ['$metadata.plan.costPrice', 0] } },
+    //       // cost: { $sum: { $ifNull: ['$amount', 0] } },
+    //       count: { $sum: 1 },
+    //     },
+    //   },
+    // ]);
 
     res.status(200).json({
       success: true,
