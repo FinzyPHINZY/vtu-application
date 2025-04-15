@@ -426,32 +426,26 @@ export const googleLogin = async (req, res) => {
     const { email, googleId, firstName, lastName } = req.user;
 
     // Find or create user
-
     let user = await User.findOne({ email });
 
     if (user) {
       if (!user.googleId) {
         user.googleId = googleId;
-
         user.isGoogleUser = true;
-
         user.isVerified = true;
 
         if (!user.firstName) user.firstName = firstName || 'Unknown';
-
         if (!user.lastName) user.lastName = lastName || 'Unknown';
 
         await user.save();
       } else if (user.googleId !== googleId) {
         return res.status(400).json({
           success: false,
-
           message: 'Email already associated with different Google account',
         });
       }
     } else {
       // Create new user with Google credentials
-
       user = await User.create({
         email,
         googleId,
@@ -472,25 +466,18 @@ export const googleLogin = async (req, res) => {
     }
 
     // if (user && user.isGoogleUser !== true) {
-
     //   throw new ApiError(400, false, 'Please login with EMAIL and PASSWORD');
-
     // }
 
     // Get Safe Haven token
-
     const refreshToken = await getAuthorizationToken();
 
     const body = {
       grant_type: 'refresh_token',
-
       client_id: process.env.SAFE_HAVEN_CLIENT_ID,
-
       client_assertion: process.env.SAFE_HAVEN_CLIENT_ASSERTION,
-
       client_assertion_type:
         'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-
       refresh_token: refreshToken,
     };
 
@@ -499,19 +486,16 @@ export const googleLogin = async (req, res) => {
     try {
       safeHavenResponse = await axios.post(
         `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-
         body
       );
     } catch (error) {
       console.error(
         'Failed to get Safe Haven token:',
-
         error.response?.data || error.message
       );
 
       return res.status(500).json({
         success: false,
-
         message: 'Failed to authenticate with Safe Haven',
       });
     }
@@ -526,15 +510,11 @@ export const googleLogin = async (req, res) => {
     await user.save();
 
     // Create JWT token
-
     const userForToken = {
       id: user._id,
-
       safeHavenAccessToken: {
         access_token,
-
         expires_in,
-
         ibs_client_id,
       },
     };
@@ -545,9 +525,7 @@ export const googleLogin = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-
       message: 'Signed in successfully',
-
       data: {
         _id: user._id,
         email: user.email,
@@ -561,12 +539,10 @@ export const googleLogin = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
-        imageUrl: user.originalImageUrl || null,
+        originalImageUrl: user.originalImageUrl || null,
         thumbnailUrl: user.thumbnailUrl || null,
       },
-
       token,
-
       expires_in,
     });
   } catch (error) {

@@ -1,41 +1,34 @@
-import nodemailer from "nodemailer";
+import { Resend } from 'resend';
+import ApiError from '../utils/error.js';
 
-import { config } from "dotenv";
-config();
-
-const smtpConfig = {
-	host: process.env.SMTP_HOST,
-	port: process.env.SMTP_PORT,
-	secure: process.env.SMTP_SECURE === "true", // use SSL
-	auth: {
-		user: process.env.SMTP_USER,
-		pass: process.env.SMTP_PASS,
-	},
-};
-
-const transporter = nodemailer.createTransport(smtpConfig);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (to, subject, html) => {
-	try {
-		console.log("log10");
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to,
+      subject,
+      html,
+    });
 
-		console.log(transporter);
+    if (error) {
+      console.error('Resend error:', error);
+      throw new ApiError(
+        400,
+        false,
+        'Failed to send email',
+        `Email failed: ${error.message}`
+      );
+    }
 
-		const info = await transporter.sendMail({
-			from: process.env.SMTP_FROM,
-			to,
-			subject,
-			html,
-		});
-		console.log(info.accepted);
-		console.log(info.rejected);
-		console.log(`Email sent: ${info.messageId}`);
+    console.log('Email sent successfully:', data.id);
 
-		return info;
-	} catch (error) {
-		console.error("Email sending failed:", error);
-		throw error;
-	}
+    return data;
+  } catch (error) {
+    console.error('Email sending failed:', error);
+    throw error;
+  }
 };
 
 export default sendEmail;
