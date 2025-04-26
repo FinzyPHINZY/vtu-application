@@ -4,6 +4,7 @@ import { generateRandomReference } from '../utils/helpers.js';
 import ApiError from '../utils/error.js';
 import Transaction from '../models/Transaction.js';
 import { logUserActivity } from '../utils/userActivity.js';
+import mongoose from 'mongoose';
 
 export const createSubAccount = async (req, res, next) => {
   try {
@@ -107,7 +108,6 @@ export const handleSafeHavenWebhook = async (req, res, next) => {
 
     switch (eventType) {
       case 'account.credit': {
-        console.log('money don enter');
         // Process deposit to user's permanent account
         await handleDeposit(data);
         break;
@@ -135,64 +135,149 @@ export const handleSafeHavenWebhook = async (req, res, next) => {
   }
 };
 
+// async function handleDeposit(depositData) {
+//   const user = await User.findOne({
+//     accountNumber: depositData.creditAccountNumber,
+//   });
+
+//   if (!user) {
+//     console.error(
+//       `User not found for account: ${depositData.creditAccountNumber}`
+//     );
+//     throw new ApiError(404, false, 'User account not found');
+//   }
+
+//   const existingTransaction = await Transaction.findOne({
+//     reference: depositData._id,
+//     status: 'success',
+//   });
+
+//   if (existingTransaction) {
+//     console.log(`Transaction already processed: ${depositData._id}`);
+//     return;
+//   }
+
+//   const transaction = await Transaction.create({
+//     reference: depositData._id,
+//     serviceType: 'deposit',
+//     type: 'credit',
+//     amount: depositData.amount,
+//     status: 'success',
+//     user: user._id,
+//     metadata: {
+//       provider: 'SafeHaven',
+//       providerChannel: depositData.providerChannel,
+//       providerReference: depositData._id,
+//       sessionId: depositData.sessionId,
+//       debitAccountName: depositData.debitAccountName,
+//       debitAccountNumber: depositData.debitAccountNumber,
+//       destinationInstitutionCode: depositData.destinationInstitutionCode,
+//       narration: depositData.narration,
+//       processedAt: new Date(),
+//     },
+//     completedAt: new Date(),
+//   });
+
+//   user.transactions.push(transaction._id);
+
+//   await user.save();
+
+//   await User.findByIdAndUpdate(user._id, {
+//     $inc: { accountBalance: depositData.amount },
+//   });
+
+//   // Log user activity
+//   await logUserActivity(user._id, 'deposit', {
+//     amount: depositData.amount,
+//     transactionId: depositData._id,
+//     paymentMethod: `${depositData.debitAccountName} (${depositData.debitAccountNumber})`,
+//     provider: 'SafeHaven',
+//   });
+
+//   console.log(
+//     `Processed successful deposit for user ${user._id}, amount: ${depositData.amount}`
+//   );
+// }
+
 async function handleDeposit(depositData) {
-  const user = await User.findOne({
-    accountNumber: depositData.creditAccountNumber,
-  });
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  if (!user) {
-    console.error(
-      `User not found for account: ${depositData.creditAccountNumber}`
+  try {
+    const user = await User.findOne({
+      accountNumber: depositData.creditAccountNumber,
+    }).session(session);
+
+    if (!user) {
+      throw new ApiError(404, false, 'User account not found');
+    }
+
+    const existingTransaction = await Transaction.findOne({
+      reference: depositData._id,
+      status: 'success',
+    }).session(session);
+
+    if (existingTransaction) {
+      await session.abortTransaction();
+      return;
+    }
+
+    // Create transaction
+    const transaction = await Transaction.create(
+      [
+        {
+          reference: depositData._id,
+          serviceType: 'deposit',
+          type: 'credit',
+          amount: depositData.amount,
+          status: 'success',
+          user: user._id,
+          metadata: {
+            provider: 'SafeHaven',
+            providerChannel: depositData.providerChannel,
+            providerReference: depositData._id,
+            sessionId: depositData.sessionId,
+            debitAccount: {
+              name: depositData.debitAccountName,
+              number: depositData.debitAccountNumber,
+            },
+            institution: depositData.destinationInstitutionCode,
+            narration: depositData.narration,
+            processedAt: new Date(),
+          },
+          completedAt: new Date(),
+          processingTime:
+            new Date(depositData.updatedAt) - new Date(depositData.createdAt),
+        },
+      ],
+      { session }
     );
-    throw new ApiError(404, false, 'User account not found');
-  }
 
-  const existingTransaction = await Transaction.findOne({
-    reference: depositData._id,
-    status: 'success',
-  });
+    // Single atomic update operation
+    await User.findByIdAndUpdate(
+      user._id,
+      {
+        $inc: { accountBalance: depositData.amount },
+        $push: { transactions: transaction[0]._id },
+        $set: { lastDepositAt: new Date() }, // Optional: track last deposit
+      },
+      { session }
+    );
 
-  if (existingTransaction) {
-    console.log(`Transaction already processed: ${depositData._id}`);
-    return;
-  }
+    await session.commitTransaction();
 
-  const transaction = await Transaction.create({
-    reference: depositData._id,
-    serviceType: 'deposit',
-    type: 'credit',
-    amount: depositData.amount,
-    status: 'success',
-    user: user._id,
-    metadata: {
+    await logUserActivity(user._id, 'deposit', {
+      amount: depositData.amount,
+      transactionId: depositData._id,
+      paymentMethod: `${depositData.debitAccountName} (${depositData.debitAccountNumber})`,
       provider: 'SafeHaven',
-      providerChannel: depositData.providerChannel,
-      providerReference: depositData._id,
-      sessionId: depositData.sessionId,
-      debitAccountName: depositData.debitAccountName,
-      debitAccountNumber: depositData.debitAccountNumber,
-      destinationInstitutionCode: depositData.destinationInstitutionCode,
-      narration: depositData.narration,
-      processedAt: new Date(),
-    },
-    completedAt: new Date(),
-  });
-
-  await User.findByIdAndUpdate(user._id, {
-    $inc: { accountBalance: depositData.amount },
-  });
-
-  // Log user activity
-  await logUserActivity(user._id, 'deposit', {
-    amount: depositData.amount,
-    transactionId: depositData._id,
-    paymentMethod: `${depositData.debitAccountName} (${depositData.debitAccountNumber})`,
-    provider: 'SafeHaven',
-  });
-
-  console.log(
-    `Processed successful deposit for user ${user._id}, amount: ${depositData.amount}`
-  );
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
 }
 
 export const createVirtualAccount = async (req, res, next) => {
