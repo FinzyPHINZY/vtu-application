@@ -16,12 +16,14 @@ import {
 import * as accountController from '../controllers/accountController.js';
 const router = express.Router();
 
-router.post('/webhook', (req, res) => {
-  console.log('Webhook received:', req.body);
-  res
-    .status(200)
-    .send({ success: true, message: 'Webhook received', data: req.body });
-});
+// router.post('/webhook', (req, res) => {
+//   console.log('Webhook received:', req.body);
+//   res
+//     .status(200)
+//     .send({ success: true, message: 'Webhook received', data: req.body });
+// });
+
+router.post('/webhook', accountController.handleSafeHavenWebhook);
 
 router.use(checkSystemStatus);
 router.use(tokenExtractor);

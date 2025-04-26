@@ -39,7 +39,7 @@ export const createSubAccount = async (req, res, next) => {
       identityNumber,
       identityId,
       otp,
-      callbackUrl: process.env.FRONTEND_BASE_URL,
+      callbackUrl: process.env.WEBHOOK_CALLBACK_URL,
       autoSweep: true,
       autoSweepDetails: {
         schedule: 'Instant',
@@ -60,8 +60,6 @@ export const createSubAccount = async (req, res, next) => {
     );
 
     const { data } = response.data;
-
-    console.log(data);
 
     user.accountBalance = data.accountBalance;
     user.accountNumber = data.accountNumber;
@@ -97,15 +95,105 @@ export const createSubAccount = async (req, res, next) => {
 
 export const handleSafeHavenWebhook = async (req, res, next) => {
   try {
-    console.log(req.body);
+    const { eventType, data } = req.body;
+
+    if (!eventType || !data) {
+      throw new ApiError(400, 'Invalid webhook payload');
+    }
+
+    if (data.client !== process.env.SAFEHAVEN_CLIENT_ID) {
+      throw new ApiError(403, false, 'Unauthorized webhook request');
+    }
+
+    switch (eventType) {
+      case 'account.credit': {
+        console.log('money don enter');
+        // Process deposit to user's permanent account
+        await handleDeposit(data);
+        break;
+      }
+
+      case 'account.debit':
+      case 'transfer.success':
+      case 'transfer.failed':
+      default: {
+        // Log unhandled events but don't process them
+        console.log(`Received unhandled SafeHaven event: ${eventType}`);
+        return res.status(200).json({
+          success: true,
+          message: 'Webhook received but not processed (unhandled event type)',
+        });
+      }
+    }
+
     return res
       .status(200)
       .json({ success: true, message: 'webhook received successfullly' });
   } catch (error) {
-    console.error('Failed to process webhook', error);
+    console.error('Failed to process Safe Haven Webhook', error);
     next(error);
   }
 };
+
+async function handleDeposit(depositData) {
+  const user = await User.findOne({
+    accountNumber: depositData.creditAccountNumber,
+  });
+
+  if (!user) {
+    console.error(
+      `User not found for account: ${depositData.creditAccountNumber}`
+    );
+    throw new ApiError(404, false, 'User account not found');
+  }
+
+  const existingTransaction = await Transaction.findOne({
+    reference: depositData._id,
+    status: 'success',
+  });
+
+  if (existingTransaction) {
+    console.log(`Transaction already processed: ${depositData._id}`);
+    return;
+  }
+
+  const transaction = await Transaction.create({
+    reference: depositData._id,
+    serviceType: 'deposit',
+    type: 'credit',
+    amount: depositData.amount,
+    status: 'success',
+    user: user._id,
+    metadata: {
+      provider: 'SafeHaven',
+      providerChannel: depositData.providerChannel,
+      providerReference: depositData._id,
+      sessionId: depositData.sessionId,
+      debitAccountName: depositData.debitAccountName,
+      debitAccountNumber: depositData.debitAccountNumber,
+      destinationInstitutionCode: depositData.destinationInstitutionCode,
+      narration: depositData.narration,
+      processedAt: new Date(),
+    },
+    completedAt: new Date(),
+  });
+
+  await User.findByIdAndUpdate(user._id, {
+    $inc: { accountBalance: depositData.amount },
+  });
+
+  // Log user activity
+  await logUserActivity(user._id, 'deposit', {
+    amount: depositData.amount,
+    transactionId: depositData._id,
+    paymentMethod: `${depositData.debitAccountName} (${depositData.debitAccountNumber})`,
+    provider: 'SafeHaven',
+  });
+
+  console.log(
+    `Processed successful deposit for user ${user._id}, amount: ${depositData.amount}`
+  );
+}
 
 export const createVirtualAccount = async (req, res, next) => {
   try {
@@ -142,7 +230,7 @@ export const createVirtualAccount = async (req, res, next) => {
         accountNumber: process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER,
         bankCode: process.env.SAFE_HAVEN_VIRTUAL_ACCOUNT_BANK_CODE,
       },
-      callbackUrl: process.env.FRONTEND_BASE_URL,
+      callbackUrl: process.env.WEBHOOK_CALLBACK_URL,
     };
 
     const response = await axios.post(

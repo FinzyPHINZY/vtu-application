@@ -11,7 +11,7 @@ export const fetchUser = async (req, res) => {
   try {
     const { id } = req.user;
 
-    const user = await User.findById(id).populate('transactions');
+    const user = await User.findById(id).populate('transactions').lean();
 
     if (!user) {
       return res
