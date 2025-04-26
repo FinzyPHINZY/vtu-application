@@ -118,6 +118,16 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.get('/webhook', (req, res) => {
+  return res
+    .status(200)
+    .json({ success: true, message: 'webhook sent successfully' });
+});
+app.post('/webhook', (req, res) => {
+  console.log(req.body);
+  return res.status(200).json(req.body);
+});
+
 // middleware endpoints
 app.use('/api/auth', authRoutes);
 app.use('/api/oauth', oauthRoutes);

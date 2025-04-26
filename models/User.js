@@ -5,6 +5,7 @@ const accountDetailsSchema = new mongoose.Schema({
   accountId: String,
   accountName: String,
   accountType: String,
+  accountNumber: String,
   status: String,
 });
 

@@ -41,7 +41,10 @@ export const createSubAccount = async (req, res, next) => {
       otp,
       callbackUrl: process.env.FRONTEND_BASE_URL,
       autoSweep: true,
-      autoSweepDetails: { schedule: 'Instant' },
+      autoSweepDetails: {
+        schedule: 'Instant',
+        accountNumber: process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER,
+      },
     };
 
     const response = await axios.post(
@@ -58,6 +61,8 @@ export const createSubAccount = async (req, res, next) => {
 
     const { data } = response.data;
 
+    console.log(data);
+
     user.accountBalance = data.accountBalance;
     user.accountNumber = data.accountNumber;
     // user.statu
@@ -68,6 +73,7 @@ export const createSubAccount = async (req, res, next) => {
       accountBalance: data.accountBalance,
       accountId: data._id,
       status: user.status,
+      accountNumber: data.accountNumber,
     };
 
     await user.save();
@@ -85,6 +91,18 @@ export const createSubAccount = async (req, res, next) => {
   } catch (error) {
     console.error(error);
 
+    next(error);
+  }
+};
+
+export const handleSafeHavenWebhook = async (req, res, next) => {
+  try {
+    console.log(req.body);
+    return res
+      .status(200)
+      .json({ success: true, message: 'webhook received successfullly' });
+  } catch (error) {
+    console.error('Failed to process webhook', error);
     next(error);
   }
 };
