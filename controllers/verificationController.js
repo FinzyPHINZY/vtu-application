@@ -1,4 +1,5 @@
 import axios from 'axios';
+import ApiError from '../utils/error';
 
 const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
 
@@ -66,9 +67,13 @@ export const validateVerification = async (req, res) => {
       }
     );
 
-    const { data } = response.data;
+    // 0|server  | { statusCode: 400, message: 'OTP already verified.' }
 
-    console.log(response.data);
+    const { data, statusCode, message } = response.data;
+
+    if (statusCode === 400) {
+      throw new ApiError(statusCode, false, message);
+    }
 
     res.status(200).json({
       statusCode: 200,
