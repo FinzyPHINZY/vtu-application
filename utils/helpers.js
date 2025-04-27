@@ -54,9 +54,7 @@ export const paymentVerificationValidation = [
 ];
 
 export const subAccountValidation = [
-  body('phoneNumber')
-    .matches(/^\+[1-9]\d{1,14}$/)
-    .withMessage('Invalid phone number format. Must include country code'),
+  // body('phoneNumber').matches(/^\+[1-9]\d{1,14}$/).withMessage('Invalid phone number format. Must include country code'),
   body('emailAddress')
     .isEmail()
     .normalizeEmail()
