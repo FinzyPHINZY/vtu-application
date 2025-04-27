@@ -249,6 +249,7 @@ export const virtualAccountLimiter = rateLimit({
 });
 
 export const validateRequest = (req, res, next) => {
+  console.log('igothere validating request');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const formattedErrors = errors.array().map((err) => ({
@@ -268,6 +269,7 @@ export const validateRequest = (req, res, next) => {
 
 export const validateHeaders = (req, res, next) => {
   // Check Authorization header
+  console.log('igothere validating headers');
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(400).json({
