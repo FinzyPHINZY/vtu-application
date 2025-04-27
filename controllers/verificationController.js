@@ -67,8 +67,6 @@ export const validateVerification = async (req, res) => {
       }
     );
 
-    // 0|server  | { statusCode: 400, message: 'OTP already verified.' }
-
     const { data, statusCode, message } = response.data;
 
     if (statusCode === 400) {

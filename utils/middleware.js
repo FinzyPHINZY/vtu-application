@@ -249,7 +249,6 @@ export const virtualAccountLimiter = rateLimit({
 });
 
 export const validateRequest = (req, res, next) => {
-  console.log('igothere validating request', req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const formattedErrors = errors.array().map((err) => ({
@@ -257,17 +256,12 @@ export const validateRequest = (req, res, next) => {
       message: err.msg,
     }));
 
-    console.log(errors);
-
-    console.log('igot past errors');
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
       errors: formattedErrors,
     });
   }
-
-  console.log('request was actually validated');
 
   next();
 };

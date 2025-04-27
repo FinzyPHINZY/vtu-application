@@ -24,13 +24,9 @@ export const createSubAccount = async (req, res, next) => {
       throw new ApiError(404, false, 'User not found', user);
     }
 
-    console.log('user found');
-
     if (user.accountNumber) {
       throw new ApiError(409, false, 'User already has a sub-account');
     }
-
-    console.log('user doesnt have an account number');
 
     const externalReference = generateRandomReference('ACC', user.firstName);
 
@@ -66,11 +62,14 @@ export const createSubAccount = async (req, res, next) => {
 
     console.log('response no bad sha', response.data);
 
-    const { data } = response.data;
+    const { data, statusCode, message } = response.data;
+
+    if (statusCode === 400) {
+      throw new ApiError(statusCode, false, message);
+    }
 
     user.accountBalance = data.accountBalance;
     user.accountNumber = data.accountNumber;
-    // user.statu
     user.accountDetails = {
       bankName: data.bankName,
       accountName: data.accountName,
