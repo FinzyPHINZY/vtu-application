@@ -249,7 +249,7 @@ export const virtualAccountLimiter = rateLimit({
 });
 
 export const validateRequest = (req, res, next) => {
-  console.log('igothere validating request');
+  console.log('igothere validating request', req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const formattedErrors = errors.array().map((err) => ({
@@ -257,6 +257,9 @@ export const validateRequest = (req, res, next) => {
       message: err.msg,
     }));
 
+    console.log(errors);
+
+    console.log('igot past errors');
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
@@ -264,12 +267,13 @@ export const validateRequest = (req, res, next) => {
     });
   }
 
+  console.log('request was actually validated');
+
   next();
 };
 
 export const validateHeaders = (req, res, next) => {
   // Check Authorization header
-  console.log('igothere validating headers');
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(400).json({
