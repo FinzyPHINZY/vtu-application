@@ -33,7 +33,7 @@ router.use(userExtractor);
 router.post(
   '/subaccount',
   validateHeaders,
-  checkGoogleUser,
+  // checkGoogleUser,
   subAccountValidation,
   validateRequest,
   accountController.createSubAccount
