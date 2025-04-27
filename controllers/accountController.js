@@ -102,10 +102,6 @@ export const handleSafeHavenWebhook = async (req, res, next) => {
       throw new ApiError(400, 'Invalid webhook payload');
     }
 
-    if (data.client !== process.env.SAFEHAVEN_CLIENT_ID) {
-      throw new ApiError(403, false, 'Unauthorized webhook request');
-    }
-
     switch (eventType) {
       case 'account.credit': {
         // Process deposit to user's permanent account
