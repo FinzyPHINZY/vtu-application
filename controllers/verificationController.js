@@ -68,6 +68,8 @@ export const validateVerification = async (req, res) => {
 
     const { data } = response.data;
 
+    console.log(data);
+
     res.status(200).json({
       statusCode: 200,
       data: {
