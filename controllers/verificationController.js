@@ -1,5 +1,5 @@
 import axios from 'axios';
-import ApiError from '../utils/error';
+import ApiError from '../utils/error.js';
 
 const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
 
