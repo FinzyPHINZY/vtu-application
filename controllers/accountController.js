@@ -24,9 +24,13 @@ export const createSubAccount = async (req, res, next) => {
       throw new ApiError(404, false, 'User not found', user);
     }
 
+    console.log('user found');
+
     if (user.accountNumber) {
       throw new ApiError(409, false, 'User already has a sub-account');
     }
+
+    console.log('user doesnt have an account number');
 
     const externalReference = generateRandomReference('ACC', user.firstName);
 
@@ -60,6 +64,8 @@ export const createSubAccount = async (req, res, next) => {
       }
     );
 
+    console.log('response no bad sha', response.data);
+
     const { data } = response.data;
 
     user.accountBalance = data.accountBalance;
@@ -76,6 +82,9 @@ export const createSubAccount = async (req, res, next) => {
     };
 
     await user.save();
+
+    console.log('updated user successfully');
+
     await logUserActivity(user._id, 'others', {
       details: 'Sub-Account creation',
     });
