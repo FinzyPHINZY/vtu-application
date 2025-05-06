@@ -1,34 +1,33 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import morgan from 'morgan';
-import helmet from 'helmet';
-import cors from 'cors';
-import passport from 'passport';
+import './Config/passport.js';
+
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import passport from 'passport';
 
 import connectDB from './Config/Database.js';
-import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
-import { initialize } from './services/safeHavenAuth.js';
 import { startDepositVerificationJob } from './cron-jobs/palmpay.js';
-
-import { startQueues } from './workers/index.js';
-import disableVAQueue from './queues/disableVAQueue.js';
-
-// routes
-import userRouter from './routes/user.js';
-import servicesRoutes from './routes/services.js';
-import authRoutes from './routes/auth.js';
-import oauthRoutes from './routes/oauth.js';
-import verificationRoutes from './routes/verification.js';
 import accountRoutes from './routes/account.js';
-import transactionRoutes from './routes/transactions.js';
-import depositRoutes from './routes/palmpay.js';
-import transferRoutes from './routes/transfers.js';
 import analyticsRoutes from './routes/admin/analytics.js';
 import productsRoutes from './routes/admin/products.js';
 import systemControlRoutes from './routes/admin/systemControl.js';
 import adminTransactionRoutes from './routes/admin/transactions.js';
+import authRoutes from './routes/auth.js';
+import oauthRoutes from './routes/oauth.js';
+import depositRoutes from './routes/palmpay.js';
+import servicesRoutes from './routes/services.js';
+import transactionRoutes from './routes/transactions.js';
+import transferRoutes from './routes/transfers.js';
+import userRouter from './routes/user.js';
+import verificationRoutes from './routes/verification.js';
+import { initialize } from './services/safeHavenAuth.js';
+import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
+import { startQueues } from './workers/index.js';
 
+// routes
 dotenv.config();
 
 const app = express();
@@ -59,7 +58,6 @@ app.use(limiter);
 app.use(requestLogger);
 
 app.use(passport.initialize());
-import './Config/passport.js';
 
 // Endpoints
 app.get('/', (req, res) => {
@@ -118,16 +116,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/webhook', (req, res) => {
-  return res
-    .status(200)
-    .json({ success: true, message: 'webhook sent successfully' });
-});
-app.post('/webhook', (req, res) => {
-  console.log(req.body);
-  return res.status(200).json(req.body);
-});
-
 // middleware endpoints
 app.use('/api/auth', authRoutes);
 app.use('/api/oauth', oauthRoutes);
@@ -171,14 +159,8 @@ process.on('unhandledRejection', (error) => {
   console.error('Unhandled rejection:', error);
 });
 
-// Start the server and log a message to the console upon successful start
 app.listen(PORT, async () => {
   startQueues();
-
-  // await disableVAQueue.add('palmpay-job', {
-  //   vaId: '6672426237',
-  //   transactionId: 'aligkoaojk',
-  // });
 
   console.log(
     `Server is running on http://localhost:${PORT} ...betta go catch it`
