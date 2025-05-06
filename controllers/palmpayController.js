@@ -287,7 +287,7 @@ export const queryVirtualAccount = async (req, res, next) => {
       {
         headers: {
           Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
-          'Content-Type': 'application/json;charset=UTF-8',
+          'Content-Type': 'application/json',
           CountryCode: 'NG',
           Signature: generatedSignature,
         },

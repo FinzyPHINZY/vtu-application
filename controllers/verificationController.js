@@ -73,6 +73,12 @@ export const validateVerification = async (req, res) => {
       throw new ApiError(statusCode, false, message);
     }
 
+    const phoneNumber = data.providerResponse.phoneNumber1;
+
+    const maskedNumber = `${phoneNumber.slice(0, 3)}xxxx${phoneNumber.slice(
+      -3
+    )}`;
+
     res.status(200).json({
       statusCode: 200,
       data: {
@@ -81,8 +87,8 @@ export const validateVerification = async (req, res) => {
         type: data.type,
         amount: data.amount,
         status: data.status,
+        maskedNumber,
         debitAccountNumber: data.debitAccountNumber,
-        providerResponse: data.providerResponse,
         transaction: data.transaction,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
