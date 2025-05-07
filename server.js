@@ -1,12 +1,9 @@
-import './Config/passport.js';
-
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import passport from 'passport';
 
 import connectDB from './Config/Database.js';
 import { startDepositVerificationJob } from './cron-jobs/palmpay.js';
@@ -16,12 +13,12 @@ import productsRoutes from './routes/admin/products.js';
 import systemControlRoutes from './routes/admin/systemControl.js';
 import adminTransactionRoutes from './routes/admin/transactions.js';
 import authRoutes from './routes/auth.js';
-import oauthRoutes from './routes/oauth.js';
 import depositRoutes from './routes/palmpay.js';
 import servicesRoutes from './routes/services.js';
 import transactionRoutes from './routes/transactions.js';
 import transferRoutes from './routes/transfers.js';
 import userRouter from './routes/user.js';
+import billerRoutes from './routes/palmpay.biller.js';
 import verificationRoutes from './routes/verification.js';
 import { initialize } from './services/safeHavenAuth.js';
 import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
@@ -56,8 +53,6 @@ app.use(cors());
 app.use(cookieParser());
 app.use(limiter);
 app.use(requestLogger);
-
-app.use(passport.initialize());
 
 // Endpoints
 app.get('/', (req, res) => {
@@ -118,7 +113,6 @@ app.get('/health', (req, res) => {
 
 // middleware endpoints
 app.use('/api/auth', authRoutes);
-app.use('/api/oauth', oauthRoutes);
 app.use('/api/user', userRouter);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/account', accountRoutes);
@@ -126,6 +120,7 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/transfers', transferRoutes);
 app.use('/api/deposit', depositRoutes);
+app.use('/api/biller', billerRoutes);
 
 // admin endpoints
 app.use('/api/admin/system-control', systemControlRoutes);

@@ -498,3 +498,139 @@ async function handleChargeback(event) {
 
   console.log(`Processed chareback for transaction ${originalTransactionId}`);
 }
+
+export const queryBiller = async (req, res, next) => {
+  try {
+    const { sceneCode } = req.body;
+
+    if (!sceneCode) {
+      throw new ApiError(400, false, 'Scene code is required');
+    }
+    const nonceStr = generateNonceStr();
+
+    const payload = {
+      sceneCode,
+      version: 'V2.0',
+      requestTime: Date.now(),
+      nonceStr,
+    };
+
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
+    const isVerified = rsaVerify(
+      md5(sortParams(payload)).toUpperCase(),
+      generatedSignature,
+      process.env.PALMPAY_PUBLIC_KEY,
+      'SHA1withRSA'
+    );
+    console.log('Signature Verified:', isVerified);
+    const response = await axios.post(
+      `${process.env.PALMPAY_BASE_URL}/api/v2/bill-payment/biller/query`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
+          'Content-Type': 'application/json',
+          CountryCode: 'NG',
+          Signature: generatedSignature,
+        },
+      }
+    );
+
+    if (response.status !== 200) {
+      throw new ApiError(
+        400,
+        false,
+        'Failed to fetch biller details',
+        response.data
+      );
+    }
+
+    const { data } = response.data;
+
+    if (!data) {
+      throw new ApiError(404, false, 'Biller not found');
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Biller fetched successfully',
+      data,
+    });
+  } catch (error) {
+    console.error(
+      'Failed to fetch biller details',
+      error?.response || error?.message || error
+    );
+
+    next(error);
+  }
+};
+
+export const queryBillerItem = async (req, res, next) => {
+  try {
+    const { sceneCode, billerId } = req.body;
+
+    if (!sceneCode) {
+      throw new ApiError(400, false, 'Scene code is required');
+    }
+
+    if (!billerId) {
+      throw new ApiError(400, false, 'Biller ID is required');
+    }
+
+    const nonceStr = generateNonceStr();
+
+    const payload = {
+      sceneCode,
+      billerId,
+      version: 'V2.0',
+      requestTime: Date.now(),
+      nonceStr,
+    };
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
+    const isVerified = rsaVerify(
+      md5(sortParams(payload)).toUpperCase(),
+      generatedSignature,
+      process.env.PALMPAY_PUBLIC_KEY,
+      'SHA1withRSA'
+    );
+    console.log('Signature Verified:', isVerified);
+
+    const response = await axios.post(
+      `${process.env.PALMPAY_BASE_URL}/api/v2/bill-payment/item/query`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
+          'Content-Type': 'application/json',
+          CountryCode: 'NG',
+          Signature: generatedSignature,
+        },
+      }
+    );
+    if (response.status !== 200) {
+      throw new ApiError(
+        400,
+        false,
+        'Failed to fetch biller item details',
+        response.data
+      );
+    }
+    const { data } = response.data;
+    if (!data) {
+      throw new ApiError(404, false, 'Biller item not found');
+    }
+    return res.status(200).json({
+      success: true,
+      message: 'Biller item fetched successfully',
+      data,
+    });
+  } catch (error) {
+    console.error(
+      'Failed to fetch biller item details',
+      error?.response || error?.message || error
+    );
+
+    next(error);
+  }
+};
