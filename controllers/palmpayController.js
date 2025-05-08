@@ -545,6 +545,8 @@ export const queryBiller = async (req, res, next) => {
       );
     }
 
+    console.log(response.data);
+
     const { data } = response.data;
 
     if (!data) {
