@@ -375,10 +375,10 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
     console.log('done with processing payment');
 
-    // await disableVAQueue.add("palmpay-job", {
-    // 	vaId: req.body.virtualAccountNo,
-    // 	transactionId: req.body.reference,
-    // });
+    await disableVAQueue.add('palmpay-job', {
+      vaId: req.body.virtualAccountNo,
+      transactionId: req.body.reference,
+    });
 
     console.log('added to queue already');
 
