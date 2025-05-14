@@ -14,7 +14,7 @@ const router = express.Router();
 router.use(validateHeaders);
 router.use(tokenExtractor);
 router.use(userExtractor);
-// router.use(adminAuth);
+router.use(adminAuth);
 
 router.get(
   '/revenue',
