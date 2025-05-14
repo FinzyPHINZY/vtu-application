@@ -114,9 +114,6 @@ export const getPreviousDayDeposits = async (req, res, next) => {
     const endOfYesterday = new Date(startOfYesterday);
     endOfYesterday.setHours(23, 59, 59, 999);
 
-    console.log('Start of yesterday:', startOfYesterday);
-    console.log('End of yesterday:', endOfYesterday);
-
     const deposits = await Transaction.aggregate([
       {
         $match: {
@@ -153,7 +150,7 @@ export const getPreviousDayDeposits = async (req, res, next) => {
       success: true,
       message: 'Previous day deposits retrieved successfully',
       data: {
-        date: startOfYesterday.toISOString().split('T')[0],
+        date: endOfYesterday.toISOString().split('T')[0],
         totalAmount: totalDeposits,
         count: deposits.length,
         deposits,
