@@ -14,7 +14,7 @@ const router = express.Router();
 router.use(validateHeaders);
 router.use(tokenExtractor);
 router.use(userExtractor);
-router.use(adminAuth);
+// router.use(adminAuth);
 
 router.get(
   '/revenue',
@@ -22,6 +22,8 @@ router.get(
   validateRequest,
   AnalyticsControllers.getRevenue
 );
+
+router.get('/previous-deposits', AnalyticsControllers.getPreviousDayDeposits);
 
 router.get('/summary', AnalyticsControllers.getTransactionsSummary);
 

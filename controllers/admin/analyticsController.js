@@ -104,6 +104,67 @@ export const getRevenue = async (req, res, next) => {
   }
 };
 
+export const getPreviousDayDeposits = async (req, res, next) => {
+  try {
+    const now = new Date();
+    const startOfYesterday = new Date(now);
+    startOfYesterday.setDate(now.getDate() - 1);
+    startOfYesterday.setHours(0, 0, 0, 0);
+
+    const endOfYesterday = new Date(startOfYesterday);
+    endOfYesterday.setHours(23, 59, 59, 999);
+
+    console.log('Start of yesterday:', startOfYesterday);
+    console.log('End of yesterday:', endOfYesterday);
+
+    const deposits = await Transaction.aggregate([
+      {
+        $match: {
+          serviceType: 'deposit',
+          status: 'success',
+          updatedAt: {
+            $gte: startOfYesterday,
+            $lte: endOfYesterday,
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          reference: 1,
+          amount: 1,
+          currency: 1,
+          user: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ]);
+
+    const totalDeposits = deposits.reduce(
+      (sum, deposit) => sum + deposit.amount,
+      0
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Previous day deposits retrieved successfully',
+      data: {
+        date: startOfYesterday.toISOString().split('T')[0],
+        totalAmount: totalDeposits,
+        count: deposits.length,
+        deposits,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to fetch previous day deposits:', error);
+    next(error);
+  }
+};
+
 export const getTransactionsSummary = async (req, res, next) => {
   try {
     const { period = 'all' } = req.query; // 'daily', 'weekly', 'monthly', or 'all'
