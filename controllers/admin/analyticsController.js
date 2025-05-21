@@ -357,7 +357,7 @@ export const calcProfit = async (req, res, next) => {
   try {
     const { range, customDate } = req.query;
 
-    const allowedRanges = ['daily', 'weekly', 'monthly'];
+    const allowedRanges = ['daily', 'weekly', 'monthly', 'yearly'];
     if (range && !allowedRanges.includes(range)) {
       throw new ApiError(
         400,
@@ -392,6 +392,15 @@ export const calcProfit = async (req, res, next) => {
         startDate.setUTCHours(0, 0, 0, 0);
         endDate = new Date(referenceDate);
         endDate.setUTCMonth(endDate.getUTCMonth() + 1, 0);
+        endDate.setUTCHours(23, 59, 59, 999);
+        break;
+
+      case 'yearly':
+        startDate = new Date(referenceDate);
+        startDate.setUTCMonth(0, 1); // January 1st
+        startDate.setUTCHours(0, 0, 0, 0);
+        endDate = new Date(referenceDate);
+        endDate.setUTCMonth(11, 31); // December 31st
         endDate.setUTCHours(23, 59, 59, 999);
         break;
 
