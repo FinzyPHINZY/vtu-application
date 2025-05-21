@@ -6,6 +6,8 @@ import User from '../models/User.js';
 import { sign } from '../palmpay.js';
 import verificationQueue, { connection } from '../queues/verificationQueue.js';
 import { generateNonceStr } from '../services/palmpay.js';
+import { generateRandomReference } from '../utils/helpers.js';
+import { logUserActivity } from '../utils/userActivity.js';
 
 config();
 
@@ -208,13 +210,92 @@ const handleVerificationResult = async (user, result) => {
   if (verificationStatus === VERIFICATION_STATUS.VERIFIED) {
     updates.verificationLevel = 'tier2';
     updates.verificationDate = new Date();
+
+    if (!user.accountNumber) {
+      try {
+        const accountInfo = await createPermAccountForUser(user);
+        updates.accountNumber = accountInfo.accountNumber;
+        updates.accountDetails = {
+          accountName: accountInfo.accountName,
+          accountNumber: accountInfo.accountNumber,
+          bankName: 'PalmPay',
+          status: accountInfo.status,
+        };
+      } catch (accountError) {
+        console.error('Failed to create virtual account:', accountError);
+        updates.verificationNotes = `${verificationNotes} (Account creation failed)`;
+      }
+    }
   }
 
   await User.findByIdAndUpdate(user._id, updates);
+};
 
-  if (verificationStatus === VERIFICATION_STATUS.VERIFIED) {
-    // await triggerVirtualAccountCreation(user);
-    // await sendVerificationNotification(user);
+const createPermAccountForUser = async (user) => {
+  try {
+    const accountReference = generateRandomReference('VIR_ACC', user.firstName);
+    const nonceStr = generateNonceStr();
+
+    const payload = {
+      virtualAccountName: `${user.firstName} ${user.lastName}`,
+      identityType: 'company',
+      licenseNumber: process.env.BOLDDATA_LICENSE_NUMBER,
+      email: user.email,
+      customerName: `${user.firstName} ${user.lastName}`,
+      accountReference,
+      version: 'V2.0',
+      requestTime: Date.now(),
+      nonceStr,
+    };
+
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
+
+    const response = await axios.post(
+      `${process.env.PALMPAY_BASE_URL}/api/v2/virtual/account/label/create`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
+          CountryCode: 'NG',
+          'Content-Type': 'application/json;charset=UTF-8',
+          Signature: generatedSignature,
+        },
+      }
+    );
+
+    if (response.status !== 200) {
+      throw new Error('Failed to create virtual account');
+    }
+
+    const { data } = response.data;
+
+    const updates = {
+      accountNumber: data.virtualAccountNo,
+      accountDetails: {
+        accountName: data.virtualAccountName,
+        accountNumber: data.virtualAccountNo,
+        bankName: 'PalmPay',
+        status: data.status,
+        reference: accountReference,
+      },
+      permanentAccount: data.virtualAccountNo,
+    };
+
+    await User.findByIdAndUpdate(user._id, updates);
+
+    await logUserActivity(user._id, 'account', {
+      details: 'Virtual Account Created',
+      accountNumber: data.virtualAccountNo,
+    });
+
+    return {
+      accountNumber: data.virtualAccountNo,
+      accountName: data.virtualAccountName,
+      status: data.status,
+    };
+  } catch (error) {
+    console.error('Error creating bank account:', error);
+    throw error;
   }
 };
 
