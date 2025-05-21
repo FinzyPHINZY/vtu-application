@@ -375,9 +375,11 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
     console.log('done with processing payment');
 
-    const user = await User.findOne({
+    const transaction = await Transaction.findOne({
       reference: req.body.accountReference,
     });
+
+    const user = await User.findById(transaction.user);
 
     if (!user.accountNumber) {
       await disableVAQueue.add('palmpay-job', {
