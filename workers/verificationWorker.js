@@ -19,6 +19,15 @@ const VERIFICATION_STATUS = {
   VERIFIED: 'verified',
   FAILED: 'failed',
   PARTIAL: 'partial_match',
+  INVALID_ID: 'invalid_id',
+  PROVIDER_ERROR: 'provider_error',
+};
+
+const PROVIDER_ERRORS = {
+  SYSTEM_ERROR: 'system error, pls try again',
+  INVALID_NIN: 'invalid nin',
+  INVALID_BVN: 'invalid bvn',
+  NOT_FOUND: 'record not found',
 };
 
 console.log('🚀 bvn worker is running...');
@@ -31,10 +40,16 @@ const mainWorkerOptions = {
 
 export const verificationWorker = new Worker(
   'verificationQueue',
+
   async (job) => {
-    // console.log(job.name);
-    // console.log(job.data);
-    userEnquiry(job);
+    try {
+      // console.log(job.name);
+      // console.log(job.data);
+      return await userEnquiry(job);
+    } catch (error) {
+      console.error(`Job ${job.id} failed:`, error.message);
+      throw error;
+    }
   },
   mainWorkerOptions
 );
@@ -87,48 +102,82 @@ const userEnquiry = async (job) => {
 };
 
 const verifyUserWithProvider = async (idType, number, user) => {
-  const nonceStr = generateNonceStr();
+  try {
+    const nonceStr = generateNonceStr();
 
-  const payload = {
-    version: 'V1.1',
-    nonceStr,
-    requestTime: Date.now(),
-    [idType.toLowerCase()]: number,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    phoneNumber: user?.phoneNumber,
-  };
+    const payload = {
+      version: 'V1.1',
+      nonceStr,
+      requestTime: Date.now(),
+      [idType.toLowerCase()]: number,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: user?.phoneNumber,
+    };
 
-  const generatedSignature = sign(payload, process.env.EASE_ID_PRIVATE_KEY);
+    const generatedSignature = sign(payload, process.env.EASE_ID_PRIVATE_KEY);
 
-  const response = await axios.post(
-    `${
-      process.env.EASE_ID_BASE_URL
-    }/api/validator-service/open/${idType.toLowerCase()}/verify`,
-    payload,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.EASE_ID_APP_ID}`,
-        CountryCode: 'NG',
-        'Content-Type': 'application/json',
-        Signature: generatedSignature,
-      },
+    const response = await axios.post(
+      `${
+        process.env.EASE_ID_BASE_URL
+      }/api/validator-service/open/${idType.toLowerCase()}/verify`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.EASE_ID_APP_ID}`,
+          CountryCode: 'NG',
+          'Content-Type': 'application/json',
+          Signature: generatedSignature,
+        },
+      }
+    );
+
+    const { respCode, respMsg, data } = response.data;
+
+    if (respCode !== '00000000') {
+      if (
+        respMsg
+          .toLowerCase()
+          .includes(PROVIDER_ERRORS.SYSTEM_ERROR.toLowerCase())
+      ) {
+        throw new Error('PROVIDER_UNAVAILABLE');
+      }
+      if (
+        respMsg
+          .toLowerCase()
+          .includes(PROVIDER_ERRORS.INVALID_NIN.toLowerCase()) ||
+        respMsg
+          .toLowerCase()
+          .includes(PROVIDER_ERRORS.INVALID_BVN.toLowerCase())
+      ) {
+        throw new Error('INVALID_ID_NUMBER');
+      }
+      if (
+        respMsg.toLowerCase().includes(PROVIDER_ERRORS.NOT_FOUND.toLowerCase())
+      ) {
+        throw new Error('ID_NOT_FOUND');
+      }
+      throw new Error(respMsg);
     }
-  );
 
-  const { respCode, respMsg, data } = response.data;
-
-  if (respCode !== '00000000') {
-    throw new Error(`Provider error: ${respMsg}`);
+    return {
+      matchPercentage: data.namesMatchPercentage,
+      matchResult: data.nameMatchRlt,
+      phoneMatch: data.phoneNumberMatchRlt,
+      requestId: response.data.requestId,
+      rawResponse: response.data,
+    };
+  } catch (error) {
+    if (error.response) {
+      console.error(
+        'Provider API error:',
+        error.response.status,
+        error.response.data
+      );
+      throw new Error(`PROVIDER_ERROR_${error.response.status}`);
+    }
+    throw error;
   }
-
-  return {
-    matchPercentage: data.namesMatchPercentage,
-    matchResult: data.nameMatchRlt,
-    phoneMatch: data.phoneNumberMatchRlt,
-    requestId: response.data.requestId,
-    rawResponse: response.data,
-  };
 };
 
 const handleVerificationResult = async (user, result) => {
@@ -143,7 +192,7 @@ const handleVerificationResult = async (user, result) => {
     verificationNotes = `Partial match (${result.matchPercentage}%)`;
   } else {
     verificationNotes = `Name match failed (${result.matchPercentage}%)`;
-    throw new Error(verificationNotes);
+    throw new Error('NAME_MISMATCH');
   }
 
   const updates = {
@@ -156,7 +205,6 @@ const handleVerificationResult = async (user, result) => {
     userVerificationData: result.rawResponse,
   };
 
-  // Only update these fields if verification was successful
   if (verificationStatus === VERIFICATION_STATUS.VERIFIED) {
     updates.verificationLevel = 'tier2';
     updates.verificationDate = new Date();
@@ -164,14 +212,13 @@ const handleVerificationResult = async (user, result) => {
 
   await User.findByIdAndUpdate(user._id, updates);
 
-  // Trigger additional processes for verified users
   if (verificationStatus === VERIFICATION_STATUS.VERIFIED) {
     // await triggerVirtualAccountCreation(user);
     // await sendVerificationNotification(user);
   }
 };
 
-verificationQueue.on('failed', (job, err) => {
+verificationQueue.on('failed', async (job, err) => {
   console.error(`💥 Verification Job ${job.id} failed with error ${err}`);
 });
 

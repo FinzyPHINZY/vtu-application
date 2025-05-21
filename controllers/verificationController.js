@@ -107,55 +107,7 @@ export const validateVerification = async (req, res) => {
   }
 };
 
-export const ninEnquiry = async (req, res) => {
-  try {
-    const { nin } = req.body;
-
-    if (!nin) {
-      throw new ApiError(400, false, 'NIN is required');
-    }
-
-    const nonceStr = generateNonceStr();
-
-    const payload = {
-      version: 'V1.1',
-      nonceStr,
-      requestTime: Date.now(),
-      nin,
-    };
-
-    const generatedSignature = sign(payload, process.env.EASE_ID_PRIVATE_KEY);
-
-    const response = await axios.post(
-      `${process.env.EASE_ID_BASE_URL}/api/validator-service/open/nin/inquire`,
-      { nin },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.EASE_ID_APP_ID}`,
-          CountryCode: 'NG',
-          'Content-Type': 'application/json',
-          Signature: generatedSignature,
-        },
-      }
-    );
-
-    console.log(response.data);
-
-    return res.status(200).json({
-      success: true,
-      message: 'NIN verification successful',
-      data: response.data,
-    });
-  } catch (error) {
-    console.error('NIN verification failed: ', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
-  }
-};
-
-export const bvnEnquiry = async (req, res) => {
+export const easeIdEnquiry = async (req, res) => {
   try {
     const { type, number } = req.body;
 

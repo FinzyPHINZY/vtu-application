@@ -41,6 +41,6 @@ router.post(
   validateHeaders,
   validateIdentityRequest,
   validateRequest,
-  verificationController.bvnEnquiry
+  verificationController.easeIdEnquiry
 );
 export default router;
