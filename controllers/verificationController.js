@@ -1,5 +1,8 @@
 import axios from 'axios';
 import ApiError from '../utils/error.js';
+import { sign } from '../palmpay.js';
+import { generateNonceStr } from '../services/palmpay.js';
+import verificationQueue from '../queues/verificationQueue.js';
 
 const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
 
@@ -97,6 +100,81 @@ export const validateVerification = async (req, res) => {
     });
   } catch (error) {
     console.error('Error validating verification:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+export const ninEnquiry = async (req, res) => {
+  try {
+    const { nin } = req.body;
+
+    if (!nin) {
+      throw new ApiError(400, false, 'NIN is required');
+    }
+
+    const nonceStr = generateNonceStr();
+
+    const payload = {
+      version: 'V1.1',
+      nonceStr,
+      requestTime: Date.now(),
+      nin,
+    };
+
+    const generatedSignature = sign(payload, process.env.EASE_ID_PRIVATE_KEY);
+
+    const response = await axios.post(
+      `${process.env.EASE_ID_BASE_URL}/api/validator-service/open/nin/inquire`,
+      { nin },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.EASE_ID_APP_ID}`,
+          CountryCode: 'NG',
+          'Content-Type': 'application/json',
+          Signature: generatedSignature,
+        },
+      }
+    );
+
+    console.log(response.data);
+
+    return res.status(200).json({
+      success: true,
+      message: 'NIN verification successful',
+      data: response.data,
+    });
+  } catch (error) {
+    console.error('NIN verification failed: ', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+export const bvnEnquiry = async (req, res) => {
+  try {
+    const { type, number } = req.body;
+
+    if (!['BVN', 'NIN'].includes(type)) {
+      throw new ApiError(400, false, 'ID type is required');
+    }
+
+    await verificationQueue.add('verify-and-assign-account', {
+      type,
+      number,
+      userId: req.user.id,
+    });
+
+    return res.status(202).json({
+      success: true,
+      message: `${type} verification started. You’ll be notified when it’s complete.`,
+    });
+  } catch (error) {
+    console.error('Verification failed: ', error);
     return res.status(500).json({
       success: false,
       message: 'Internal server error',

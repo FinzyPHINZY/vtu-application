@@ -1,5 +1,11 @@
 import express from 'express';
+
 import * as verificationController from '../controllers/verificationController.js';
+import {
+  validateIdentityRequest,
+  validationValidation,
+  verificationValidation,
+} from '../utils/helpers.js';
 import {
   checkSystemStatus,
   tokenExtractor,
@@ -7,10 +13,7 @@ import {
   validateHeaders,
   validateRequest,
 } from '../utils/middleware.js';
-import {
-  validationValidation,
-  verificationValidation,
-} from '../utils/helpers.js';
+
 const router = express.Router();
 
 router.use(checkSystemStatus);
@@ -33,4 +36,11 @@ router.post(
   verificationController.validateVerification
 );
 
+router.post(
+  '/enquiry',
+  validateHeaders,
+  validateIdentityRequest,
+  validateRequest,
+  verificationController.bvnEnquiry
+);
 export default router;

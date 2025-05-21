@@ -22,6 +22,28 @@ export const verificationValidation = [
     .withMessage('BVN must be 11 digits'),
 ];
 
+export const validateIdentityRequest = [
+  body('type')
+    .exists()
+    .withMessage('Type is required')
+    .isIn(['BVN', 'NIN'])
+    .withMessage('Type must be either "BVN" or "NIN"'),
+
+  body('number')
+    .exists()
+    .withMessage('Number is required')
+    .bail()
+    .custom((value, { req }) => {
+      const type = req.body.type;
+      if (type === 'BVN' || type === 'NIN') {
+        if (!/^\d{11}$/.test(value)) {
+          throw new Error(`${type} must be exactly 11 digits`);
+        }
+      }
+      return true;
+    }),
+];
+
 export const paymentValidation = [
   body('email').isEmail().normalizeEmail(),
   body('amount')

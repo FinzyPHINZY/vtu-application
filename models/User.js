@@ -139,6 +139,38 @@ const userSchema = new mongoose.Schema(
     lastActive: {
       type: Date,
     },
+    verificationStatus: {
+      type: String,
+    },
+    verificationMetadata: {
+      type: Object,
+    },
+    lastVerificationAttempt: {
+      type: Date,
+    },
+    userVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationNotes: {
+      type: String,
+    },
+    matchPercentage: {
+      type: Number,
+    },
+    phoneMatch: {
+      type: String,
+    },
+    userVerificationData: {
+      type: mongoose.Schema.Types.Mixed,
+    },
+    verificationLevel: {
+      type: String,
+      enum: ['tier1', 'tier2'],
+    },
+    verificationDate: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
