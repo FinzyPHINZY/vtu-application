@@ -141,6 +141,95 @@ export const getPreviousDayDeposits = async (req, res, next) => {
       },
     ]);
 
+    const profits = await Transaction.aggregate([
+      {
+        $match: {
+          serviceType: {
+            $in: ['data', 'airtime', 'electricity', 'tvSubscription'],
+          },
+          status: 'success',
+          updatedAt: {
+            $gte: startOfYesterday,
+            $lte: endOfYesterday,
+          },
+        },
+      },
+      {
+        $addFields: {
+          actualCost: {
+            $cond: {
+              if: { $ifNull: ['$metadata.plan.costPrice', false] },
+              then: '$metadata.plan.costPrice',
+              else: {
+                $cond: {
+                  if: { $eq: ['$serviceType', 'airtime'] },
+                  then: { $subtract: ['$sellingPrice', '$profit'] },
+                  else: '$amount',
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
+          totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
+          totalCost: { $sum: { $ifNull: ['$actualCost', 0] } },
+          totalCount: { $sum: 1 },
+          breakdown: {
+            $push: {
+              serviceType: '$serviceType',
+              profit: '$profit',
+              sellingPrice: '$sellingPrice',
+              actualCost: '$actualCost',
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalProfit: 1,
+          totalSales: 1,
+          totalCost: 1,
+          totalCount: 1,
+          breakdown: {
+            $reduce: {
+              input: '$breakdown',
+              initialValue: {},
+              in: {
+                $mergeObjects: [
+                  '$$value',
+                  {
+                    $cond: [
+                      { $eq: ['$$this.serviceType', null] },
+                      {},
+                      {
+                        $arrayToObject: [
+                          [
+                            [
+                              '$$this.serviceType',
+                              {
+                                profit: '$$this.profit',
+                                sales: '$$this.sellingPrice',
+                                cost: '$$this.actualCost',
+                              },
+                            ],
+                          ],
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    ]);
+
     const totalDeposits = deposits.reduce(
       (sum, deposit) => sum + deposit.amount,
       0
@@ -150,10 +239,19 @@ export const getPreviousDayDeposits = async (req, res, next) => {
       success: true,
       message: 'Previous day deposits retrieved successfully',
       data: {
-        date: endOfYesterday.toISOString().split('T')[0],
-        totalAmount: totalDeposits,
-        count: deposits.length,
-        deposits,
+        deposits: {
+          date: endOfYesterday.toISOString().split('T')[0],
+          totalAmount: totalDeposits,
+          count: deposits.length,
+          deposits,
+        },
+        profits: profits[0] || {
+          totalProfit: 0,
+          totalSales: 0,
+          totalCost: 0,
+          totalCount: 0,
+          breakdown: {},
+        },
       },
     });
   } catch (error) {
@@ -263,95 +361,6 @@ export const fetchActiveUsers = async (req, res, next) => {
     next(error);
   }
 };
-
-// export const calcProfit = async (req, res, next) => {
-//   try {
-//     const { startDate, endDate } = req.query;
-
-//     if (startDate && Number.isNaN(new Date(startDate).getTime())) {
-//       throw new ApiError(
-//         400,
-//         false,
-//         'Invalid startDate format (use YYYY-MM-DD)'
-//       );
-//     }
-//     if (endDate && Number.isNaN(new Date(endDate).getTime())) {
-//       throw new ApiError(400, false, 'Invalid endDate format (use YYYY-MM-DD)');
-//     }
-
-//     const match = {
-//       status: 'success',
-//       serviceType: {
-//         $in: ['data', 'airtime', 'electricity', 'tvSubscription'],
-//       },
-//     };
-
-//     if (startDate || endDate) {
-//       match.createdAt = {};
-//       if (startDate) match.createdAt.$gte = new Date(startDate);
-//       if (endDate) match.createdAt.$lte = new Date(endDate);
-//     }
-
-//     // First aggregation - get totals across all services
-// const overallResults = await Transaction.aggregate([
-//   { $match: match },
-//   {
-//     $group: {
-//       _id: null,
-//       totalProfit: { $sum: { $ifNull: ['$profit', 0] } },
-//       totalSales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
-//       totalCost: { $sum: { $ifNull: ['$amount', 0] } },
-//       totalCount: { $sum: 1 },
-//     },
-//   },
-// ]);
-
-// Second aggregation - get breakdown by service type
-// const breakdownResults = await Transaction.aggregate([
-//   { $match: match },
-//   {
-//     $group: {
-//       _id: '$serviceType',
-//       profit: { $sum: { $ifNull: ['$profit', 0] } },
-//       sales: { $sum: { $ifNull: ['$sellingPrice', 0] } },
-//       cost: { $sum: { $ifNull: ['$amount', 0] } },
-//       count: { $sum: 1 },
-//     },
-//   },
-//   { $sort: { profit: -1 } }, // Sort by most profitable first
-// ]);
-
-//     // Format the breakdown into a more accessible object
-//     const breakdown = breakdownResults.reduce((acc, curr) => {
-//       acc[curr._id] = {
-//         profit: curr.profit,
-//         sales: curr.sales,
-//         cost: curr.cost,
-//         count: curr.count,
-//       };
-//       return acc;
-//     }, {});
-
-//     return res.status(200).json({
-//       success: true,
-//       data: {
-//         ...(overallResults[0] || {
-//           totalProfit: 0,
-//           totalSales: 0,
-//           totalCost: 0,
-//           totalCount: 0,
-//         }),
-//         breakdown,
-//       },
-//     });
-//   } catch (error) {
-//     console.error(
-//       'Failed to calculate profit',
-//       error?.response || error?.message || error
-//     );
-//     next(error);
-//   }
-// };
 
 export const calcProfit = async (req, res, next) => {
   try {
