@@ -121,15 +121,25 @@ export const easeIdEnquiry = async (req, res) => {
       throw new ApiError(404, false, 'User not found');
     }
 
-    await verificationQueue.add('verify-and-assign-account', {
-      type,
-      number,
-      userId: req.user.id,
-    });
+    await verificationQueue.add(
+      'verify-and-assign-account',
+      {
+        type,
+        number,
+        user,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      }
+    );
 
     // send email
 
-    await sendVerificationStarted(user, type, number);
+    // await sendVerificationStarted(user, type, number);
 
     return res.status(202).json({
       success: true,

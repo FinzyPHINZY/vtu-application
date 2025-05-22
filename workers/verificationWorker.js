@@ -8,7 +8,11 @@ import verificationQueue, { connection } from '../queues/verificationQueue.js';
 import { generateNonceStr } from '../services/palmpay.js';
 import { generateRandomReference } from '../utils/helpers.js';
 import { logUserActivity } from '../utils/userActivity.js';
-import { sendVerificationSuccess } from '../services/verification.js';
+import {
+  sendVerificationFailed,
+  sendVerificationStarted,
+  sendVerificationSuccess,
+} from '../services/verification.js';
 
 config();
 
@@ -47,9 +51,11 @@ export const verificationWorker = new Worker(
   async (job) => {
     try {
       // console.log(job.name);
-      // console.log(job.data);
+      console.log(job.data);
       return await userEnquiry(job);
     } catch (error) {
+      const user = await User.findById(job.data.userId);
+      await sendVerificationFailed(user, error.message);
       console.error(`Job ${job.id} failed:`, error.message);
       throw error;
     }
@@ -62,22 +68,20 @@ verificationWorker.on('error', (err) => {
 });
 
 const userEnquiry = async (job) => {
-  const { type, number, userId } = job.data;
+  console.log('1');
+
+  const { type, number, user } = job.data;
 
   if (!type || !number) {
     throw new Error('Invalid job data - provide type and number');
   }
 
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new Error('User not found');
-  }
+  console.log('2');
 
   console.log(`⏳ Verifying ${type} for User ${user.firstName}`);
 
   try {
-    await User.findByIdAndUpdate(userId, {
+    await User.findByIdAndUpdate(user._id, {
       verificationStatus: 'processing',
       verificationMetadata: {
         type,
@@ -86,13 +90,21 @@ const userEnquiry = async (job) => {
       lastVerificationAttempt: new Date(),
     });
 
+    console.log(3);
+
+    await sendVerificationStarted(user, type, number);
+
     console.log(`⏳ Verifying ${type} ${number} for ${user.firstName}`);
 
     const verificationResult = await verifyUserWithProvider(type, number, user);
 
+    console.log(45, verificationResult);
+
     await handleVerificationResult(user, verificationResult);
 
     console.log(`✅User ${user.firstName} verified successfully`);
+
+    console.log(67);
 
     return { success: true, data: verificationResult };
   } catch (error) {
@@ -100,6 +112,10 @@ const userEnquiry = async (job) => {
       `❌ Error verifying ${type} for User ${user.firstName}:`,
       error
     );
+
+    console.log(error.message);
+
+    await sendVerificationFailed(user, error.message);
     throw error;
   }
 };
@@ -179,6 +195,7 @@ const verifyUserWithProvider = async (idType, number, user) => {
       );
       throw new Error(`PROVIDER_ERROR_${error.response.status}`);
     }
+
     throw error;
   }
 };

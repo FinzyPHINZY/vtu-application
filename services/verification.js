@@ -34,9 +34,9 @@ export const sendVerificationSuccess = async (
   }
 };
 
-export const sendVerificationFailed = async (user) => {
+export const sendVerificationFailed = async (user, reason) => {
   try {
-    const html = generateVerificationFailedEmail(user.firstName);
+    const html = generateVerificationFailedEmail(user.firstName, reason);
 
     await sendEmail(user.email, 'Verification failed', html);
   } catch (error) {
