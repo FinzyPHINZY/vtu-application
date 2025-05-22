@@ -113,18 +113,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/update-db', async (req, res) => {
-  const users = await User.find({ accountNumber: { $exists: true } });
-
-  res.status(200).json({
-    success: true,
-    status: 'ok',
-    message: 'Server running properly...',
-    timestamp: new Date().toISOString(),
-    data: { users },
-  });
-});
-
 // middleware endpoints
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRouter);
