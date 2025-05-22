@@ -404,7 +404,7 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 };
 
 async function handlePaymentSuccess(paymentData) {
-  const transaction = await Transaction.findOneAndUpdate(
+  let transaction = await Transaction.findOneAndUpdate(
     {
       reference: paymentData.accountReference,
       status: { $ne: 'success' },
@@ -432,8 +432,37 @@ async function handlePaymentSuccess(paymentData) {
   console.log('transaction from handlePaymentSuccess', transaction);
 
   if (!transaction) {
-    console.log(`Transaction already processed: ${paymentData.orderNo}`);
-    return;
+    const user = await User.findOne({
+      'accountDetails.accountNumber': paymentData.virtualAccountNo,
+    });
+
+    if (!user) {
+      console.error(`User not found for VA: ${paymentData.virtualAccountNo}`);
+      return;
+    }
+
+    transaction = await Transaction.create({
+      user: user._id,
+      reference: `DEP_${paymentData.reference}`,
+      type: 'credit',
+      serviceType: 'deposit',
+      amount: paymentData.orderAmount / 100,
+      status: 'success',
+      metadata: {
+        orderNo: paymentData.orderNo,
+        payerAccountNo: paymentData.payerAccountNo,
+        payerBankName: paymentData.payerBankName,
+        payerAccountName: paymentData.payerAccountName,
+        virtualAccountNo: paymentData.virtualAccountNo,
+        currency: paymentData.currency,
+        paymentReference: paymentData.reference,
+        appId: paymentData.appId,
+        processedAt: new Date(),
+      },
+    });
+
+    user.transactions.push(transaction._id);
+    await user.save();
   }
 
   await User.findByIdAndUpdate(transaction.user, {
