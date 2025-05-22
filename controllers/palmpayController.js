@@ -379,6 +379,10 @@ export const handlePalmpayWebhook = async (req, res, next) => {
       reference: req.body.accountReference,
     });
 
+    console.log(req.body);
+
+    console.log(transaction);
+
     const user = await User.findById(transaction.user);
 
     if (!user.accountNumber) {
