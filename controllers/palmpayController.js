@@ -429,8 +429,6 @@ async function handlePaymentSuccess(paymentData) {
     { new: true }
   );
 
-  console.log('transaction from handlePaymentSuccess', transaction);
-
   if (!transaction) {
     const user = await User.findOne({
       'accountDetails.accountNumber': paymentData.virtualAccountNo,
@@ -464,6 +462,8 @@ async function handlePaymentSuccess(paymentData) {
     user.transactions.push(transaction._id);
     await user.save();
   }
+
+  console.log('transaction from handlePaymentSuccess', transaction);
 
   await User.findByIdAndUpdate(transaction.user, {
     $inc: { accountBalance: paymentData.orderAmount / 100 },
