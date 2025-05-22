@@ -23,6 +23,7 @@ import verificationRoutes from './routes/verification.js';
 import { initialize } from './services/safeHavenAuth.js';
 import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
 import { startQueues } from './workers/index.js';
+import User from './models/User.js';
 
 // routes
 dotenv.config();
@@ -109,6 +110,18 @@ app.get('/health', (req, res) => {
     status: 'ok',
     message: 'Server running properly...',
     timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/update-db', async (req, res) => {
+  const users = await User.find({ accountNumber: { $exists: true } });
+
+  res.status(200).json({
+    success: true,
+    status: 'ok',
+    message: 'Server running properly...',
+    timestamp: new Date().toISOString(),
+    data: { users },
   });
 });
 
