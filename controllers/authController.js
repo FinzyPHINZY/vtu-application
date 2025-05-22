@@ -14,8 +14,6 @@ export const requestOtp = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    console.log('log1');
-
     if (!email || !isValidEmail(email)) {
       throw new ApiError(401, false, 'Invalid email address');
     }
@@ -24,8 +22,6 @@ export const requestOtp = async (req, res, next) => {
     // if (existingUser?.isVerified) {
     //   throw new ApiError(409, false, 'Email already registered');
     // }
-
-    console.log('log2');
 
     // generate a four digit otp
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -40,22 +36,14 @@ export const requestOtp = async (req, res, next) => {
       { upsert: true }
     );
 
-    console.log('log3');
-
     const html = generateOtpEmailTemplate(otp, email);
-
-    console.log('log4');
 
     // Send OTP email
     await sendEmail(email, 'Authentication OTP', html);
 
-    console.log('log50');
-
     if (!existingUser) {
       await User.create({ email });
     }
-
-    console.log('log100');
 
     return res.status(200).json({
       success: true,
@@ -113,47 +101,47 @@ export const verifyOtp = async (req, res, next) => {
         throw new ApiError(400, false, 'User is not verified');
       }
 
-      const refreshToken = await getAuthorizationToken();
+      // const refreshToken = await getAuthorizationToken();
 
-      const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
-      const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
+      // const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
+      // const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
 
-      const body = {
-        grant_type: 'refresh_token',
-        client_id: CLIENT_ID,
-        client_assertion: CLIENT_ASSERTION,
-        client_assertion_type:
-          'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-        refresh_token: refreshToken,
-      };
+      // const body = {
+      //   grant_type: 'refresh_token',
+      //   client_id: CLIENT_ID,
+      //   client_assertion: CLIENT_ASSERTION,
+      //   client_assertion_type:
+      //     'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+      //   refresh_token: refreshToken,
+      // };
 
-      console.log('generating safe haven token');
-      const response = await axios.post(
-        `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-        body
-      );
+      // console.log('generating safe haven token');
+      // const response = await axios.post(
+      //   `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+      //   body
+      // );
 
-      if (response.data.error) {
-        throw new ApiError(403, false, response.data.error);
-      }
+      // if (response.data.error) {
+      //   throw new ApiError(403, false, response.data.error);
+      // }
 
-      console.log('successfully generated safe haven token');
+      // console.log('successfully generated safe haven token');
 
-      const { access_token, expires_in, ibs_client_id } = response.data;
+      // const { access_token, expires_in, ibs_client_id } = response.data;
 
-      user.safeHavenAccessToken = {
-        access_token,
-        ibs_client_id,
-      };
-      await user.save();
+      // user.safeHavenAccessToken = {
+      //   access_token,
+      //   ibs_client_id,
+      // };
+      // await user.save();
 
       const userForToken = {
         id: user._id,
-        safeHavenAccessToken: {
-          access_token,
-          expires_in,
-          ibs_client_id,
-        },
+        // safeHavenAccessToken: {
+        //   access_token,
+        //   expires_in,
+        //   ibs_client_id,
+        // },
       };
 
       const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
@@ -184,7 +172,7 @@ export const verifyOtp = async (req, res, next) => {
           thumbnailUrl: user.thumbnailUrl || null,
         },
         token,
-        expires_in,
+        // expires_in,
       });
     }
   } catch (error) {
@@ -225,49 +213,49 @@ export const completeSignUp = async (req, res) => {
 
     await existingUser.save();
 
-    const refreshToken = await getAuthorizationToken();
+    // const refreshToken = await getAuthorizationToken();
 
-    const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
-    const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
+    // const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
+    // const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
 
-    const body = {
-      grant_type: 'refresh_token',
-      client_id: CLIENT_ID,
-      client_assertion: CLIENT_ASSERTION,
-      client_assertion_type:
-        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-      refresh_token: refreshToken,
-    };
+    // const body = {
+    //   grant_type: 'refresh_token',
+    //   client_id: CLIENT_ID,
+    //   client_assertion: CLIENT_ASSERTION,
+    //   client_assertion_type:
+    //     'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+    //   refresh_token: refreshToken,
+    // };
 
-    console.log('generating safe haven token');
+    // console.log('generating safe haven token');
 
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-      body
-    );
+    // const response = await axios.post(
+    //   `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+    //   body
+    // );
 
-    if (response.data.error) {
-      throw new ApiError(403, false, response.data.error);
-    }
+    // if (response.data.error) {
+    //   throw new ApiError(403, false, response.data.error);
+    // }
 
-    console.log('successfully generated safe haven token');
+    // console.log('successfully generated safe haven token');
 
-    const { access_token, expires_in, ibs_client_id } = response.data;
+    // const { access_token, expires_in, ibs_client_id } = response.data;
 
-    existingUser.safeHavenAccessToken = {
-      access_token,
-      ibs_client_id,
-    };
+    // existingUser.safeHavenAccessToken = {
+    //   access_token,
+    //   ibs_client_id,
+    // };
 
-    await existingUser.save();
+    // await existingUser.save();
 
     const userForToken = {
       id: existingUser._id,
-      safeHavenAccessToken: {
-        access_token,
-        expires_in,
-        ibs_client_id,
-      },
+      // safeHavenAccessToken: {
+      //   access_token,
+      //   expires_in,
+      //   ibs_client_id,
+      // },
     };
 
     const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
@@ -296,7 +284,7 @@ export const completeSignUp = async (req, res) => {
         thumbnailUrl: existingUser.thumbnailUrl || null,
       },
       token,
-      expires_in,
+      // expires_in,
     });
   } catch (error) {
     console.error('Error during Signup: ', error);
@@ -339,47 +327,47 @@ export const login = async (req, res, next) => {
       throw new ApiError(401, false, 'Invalid Credentials');
     }
 
-    const refreshToken = await getAuthorizationToken();
+    // const refreshToken = await getAuthorizationToken();
 
-    const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
-    const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
+    // const CLIENT_ID = process.env.SAFE_HAVEN_CLIENT_ID;
+    // const CLIENT_ASSERTION = process.env.SAFE_HAVEN_CLIENT_ASSERTION;
 
-    const body = {
-      grant_type: 'refresh_token',
-      client_id: CLIENT_ID,
-      client_assertion: CLIENT_ASSERTION,
-      client_assertion_type:
-        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-      refresh_token: refreshToken,
-    };
+    // const body = {
+    //   grant_type: 'refresh_token',
+    //   client_id: CLIENT_ID,
+    //   client_assertion: CLIENT_ASSERTION,
+    //   client_assertion_type:
+    //     'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+    //   refresh_token: refreshToken,
+    // };
 
-    console.log('generating safe haven token');
-    const response = await axios.post(
-      `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-      body
-    );
+    // console.log('generating safe haven token');
+    // const response = await axios.post(
+    //   `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+    //   body
+    // );
 
-    if (response.data.error) {
-      throw new ApiError(403, false, response.data.error);
-    }
+    // if (response.data.error) {
+    //   throw new ApiError(403, false, response.data.error);
+    // }
 
-    console.log('successfully generated safe haven token');
+    // console.log('successfully generated safe haven token');
 
-    const { access_token, expires_in, ibs_client_id } = response.data;
+    // const { access_token, expires_in, ibs_client_id } = response.data;
 
-    user.safeHavenAccessToken = {
-      access_token,
-      ibs_client_id,
-    };
-    await user.save();
+    // user.safeHavenAccessToken = {
+    //   access_token,
+    //   ibs_client_id,
+    // };
+    // await user.save();
 
     const userForToken = {
       id: user._id,
-      safeHavenAccessToken: {
-        access_token,
-        expires_in,
-        ibs_client_id,
-      },
+      // safeHavenAccessToken: {
+      //   access_token,
+      //   expires_in,
+      //   ibs_client_id,
+      // },
     };
 
     const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
@@ -408,7 +396,7 @@ export const login = async (req, res, next) => {
         thumbnailUrl: user.thumbnailUrl || null,
       },
       token,
-      expires_in,
+      // expires_in,
     });
   } catch (error) {
     next(error);
@@ -470,53 +458,53 @@ export const googleLogin = async (req, res) => {
     // }
 
     // Get Safe Haven token
-    const refreshToken = await getAuthorizationToken();
+    // const refreshToken = await getAuthorizationToken();
 
-    const body = {
-      grant_type: 'refresh_token',
-      client_id: process.env.SAFE_HAVEN_CLIENT_ID,
-      client_assertion: process.env.SAFE_HAVEN_CLIENT_ASSERTION,
-      client_assertion_type:
-        'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-      refresh_token: refreshToken,
-    };
+    // const body = {
+    //   grant_type: 'refresh_token',
+    //   client_id: process.env.SAFE_HAVEN_CLIENT_ID,
+    //   client_assertion: process.env.SAFE_HAVEN_CLIENT_ASSERTION,
+    //   client_assertion_type:
+    //     'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+    //   refresh_token: refreshToken,
+    // };
 
-    let safeHavenResponse;
+    // let safeHavenResponse;
 
-    try {
-      safeHavenResponse = await axios.post(
-        `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
-        body
-      );
-    } catch (error) {
-      console.error(
-        'Failed to get Safe Haven token:',
-        error.response?.data || error.message
-      );
+    // try {
+    //   safeHavenResponse = await axios.post(
+    //     `${process.env.SAFE_HAVEN_API_BASE_URL}/oauth2/token`,
+    //     body
+    //   );
+    // } catch (error) {
+    //   console.error(
+    //     'Failed to get Safe Haven token:',
+    //     error.response?.data || error.message
+    //   );
 
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to authenticate with Safe Haven',
-      });
-    }
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: 'Failed to authenticate with Safe Haven',
+    //   });
+    // }
 
-    const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
+    // const { access_token, expires_in, ibs_client_id } = safeHavenResponse.data;
 
-    user.safeHavenAccessToken = {
-      access_token,
-      ibs_client_id,
-    };
+    // user.safeHavenAccessToken = {
+    //   access_token,
+    //   ibs_client_id,
+    // };
 
-    await user.save();
+    // await user.save();
 
     // Create JWT token
     const userForToken = {
       id: user._id,
-      safeHavenAccessToken: {
-        access_token,
-        expires_in,
-        ibs_client_id,
-      },
+      // safeHavenAccessToken: {
+      //   access_token,
+      //   expires_in,
+      //   ibs_client_id,
+      // },
     };
 
     const token = jwt.sign(userForToken, process.env.JWT_SECRET, {
@@ -543,7 +531,7 @@ export const googleLogin = async (req, res) => {
         thumbnailUrl: user.thumbnailUrl || null,
       },
       token,
-      expires_in,
+      // expires_in,
     });
   } catch (error) {
     console.error('Google login failed:', error);

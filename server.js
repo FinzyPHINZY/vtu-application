@@ -33,15 +33,16 @@ const PORT = process.env.PORT || 7000;
 // Database connection
 connectDB();
 
-(async () => {
-  try {
-    await initialize();
-    console.log('Safe Haven Authentication initialized successfully');
-  } catch (error) {
-    console.error('Failed to initialize Safe Haven Authentication:', error);
-    process.exit(1);
-  }
-})();
+// updated safe haven to palmpay service
+// (async () => {
+//   try {
+//     await initialize();
+//     console.log('Safe Haven Authentication initialized successfully');
+//   } catch (error) {
+//     console.error('Failed to initialize Safe Haven Authentication:', error);
+//     process.exit(1);
+//   }
+// })();
 
 // app.set("trust proxy", true);
 
