@@ -15,7 +15,11 @@ router.post('/verify-otp', authController.verifyOtp);
 
 router.post('/complete-signup', authController.completeSignUp);
 
-router.post('/login', loginLimiter, authController.login);
+router.post(
+  '/login',
+  // loginLimiter,
+  authController.login
+);
 
 router.post(
   '/google',
