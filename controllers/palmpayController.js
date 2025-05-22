@@ -429,6 +429,8 @@ async function handlePaymentSuccess(paymentData) {
     { new: true }
   );
 
+  console.log('transaction from handlePaymentSuccess', transaction);
+
   if (!transaction) {
     console.log(`Transaction already processed: ${paymentData.orderNo}`);
     return;
