@@ -125,7 +125,7 @@ export const purchaseAirtime = async (req, res, next) => {
       await user.save();
 
       // Send receipt
-      // await sendTransactionReceipt(user, transactionDoc);
+      await sendTransactionReceipt(user, transactionDoc);
 
       console.log(`Airtime purchase successful for user: ${req.user.id}`);
 
@@ -285,7 +285,7 @@ export const purchaseData = async (req, res, next) => {
       await user.save();
 
       // send receipt
-      // await sendTransactionReceipt(user, transactionDoc);
+      await sendTransactionReceipt(user, transactionDoc);
 
       console.log(`Data bundle purchase successful for user: ${req.user.id}`);
 
@@ -432,7 +432,7 @@ export const payCableTV = async (req, res, next) => {
       await user.save();
 
       // send receipt
-      // await sendTransactionReceipt(user, transactionDoc);
+      await sendTransactionReceipt(user, transactionDoc);
 
       console.log('Cable TV Subscription successful');
 
@@ -582,7 +582,7 @@ export const payUtilityBill = async (req, res, next) => {
       await transactionDoc.save();
       await user.save();
 
-      // await sendTransactionReceipt(user, transactionDoc);
+      await sendTransactionReceipt(user, transactionDoc);
 
       console.log('Utility payment successful');
 
@@ -892,7 +892,7 @@ export const purchaseOgdamsData = async (req, res, next) => {
       await user.save();
 
       // send receipt
-      // await sendTransactionReceipt(user, transactionDoc);
+      await sendTransactionReceipt(user, transactionDoc);
 
       console.log(`Data bundle purchase successful for user: ${req.user.id}`);
 
