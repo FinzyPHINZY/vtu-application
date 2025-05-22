@@ -375,14 +375,6 @@ export const handlePalmpayWebhook = async (req, res, next) => {
 
     console.log('done with processing payment');
 
-    // const transaction = await Transaction.findOne({
-    //   reference: req.body.accountReference,
-    // });
-
-    console.log(req.body);
-
-    // console.log(transaction);
-
     const user = await User.findOne({
       'accountDetails.accountNumber': req.body.virtualAccountNo,
     });
@@ -392,9 +384,9 @@ export const handlePalmpayWebhook = async (req, res, next) => {
         vaId: req.body.virtualAccountNo,
         transactionId: req.body.reference,
       });
-    }
 
-    console.log('added to queue already');
+      console.log('added to queue already');
+    }
 
     return res.status(200).json({ success: true });
   } catch (error) {
@@ -464,8 +456,6 @@ async function handlePaymentSuccess(paymentData) {
     user.transactions.push(transaction._id);
     await user.save();
   }
-
-  console.log('transaction from handlePaymentSuccess', transaction);
 
   await User.findByIdAndUpdate(transaction.user, {
     $inc: { accountBalance: paymentData.orderAmount / 100 },
