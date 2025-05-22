@@ -439,9 +439,11 @@ async function handlePaymentSuccess(paymentData) {
       return;
     }
 
+    const accountReference = generateRandomReference('DEP', user.firstName);
+
     transaction = await Transaction.create({
       user: user._id,
-      reference: `DEP_${paymentData.reference}`,
+      reference: accountReference,
       type: 'credit',
       serviceType: 'deposit',
       amount: paymentData.orderAmount / 100,
