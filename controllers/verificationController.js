@@ -1,8 +1,9 @@
 import axios from 'axios';
-import ApiError from '../utils/error.js';
-import { sign } from '../palmpay.js';
-import { generateNonceStr } from '../services/palmpay.js';
+
+import User from '../models/User.js';
 import verificationQueue from '../queues/verificationQueue.js';
+import { sendVerificationStarted } from '../services/verification.js';
+import ApiError from '../utils/error.js';
 
 const debitAccountNumber = process.env.SAFE_HAVEN_DEBIT_ACCOUNT_NUMBER;
 
@@ -115,11 +116,20 @@ export const easeIdEnquiry = async (req, res) => {
       throw new ApiError(400, false, 'ID type is required');
     }
 
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      throw new ApiError(404, false, 'User not found');
+    }
+
     await verificationQueue.add('verify-and-assign-account', {
       type,
       number,
       userId: req.user.id,
     });
+
+    // send email
+
+    await sendVerificationStarted(user, type, number);
 
     return res.status(202).json({
       success: true,

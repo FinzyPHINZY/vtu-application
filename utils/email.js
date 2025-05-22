@@ -240,3 +240,182 @@ export const generateTransactionReceipt = (
 </body>
 </html>
 `;
+
+export const generateVerificationStartedEmail = (firstName, type, number) => `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verification Started</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f9f9f9;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+        background-color: #ffffff;
+        padding: 24px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      }
+      .header {
+        color: #00796b;
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      .footer {
+        margin-top: 24px;
+        font-size: 14px;
+        color: #666;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 20px;
+          margin: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">🔍 Verification in Progress</div>
+      <p>Hello ${firstName},</p>
+      <p>We’ve started verifying your ${type} (${number}). Our systems are doing their thing — like James Bond, but with less tuxedos and more firewalls.</p>
+      <p>Just hang tight. We’ll let you know the moment we get the green light. No wahala!</p>
+      <p class="footer">— The Bold Data Hub Team 🇳🇬</p>
+    </div>
+  </body>
+</html>
+`;
+
+export const generateVerificationCompletedEmail = (
+  firstName,
+  accountName,
+  accountNumber
+) => `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verification Complete</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f0fdf4;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+        background-color: #ffffff;
+        padding: 24px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      }
+      .header {
+        color: #2e7d32;
+        font-size: 24px;
+        margin-bottom: 14px;
+      }
+      .details {
+        background-color: #e8f5e9;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-top: 16px;
+      }
+      .footer {
+        margin-top: 24px;
+        font-size: 14px;
+        color: #555;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 20px;
+          margin: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">🎉 You’re All Set!</div>
+      <p>Hi ${firstName},</p>
+      <p>Great news — your account has been verified successfully. Omo, you don ready! 💪</p>
+      <p>We’ve gone ahead and created your virtual account:</p>
+      <div class="details">
+        <strong>Bank:</strong> PalmPay<br />
+        <strong>Account Name:</strong> ${accountName}<br />
+        <strong>Account Number:</strong> ${accountNumber}
+      </div>
+      <p>You can now receive payments with ease. Time to start collecting money sharp sharp. 😎</p>
+      <p class="footer">— Bold Data Pay Team</p>
+    </div>
+  </body>
+</html>
+
+`;
+
+export const generateVerificationFailedEmail = (firstName) => `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verification Failed</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", sans-serif;
+        background-color: #fff3f3;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+        background-color: #ffffff;
+        padding: 24px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      }
+      .header {
+        color: #c62828;
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      .footer {
+        margin-top: 24px;
+        font-size: 14px;
+        color: #666;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 20px;
+          margin: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">😕 Verification Unsuccessful</div>
+      <p>Hey ${firstName},</p>
+      <p>Unfortunately, we couldn’t verify your account. Small wahala came up.</p>
+    <p>Something no too clear? If you're sure you entered the correct details, don’t panic.</p>
+    <p>Please send us a quick email at <a href="mailto:bolddata80@gmail.com">bolddata80@gmail.com</a> and we’ll help you sort it out sharp sharp.</p>
+    <p>Sometimes verification fails because the ID number doesn’t exist or the names don’t match what’s on the ID record. Even small differences (like middle names or initials) can cause verification to fail.</p>
+    <p>It could also be a wahala from the verification provider — dem fit dey on break 🧘🏾‍♂️. Just reach out and we’ll take it from there.</p>
+      <p>Kindly double-check your details and try again. If you’re still having issues, we dey your back — reach out to us anytime.</p>
+      <p class="footer">— Bold Data Pay Support</p>
+    </div>
+  </body>
+</html>
+
+`;

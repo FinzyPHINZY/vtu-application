@@ -8,6 +8,7 @@ import verificationQueue, { connection } from '../queues/verificationQueue.js';
 import { generateNonceStr } from '../services/palmpay.js';
 import { generateRandomReference } from '../utils/helpers.js';
 import { logUserActivity } from '../utils/userActivity.js';
+import { sendVerificationSuccess } from '../services/verification.js';
 
 config();
 
@@ -32,7 +33,7 @@ const PROVIDER_ERRORS = {
   NOT_FOUND: 'record not found',
 };
 
-console.log('🚀 bvn worker is running...');
+console.log('🚀 verification worker is running...');
 
 const mainWorkerOptions = {
   connection,
@@ -186,6 +187,8 @@ const handleVerificationResult = async (user, result) => {
   let verificationStatus = VERIFICATION_STATUS.FAILED;
   let verificationNotes = '';
 
+  let accountInfo = null;
+
   if (result.matchPercentage >= MATCH_THRESHOLDS.EXACT) {
     verificationStatus = VERIFICATION_STATUS.VERIFIED;
     verificationNotes = 'Exact name match';
@@ -213,7 +216,7 @@ const handleVerificationResult = async (user, result) => {
 
     if (!user.accountNumber) {
       try {
-        const accountInfo = await createPermAccountForUser(user);
+        accountInfo = await createPermAccountForUser(user);
         updates.accountNumber = accountInfo.accountNumber;
         updates.accountDetails = {
           accountName: accountInfo.accountName,
@@ -229,6 +232,28 @@ const handleVerificationResult = async (user, result) => {
   }
 
   await User.findByIdAndUpdate(user._id, updates);
+
+  if (verificationStatus === VERIFICATION_STATUS.VERIFIED) {
+    await logUserActivity(user._id, 'verification', {
+      details: 'User Verified',
+      verificationStatus,
+      accountNumber: accountInfo?.accountNumber || user.accountNumber,
+    });
+
+    await sendVerificationSuccess(
+      user,
+      accountInfo?.accountName ||
+        user.accountDetails?.accountName ||
+        `${user.firstName} ${user.lastName}`,
+      accountInfo?.accountNumber || user.accountNumber
+    );
+  } else {
+    await logUserActivity(user._id, 'verification', {
+      details: 'User Verification Failed',
+      verificationStatus,
+      accountNumber: user.accountNumber,
+    });
+  }
 };
 
 const createPermAccountForUser = async (user) => {
@@ -311,4 +336,4 @@ verificationQueue.on('progress', (job) => {
   console.log(`🔄 Verification Job ${job.id} is in progress`);
 });
 
-console.log('🚀 bvn worker is running...');
+console.log('🚀 verification worker is running...');
