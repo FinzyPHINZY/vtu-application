@@ -108,14 +108,13 @@ const userEnquiry = async (job) => {
 
     return { success: true, data: verificationResult };
   } catch (error) {
+    await sendVerificationFailed(user, error.message);
+
     console.error(
       `❌ Error verifying ${type} for User ${user.firstName}:`,
       error
     );
 
-    console.log(error.message);
-
-    await sendVerificationFailed(user, error.message);
     throw error;
   }
 };
