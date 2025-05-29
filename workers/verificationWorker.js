@@ -6,13 +6,12 @@ import User from '../models/User.js';
 import { sign } from '../palmpay.js';
 import verificationQueue, { connection } from '../queues/verificationQueue.js';
 import { generateNonceStr } from '../services/palmpay.js';
-import { generateRandomReference } from '../utils/helpers.js';
-import { logUserActivity } from '../utils/userActivity.js';
 import {
   sendVerificationFailed,
-  sendVerificationStarted,
   sendVerificationSuccess,
 } from '../services/verification.js';
+import { generateRandomReference } from '../utils/helpers.js';
+import { logUserActivity } from '../utils/userActivity.js';
 
 config();
 
@@ -51,11 +50,9 @@ export const verificationWorker = new Worker(
   async (job) => {
     try {
       // console.log(job.name);
-      console.log(job.data);
+      // console.log('job data', job.data);
       return await userEnquiry(job);
     } catch (error) {
-      const user = await User.findById(job.data.userId);
-      await sendVerificationFailed(user, error.message);
       console.error(`Job ${job.id} failed:`, error.message);
       throw error;
     }
@@ -68,15 +65,11 @@ verificationWorker.on('error', (err) => {
 });
 
 const userEnquiry = async (job) => {
-  console.log('1');
-
   const { type, number, user } = job.data;
 
   if (!type || !number) {
     throw new Error('Invalid job data - provide type and number');
   }
-
-  console.log('2');
 
   console.log(`⏳ Verifying ${type} for User ${user.firstName}`);
 
@@ -89,10 +82,6 @@ const userEnquiry = async (job) => {
       },
       lastVerificationAttempt: new Date(),
     });
-
-    console.log(3);
-
-    await sendVerificationStarted(user, type, number);
 
     console.log(`⏳ Verifying ${type} ${number} for ${user.firstName}`);
 
@@ -109,6 +98,7 @@ const userEnquiry = async (job) => {
     return { success: true, data: verificationResult };
   } catch (error) {
     await sendVerificationFailed(user, error.message);
+    console.log('current job opts', job.opts);
 
     console.error(
       `❌ Error verifying ${type} for User ${user.firstName}:`,
@@ -229,6 +219,8 @@ const handleVerificationResult = async (user, result) => {
   if (verificationStatus === VERIFICATION_STATUS.VERIFIED) {
     updates.verificationLevel = 'tier2';
     updates.verificationDate = new Date();
+
+    console.log('updates', updates);
 
     if (!user.accountNumber) {
       try {

@@ -129,7 +129,7 @@ export const easeIdEnquiry = async (req, res) => {
         user,
       },
       {
-        attempts: 3,
+        attempts: 1,
         backoff: {
           type: 'exponential',
           delay: 2000,
@@ -139,7 +139,7 @@ export const easeIdEnquiry = async (req, res) => {
 
     // send email
 
-    // await sendVerificationStarted(user, type, number);
+    await sendVerificationStarted(user, type, number);
 
     return res.status(202).json({
       success: true,

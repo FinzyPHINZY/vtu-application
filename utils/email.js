@@ -407,7 +407,7 @@ export const generateVerificationFailedEmail = (firstName, reason = null) => `
     <div class="container">
       <div class="header">😕 Verification Unsuccessful</div>
       <p>Hey ${firstName},</p>
-      <p>Unfortunately, we couldn’t verify your account. Small wahala came up. ${reason}</p>
+      <p>Unfortunately, we couldn’t verify your account. Small wahala came up. Reason:<strong>${reason}</strong></p>
     <p>Something no too clear? If you're sure you entered the correct details, don’t panic.</p>
     <p>Please send us a quick email at <a href="mailto:bolddata80@gmail.com">bolddata80@gmail.com</a> and we’ll help you sort it out sharp sharp.</p>
     <p>Sometimes verification fails because the ID number doesn’t exist or the names don’t match what’s on the ID record. Even small differences (like middle names or initials) can cause verification to fail.</p>
