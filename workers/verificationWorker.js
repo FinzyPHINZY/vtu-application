@@ -122,6 +122,7 @@ const verifyUserWithProvider = async (idType, number, user) => {
       lastName: user.lastName,
       phoneNumber: user?.phoneNumber,
     };
+    console.log('payload', payload);
 
     const generatedSignature = sign(payload, process.env.EASE_ID_PRIVATE_KEY);
 
@@ -139,6 +140,8 @@ const verifyUserWithProvider = async (idType, number, user) => {
         },
       }
     );
+
+    console.log('response.data', response.data);
 
     const { respCode, respMsg, data } = response.data;
 
