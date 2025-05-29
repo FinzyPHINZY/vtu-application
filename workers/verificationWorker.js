@@ -120,7 +120,7 @@ const verifyUserWithProvider = async (idType, number, user) => {
       [idType.toLowerCase()]: number,
       firstName: user.firstName,
       lastName: user.lastName,
-      phoneNumber: user?.phoneNumber,
+      // phoneNumber: user?.phoneNumber,
     };
     console.log('payload', payload);
 
