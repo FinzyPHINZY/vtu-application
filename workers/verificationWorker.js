@@ -53,6 +53,7 @@ export const verificationWorker = new Worker(
       // console.log('job data', job.data);
       return await userEnquiry(job);
     } catch (error) {
+      await sendVerificationFailed(job.data.user, error.message);
       console.error(`Job ${job.id} failed:`, error.message);
       throw error;
     }
