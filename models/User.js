@@ -27,6 +27,15 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    birthDate: {
+      type: Date,
+      required: false,
+    },
+    gender: {
+      type: String,
+      enum: ['Male', 'Female'],
+      required: false,
+    },
     originalImageUrl: {
       type: String,
     },

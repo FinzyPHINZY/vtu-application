@@ -44,6 +44,44 @@ export const validateIdentityRequest = [
     }),
 ];
 
+export const validateUserProfileUpdate = [
+  body('firstName')
+    .optional()
+    .isString()
+    .withMessage('First name must be a string')
+    .notEmpty()
+    .withMessage('First name cannot be empty'),
+
+  body('lastName')
+    .optional()
+    .isString()
+    .withMessage('Last name must be a string')
+    .notEmpty()
+    .withMessage('Last name cannot be empty'),
+
+  body('gender')
+    .exists({ checkFalsy: true })
+    .withMessage('Gender is required')
+    .isIn(['Male', 'Female'])
+    .withMessage('Gender must be either "Male" or "Female"'),
+
+  body('phoneNumber')
+    .exists({ checkFalsy: true })
+    .withMessage('Phone number is required')
+    .matches(/^\+\d{10,15}$/)
+    .withMessage(
+      'Phone number must start with "+" and contain 10 to 15 digits'
+    ),
+
+  body('birthDate')
+    .exists({ checkFalsy: true })
+    .withMessage('Birthdate is required')
+    .matches(/^\d{4}-\d{2}-\d{2}$/)
+    .withMessage('Birthdate must be in YYYY-MM-DD format')
+    .isISO8601()
+    .withMessage('Birthdate must be a valid date'),
+];
+
 export const paymentValidation = [
   body('email').isEmail().normalizeEmail(),
   body('amount')

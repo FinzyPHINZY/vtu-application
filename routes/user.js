@@ -7,12 +7,14 @@ import {
   pinAttemptLimiter,
   tokenExtractor,
   userExtractor,
+  validateHeaders,
   validateRequest,
 } from '../utils/middleware.js';
 import {
   passwordValidation,
   registrationValidation,
   transactionPinValidation,
+  validateUserProfileUpdate,
 } from '../utils/helpers.js';
 
 const router = express.Router();
@@ -37,6 +39,16 @@ router.get('/list-users', authorizeRoles('admin'), UserController.fetchUsers);
 
 router.put('/:id/role', authorizeRoles('admin'), UserController.updateUserRole);
 
+router.patch(
+  '/update',
+  tokenExtractor,
+  validateHeaders,
+  validateUserProfileUpdate,
+  validateRequest,
+  userExtractor,
+  UserController.updateUser
+);
+
 router.post(
   '/request-password-reset',
   tokenExtractor,
@@ -48,7 +60,7 @@ router.post(
 
 router.post(
   '/reset-password',
-  // passwordValidation,
+  passwordValidation,
   validateRequest,
   UserController.resetPassword
 );

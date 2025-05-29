@@ -1,11 +1,13 @@
+import bcrypt from 'bcryptjs';
+import { matchedData } from 'express-validator';
+
+import cloudinary from '../Config/cloudinary.js';
 import OTP from '../models/OTP.js';
 import User from '../models/User.js';
-import bcrypt from 'bcryptjs';
-import { generatePasswordResetEmailTemplate } from '../utils/email.js';
 import sendEmail from '../services/emailService.js';
+import { generatePasswordResetEmailTemplate } from '../utils/email.js';
 import ApiError from '../utils/error.js';
 import { logUserActivity } from '../utils/userActivity.js';
-import cloudinary from '../Config/cloudinary.js';
 
 export const fetchUser = async (req, res) => {
   try {
@@ -46,6 +48,29 @@ export const fetchUsers = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: 'Internal Server error' });
+  }
+};
+
+export const updateUser = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new ApiError(401, false, 'Unauthorized - User not found');
+    }
+
+    const safeData = matchedData(req, { locations: ['body'] });
+
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, safeData, {
+      new: true,
+    });
+
+    if (!updatedUser) {
+      throw new ApiError(500, false, 'Failed to update user');
+    }
+
+    res.status(200).json({ success: true, data: safeData });
+  } catch (error) {
+    console.log('Failed to update user', error.message || error);
+    next(error);
   }
 };
 
