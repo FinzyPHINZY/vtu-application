@@ -195,37 +195,37 @@ export const getPreviousDayDeposits = async (req, res, next) => {
           totalSales: 1,
           totalCost: 1,
           totalCount: 1,
-          breakdown: {
-            $reduce: {
-              input: '$breakdown',
-              initialValue: {},
-              in: {
-                $mergeObjects: [
-                  '$$value',
-                  {
-                    $cond: [
-                      { $eq: ['$$this.serviceType', null] },
-                      {},
-                      {
-                        $arrayToObject: [
-                          [
-                            [
-                              '$$this.serviceType',
-                              {
-                                profit: '$$this.profit',
-                                sales: '$$this.sellingPrice',
-                                cost: '$$this.actualCost',
-                              },
-                            ],
-                          ],
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          },
+          // breakdown: {
+          //   $reduce: {
+          //     input: '$breakdown',
+          //     initialValue: {},
+          //     in: {
+          //       $mergeObjects: [
+          //         '$$value',
+          //         {
+          //           $cond: [
+          //             { $eq: ['$$this.serviceType', null] },
+          //             {},
+          //             {
+          //               $arrayToObject: [
+          //                 [
+          //                   [
+          //                     '$$this.serviceType',
+          //                     {
+          //                       profit: '$$this.profit',
+          //                       sales: '$$this.sellingPrice',
+          //                       cost: '$$this.actualCost',
+          //                     },
+          //                   ],
+          //                 ],
+          //               ],
+          //             },
+          //           ],
+          //         },
+          //       ],
+          //     },
+          //   },
+          // },
         },
       },
     ]);
@@ -250,7 +250,7 @@ export const getPreviousDayDeposits = async (req, res, next) => {
           totalSales: 0,
           totalCost: 0,
           totalCount: 0,
-          breakdown: {},
+          // breakdown: {},
         },
       },
     });
