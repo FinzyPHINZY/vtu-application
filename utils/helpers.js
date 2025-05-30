@@ -46,14 +46,14 @@ export const validateIdentityRequest = [
 
 export const validateUserProfileUpdate = [
   body('firstName')
-    .optional()
+    .exists()
     .isString()
     .withMessage('First name must be a string')
     .notEmpty()
     .withMessage('First name cannot be empty'),
 
   body('lastName')
-    .optional()
+    .exists()
     .isString()
     .withMessage('Last name must be a string')
     .notEmpty()

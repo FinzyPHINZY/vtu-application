@@ -108,7 +108,7 @@ export const validateVerification = async (req, res) => {
   }
 };
 
-export const easeIdEnquiry = async (req, res) => {
+export const easeIdEnquiry = async (req, res, next) => {
   try {
     const { type, number } = req.body;
 
@@ -119,6 +119,20 @@ export const easeIdEnquiry = async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) {
       throw new ApiError(404, false, 'User not found');
+    }
+
+    if (
+      !user.gender ||
+      !user.firstName ||
+      !user.lastName ||
+      !user.birthDate ||
+      !user.phoneNumber
+    ) {
+      throw new ApiError(
+        400,
+        false,
+        'User profile is incomplete. Please complete your profile before proceeding with verification.'
+      );
     }
 
     await verificationQueue.add(
@@ -147,9 +161,6 @@ export const easeIdEnquiry = async (req, res) => {
     });
   } catch (error) {
     console.error('Verification failed: ', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
+    next(error);
   }
 };
