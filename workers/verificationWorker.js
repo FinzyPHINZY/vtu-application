@@ -18,6 +18,9 @@ config();
 const MATCH_THRESHOLDS = {
   EXACT: 100,
   PARTIAL: 70,
+  BIRTHDAY_MATCH: true,
+  GENDER_MATCH: true,
+  PHONE_MATCH: true,
 };
 
 const VERIFICATION_STATUS = {
@@ -53,7 +56,7 @@ export const verificationWorker = new Worker(
       // console.log('job data', job.data);
       return await userEnquiry(job);
     } catch (error) {
-      await sendVerificationFailed(job.data.user, error.message);
+      // await sendVerificationFailed(job.data.user, error.message);
       console.error(`Job ${job.id} failed:`, error.message);
       throw error;
     }
@@ -88,13 +91,13 @@ const userEnquiry = async (job) => {
 
     const verificationResult = await verifyUserWithProvider(type, number, user);
 
-    console.log(45, verificationResult);
+    // console.log(45, verificationResult);
 
     await handleVerificationResult(user, verificationResult);
 
     console.log(`✅User ${user.firstName} verified successfully`);
 
-    console.log(67);
+    // console.log(67);
 
     return { success: true, data: verificationResult };
   } catch (error) {
@@ -114,6 +117,8 @@ const verifyUserWithProvider = async (idType, number, user) => {
   try {
     const nonceStr = generateNonceStr();
 
+    const parsedPhoneNumber = user.phoneNumber.replace('+234', '0');
+
     const payload = {
       version: 'V1.1',
       nonceStr,
@@ -121,7 +126,9 @@ const verifyUserWithProvider = async (idType, number, user) => {
       [idType.toLowerCase()]: number,
       firstName: user.firstName,
       lastName: user.lastName,
-      // phoneNumber: user?.phoneNumber,
+      phoneNumber: parsedPhoneNumber,
+      gender: user.gender,
+      birthday: user.birthDate,
     };
 
     const generatedSignature = sign(payload, process.env.EASE_ID_PRIVATE_KEY);
@@ -196,6 +203,34 @@ const handleVerificationResult = async (user, result) => {
 
   let accountInfo = null;
 
+  const {
+    nameMatchRlt,
+    namesMatchPercentage,
+    birthdayMatchRlt,
+    genderMatchRlt,
+    phoneNumberMatchRlt,
+  } = result.rawResponse.data;
+
+  verificationNotes = `
+    Name: ${nameMatchRlt} (${namesMatchPercentage}%),
+    DOB: ${birthdayMatchRlt},
+    Gender: ${genderMatchRlt},
+    Phone: ${phoneNumberMatchRlt}
+  `;
+
+  const nameMatches = namesMatchPercentage >= MATCH_THRESHOLDS.EXACT;
+  const dobMatches = birthdayMatchRlt === 'Exact Match';
+  const genderMatches = genderMatchRlt === 'Exact Match';
+  const phoneMatches = phoneNumberMatchRlt === 'Exact Match';
+
+  if (nameMatches && dobMatches && genderMatches && phoneMatches) {
+    verificationStatus = VERIFICATION_STATUS.VERIFIED;
+  } else if (nameMatches && (phoneMatches || dobMatches)) {
+    verificationStatus = VERIFICATION_STATUS.PARTIAL;
+  } else {
+    throw new Error('VERIFICATION_FAILED: ' + verificationNotes);
+  }
+
   if (result.matchPercentage >= MATCH_THRESHOLDS.EXACT) {
     verificationStatus = VERIFICATION_STATUS.VERIFIED;
     verificationNotes = 'Exact name match';
@@ -212,9 +247,11 @@ const handleVerificationResult = async (user, result) => {
     verificationStatus,
     verificationNotes,
     lastVerificationAttempt: new Date(),
-    matchPercentage: result.matchPercentage,
-    phoneMatch: result.phoneMatch,
+    matchPercentage: namesMatchPercentage,
+    phoneMatch: phoneNumberMatchRlt,
     userVerificationData: result.rawResponse,
+    dobMatch: birthdayMatchRlt,
+    genderMatch: genderMatchRlt,
   };
 
   if (verificationStatus === VERIFICATION_STATUS.VERIFIED) {
