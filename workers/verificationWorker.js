@@ -198,6 +198,10 @@ const verifyUserWithProvider = async (idType, number, user) => {
 };
 
 const handleVerificationResult = async (user, result) => {
+  if (user.verificationStatus === VERIFICATION_STATUS.VERIFIED) {
+    verificationStatus = VERIFICATION_STATUS.VERIFIED;
+  }
+
   let verificationStatus = VERIFICATION_STATUS.FAILED;
   let verificationNotes = '';
 
@@ -252,6 +256,7 @@ const handleVerificationResult = async (user, result) => {
     userVerificationData: result.rawResponse,
     dobMatch: birthdayMatchRlt,
     genderMatch: genderMatchRlt,
+    isKYCVerified: verificationStatus === VERIFICATION_STATUS.VERIFIED,
   };
 
   if (verificationStatus === VERIFICATION_STATUS.VERIFIED) {

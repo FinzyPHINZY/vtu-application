@@ -122,6 +122,10 @@ const userSchema = new mongoose.Schema(
       enum: ['active', 'inactive', 'suspended'],
       default: 'active',
     },
+    isKYCVerified: {
+      type: Boolean,
+      default: false,
+    },
     safeHavenAccessToken: {
       access_token: { type: String, default: null },
       ibs_client_id: { type: String, default: null },

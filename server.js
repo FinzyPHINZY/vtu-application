@@ -24,12 +24,15 @@ import { initialize } from './services/safeHavenAuth.js';
 import { errorHandler, limiter, requestLogger } from './utils/middleware.js';
 import { startQueues } from './workers/index.js';
 import User from './models/User.js';
+import { migrateKYCStatus } from './scripts/migrateKYCStatus.js';
 
 // routes
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 7000;
+
+migrateKYCStatus().catch(console.error);
 
 // Database connection
 connectDB();
