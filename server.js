@@ -32,7 +32,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 7000;
 
-migrateKYCStatus().catch(console.error);
+// migrateKYCStatus().catch(console.error);
 
 // Database connection
 connectDB();
