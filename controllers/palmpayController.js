@@ -62,6 +62,8 @@ export const createVirtualAccount = async (req, res, next) => {
       nonceStr,
     };
 
+    console.log(payload);
+
     const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
 
     const isVerified = rsaVerify(
@@ -84,6 +86,8 @@ export const createVirtualAccount = async (req, res, next) => {
         },
       }
     );
+
+    console.log(response.data);
 
     if (response.status !== 200) {
       throw new ApiError(
