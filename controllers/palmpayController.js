@@ -677,3 +677,61 @@ export const queryBillerItem = async (req, res, next) => {
     next(error);
   }
 };
+
+export const createOrder = async (req, res, next) => {
+  try {
+    const accountReference = generateRandomReference('ORDER', 'john');
+
+    const nonceStr = generateNonceStr();
+
+    const payload = {
+      requestTime: Date.now(),
+      version: 'V1.1',
+      nonceStr,
+      amount: 2000,
+      notifyUrl: 'https://xx.cn/callback/payment',
+      orderId: 'testc9ffae997fc1',
+      // title: 'pay',
+      // description: 'pay some thing',
+      // userId: accountReference,
+      // userMobileNo: '07011698742',
+      currency: 'NGN',
+      callBackUrl: 'https://returnurl.com',
+      // goodsDetails: '[{"goodsId": "1"}]',
+      productType: 'bank_transfer',
+    };
+
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
+
+    const isVerified = rsaVerify(
+      md5(sortParams(payload)).toUpperCase(),
+      generatedSignature,
+      process.env.PALMPAY_PUBLIC_KEY,
+      'SHA1withRSA'
+    );
+    console.log('Signature Verified:', isVerified);
+
+    const response = await axios.post(
+      `${process.env.PALMPAY_BASE_URL}/api/v2/payment/merchant/createorder`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
+          CountryCode: 'NG',
+          'Content-Type': 'application/json;charset=UTF-8',
+          Signature: generatedSignature,
+        },
+      }
+    );
+
+    console.log(response.data);
+    res.status(200).json({
+      success: true,
+      message: 'order created successfully',
+      data: response.data,
+    });
+  } catch (error) {
+    console.log('failed to create order', error);
+    next(error);
+  }
+};

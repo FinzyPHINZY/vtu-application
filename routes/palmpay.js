@@ -47,4 +47,11 @@ router.post(
   PalmpayController.queryVirtualAccount
 );
 
+router.post(
+  '/order',
+  validateHeaders,
+  validateRequest,
+  PalmpayController.createOrder
+);
+
 export default router;
