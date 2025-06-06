@@ -894,6 +894,8 @@ async function handleBankTransferPaymentSuccess(paymentData) {
     { new: true }
   );
 
+  console.log('updated transaction', transaction);
+
   if (!transaction) {
     console.error(
       `Transaction not found for reference: ${paymentData.orderId}`
