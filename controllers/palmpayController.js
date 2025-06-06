@@ -87,8 +87,6 @@ export const createVirtualAccount = async (req, res, next) => {
       }
     );
 
-    console.log(response.data);
-
     if (response.status !== 200) {
       throw new ApiError(
         400,
@@ -680,6 +678,7 @@ export const queryBillerItem = async (req, res, next) => {
 
 export const createOrder = async (req, res, next) => {
   try {
+    const { amount } = req.body;
     const accountReference = generateRandomReference('ORDER', 'john');
 
     const nonceStr = generateNonceStr();
@@ -688,16 +687,14 @@ export const createOrder = async (req, res, next) => {
       requestTime: Date.now(),
       version: 'V1.1',
       nonceStr,
-      amount: 2000,
-      notifyUrl: 'https://xx.cn/callback/payment',
-      orderId: 'testc9ffae997fc1',
-      title: 'pay',
-      description: 'pay some thing',
+      amount: amount * 100,
+      notifyUrl: 'https://www.bolddatapay.com/callback/payment',
+      orderId: process.env.PALMPAY_ORDER_ID,
+      title: 'Deposit',
+      description: 'Add money to bold data account',
       userId: accountReference,
-      userMobileNo: '07011698742',
       currency: 'NGN',
-      callBackUrl: 'https://returnurl.com',
-      goodsDetails: '[{"goodsId": "1"}]',
+      callBackUrl: process.env.FRONTEND_BASE_URL,
       productType: 'bank_transfer',
     };
 

@@ -134,6 +134,13 @@ app.use('/api/admin/transactions', adminTransactionRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin/system', systemControlRoutes);
 
+app.post('/callback/payment', (req, res) => {
+  console.log('req.body', req.body);
+
+  console.log('webhook received');
+  res.status(200).json({ success: true, message: 'Webhook received' });
+});
+
 // error handler
 app.use(errorHandler);
 
