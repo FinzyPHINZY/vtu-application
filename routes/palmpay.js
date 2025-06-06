@@ -15,8 +15,8 @@ router.use(checkSystemStatus);
 
 router.post('/palmpay-webhook', PalmpayController.handlePalmpayWebhook);
 
-router.use(tokenExtractor);
-router.use(userExtractor);
+// router.use(tokenExtractor);
+// router.use(userExtractor);
 
 router.post(
   '/',
@@ -62,6 +62,11 @@ router.post(
 );
 router.post(
   '/bank-transfer/webhook',
+  (req, res, next) => {
+    console.log('igotcalled');
+    console.log(req.body);
+    next();
+  },
   PalmpayController.handleBankTransferWebhook
 );
 router.get(
