@@ -773,7 +773,7 @@ export const createBankTransferOrder = async (req, res, next) => {
       version: 'V1.1',
       nonceStr,
       amount: amount * 100,
-      notifyUrl: `${process.env.BASE_URL}/api/deposits/bank-transfer/webhook`,
+      notifyUrl: `${process.env.BASE_URL}/api/deposit/bank-transfer/webhook`,
       orderId: accountReference, // Using our reference as orderId
       title: 'Deposit to BoldData',
       description: `Deposit of ${amount} NGN to ${user.firstName}'s account`,
