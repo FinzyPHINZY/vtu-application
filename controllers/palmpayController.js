@@ -881,18 +881,13 @@ async function handleBankTransferPaymentSuccess(paymentData) {
     },
     {
       $set: {
-        amount: paymentData.orderAmount / 100,
+        amount: paymentData.amount / 100,
         status: 'success',
         completedAt: new Date(),
         metadata: {
           ...paymentData,
           processedAt: new Date(),
           palmPayOrderNo: paymentData.orderNo,
-          payerDetails: {
-            accountNo: paymentData.payerAccountNo,
-            bankName: paymentData.payerBankName,
-            accountName: paymentData.payerAccountName,
-          },
         },
       },
     },
@@ -909,7 +904,7 @@ async function handleBankTransferPaymentSuccess(paymentData) {
   const user = await User.findByIdAndUpdate(
     transaction.user,
     {
-      $inc: { accountBalance: paymentData.orderAmount / 100 },
+      $inc: { accountBalance: paymentData.amount / 100 },
     },
     { new: true }
   );
@@ -921,7 +916,7 @@ async function handleBankTransferPaymentSuccess(paymentData) {
 
   await logUserActivity(user._id, 'payment', {
     details: 'Bank transfer deposit completed',
-    amount: paymentData.orderAmount / 100,
+    amount: paymentData.amount / 100,
     reference: transaction.reference,
   });
 
