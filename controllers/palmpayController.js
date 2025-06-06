@@ -691,13 +691,13 @@ export const createOrder = async (req, res, next) => {
       amount: 2000,
       notifyUrl: 'https://xx.cn/callback/payment',
       orderId: 'testc9ffae997fc1',
-      // title: 'pay',
-      // description: 'pay some thing',
-      // userId: accountReference,
-      // userMobileNo: '07011698742',
+      title: 'pay',
+      description: 'pay some thing',
+      userId: accountReference,
+      userMobileNo: '07011698742',
       currency: 'NGN',
       callBackUrl: 'https://returnurl.com',
-      // goodsDetails: '[{"goodsId": "1"}]',
+      goodsDetails: '[{"goodsId": "1"}]',
       productType: 'bank_transfer',
     };
 
