@@ -732,3 +732,274 @@ export const createOrder = async (req, res, next) => {
     next(error);
   }
 };
+
+export const createBankTransferOrder = async (req, res, next) => {
+  try {
+    const { amount } = req.body;
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      throw new ApiError(404, false, 'User not found');
+    }
+
+    if (!amount || amount <= 0) {
+      throw new ApiError(400, false, 'Amount must be a positive number');
+    }
+
+    const accountReference = generateRandomReference(
+      'BT_ORDER',
+      user.firstName
+    );
+
+    const transaction = await Transaction.create({
+      user: user._id,
+      reference: accountReference,
+      type: 'credit',
+      serviceType: 'bank_transfer',
+      amount,
+      status: 'pending',
+      metadata: {
+        paymentMethod: 'bank_transfer',
+        initiatedAt: new Date(),
+      },
+    });
+
+    user.transactions.push(transaction._id);
+    await user.save();
+
+    const nonceStr = generateNonceStr();
+    const payload = {
+      requestTime: Date.now(),
+      version: 'V1.1',
+      nonceStr,
+      amount: amount * 100,
+      notifyUrl: `${process.env.BASE_URL}/api/deposits/bank-transfer/webhook`,
+      orderId: accountReference, // Using our reference as orderId
+      title: 'Deposit to BoldData',
+      description: `Deposit of ${amount} NGN to ${user.firstName}'s account`,
+      userId: user._id.toString(),
+      currency: 'NGN',
+      callBackUrl: `${process.env.FRONTEND_URL}/dashboard/transactions`,
+      productType: 'bank_transfer',
+    };
+
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
+
+    const response = await axios.post(
+      `${process.env.PALMPAY_BASE_URL}/api/v2/payment/merchant/createorder`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
+          CountryCode: 'NG',
+          'Content-Type': 'application/json;charset=UTF-8',
+          Signature: generatedSignature,
+        },
+      }
+    );
+
+    console.log('response from palmpay order', response.data);
+
+    transaction.metadata.palmPayReference = response.data.data?.orderNo;
+    await transaction.save();
+
+    await logUserActivity(user._id, 'payment', {
+      details: 'Bank transfer deposit initiated',
+      amount: amount,
+      reference: accountReference,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Bank transfer order created successfully',
+      data: {
+        ...response.data.data,
+        ourReference: accountReference,
+      },
+    });
+  } catch (error) {
+    console.log('Failed to create bank transfer order', error);
+    next(error);
+  }
+};
+
+export const handleBankTransferWebhook = async (req, res, next) => {
+  console.log('data received from webhook', req.body);
+  try {
+    const forwarded = req.headers['x-forwarded-for'];
+    const requestIp = forwarded ? forwarded.split(',')[0].trim() : req.ip;
+
+    console.log(requestIp);
+
+    // if (requestIp !== process.env.PALMPAY_IP) {
+    //   throw new ApiError(403, false, 'Unauthorized request origin');
+    // }
+
+    const isVerified = rsaVerify(
+      md5(sortParams(req.body)).toUpperCase(),
+      req.body.sign,
+      process.env.PALMPAY_PUBLIC_KEY,
+      'SHA1withRSA'
+    );
+
+    console.log('isverified', isVerified);
+
+    // if (!isVerified) {
+    //   throw new ApiError(403, false, 'Invalid signature');
+    // }
+
+    if (req.body.orderStatus !== 1) {
+      return res.status(200).json({
+        success: true,
+        message: 'Webhook received but not processed (non-successful payment)',
+      });
+    }
+
+    const existing = await Transaction.findOne({
+      'metadata.palmPayOrderNo': req.body.orderNo,
+      status: 'success',
+    });
+
+    if (existing) {
+      return res.status(200).json({ success: true });
+    }
+
+    await handleBankTransferPaymentSuccess(req.body);
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Bank transfer webhook error:', error);
+    next(error);
+  }
+};
+
+async function handleBankTransferPaymentSuccess(paymentData) {
+  const transaction = await Transaction.findOneAndUpdate(
+    {
+      reference: paymentData.orderId,
+      status: { $ne: 'success' },
+    },
+    {
+      $set: {
+        amount: paymentData.orderAmount / 100,
+        status: 'success',
+        completedAt: new Date(),
+        metadata: {
+          ...paymentData,
+          processedAt: new Date(),
+          palmPayOrderNo: paymentData.orderNo,
+          payerDetails: {
+            accountNo: paymentData.payerAccountNo,
+            bankName: paymentData.payerBankName,
+            accountName: paymentData.payerAccountName,
+          },
+        },
+      },
+    },
+    { new: true }
+  );
+
+  if (!transaction) {
+    console.error(
+      `Transaction not found for reference: ${paymentData.orderId}`
+    );
+    return;
+  }
+
+  const user = await User.findByIdAndUpdate(
+    transaction.user,
+    {
+      $inc: { accountBalance: paymentData.orderAmount / 100 },
+    },
+    { new: true }
+  );
+
+  if (!user) {
+    console.error(`User not found for transaction: ${transaction._id}`);
+    return;
+  }
+
+  await logUserActivity(user._id, 'payment', {
+    details: 'Bank transfer deposit completed',
+    amount: paymentData.orderAmount / 100,
+    reference: transaction.reference,
+  });
+
+  console.log(
+    `Processed bank transfer payment for order ${paymentData.orderNo}`
+  );
+}
+
+export const checkBankTransferStatus = async (req, res, next) => {
+  try {
+    const { reference } = req.params;
+    const user = req.user;
+
+    const transaction = await Transaction.findOne({
+      reference,
+      user: user._id,
+      serviceType: 'bank_transfer',
+    });
+
+    if (!transaction) {
+      throw new ApiError(404, false, 'Transaction not found');
+    }
+
+    if (transaction.status === 'success') {
+      return res.status(200).json({
+        success: true,
+        data: transaction,
+      });
+    }
+
+    const nonceStr = generateNonceStr();
+    const payload = {
+      requestTime: Date.now(),
+      version: 'V1.1',
+      nonceStr,
+      orderNo: transaction.metadata.palmPayReference || reference,
+    };
+
+    const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
+
+    const response = await axios.post(
+      `${process.env.PALMPAY_BASE_URL}/api/v2/payment/merchant/queryorder`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PALMPAY_APP_ID}`,
+          CountryCode: 'NG',
+          'Content-Type': 'application/json;charset=UTF-8',
+          Signature: generatedSignature,
+        },
+      }
+    );
+
+    const orderStatus = response.data.data?.orderStatus;
+
+    if (orderStatus === 1) {
+      await handleBankTransferPaymentSuccess({
+        ...response.data.data,
+        orderId: reference,
+      });
+
+      const updatedTransaction = await Transaction.findOne({
+        reference,
+        user: user._id,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: updatedTransaction,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: transaction,
+    });
+  } catch (error) {
+    console.error('Failed to check bank transfer status:', error);
+    next(error);
+  }
+};

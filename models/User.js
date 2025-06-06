@@ -184,6 +184,17 @@ const userSchema = new mongoose.Schema(
     verificationDate: {
       type: Date,
     },
+    bankTransferDeposits: [
+      {
+        reference: String,
+        amount: Number,
+        status: String,
+        initiatedAt: Date,
+        completedAt: Date,
+        metadata: Object,
+      },
+    ],
+    lastBankTransferDeposit: Date,
   },
   { timestamps: true }
 );

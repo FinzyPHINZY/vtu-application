@@ -54,4 +54,21 @@ router.post(
   PalmpayController.createOrder
 );
 
+router.post(
+  '/bank-transfer',
+  validateHeaders,
+  validateRequest,
+  PalmpayController.createBankTransferOrder
+);
+router.post(
+  '/bank-transfer/webhook',
+  PalmpayController.handleBankTransferWebhook
+);
+router.get(
+  '/bank-transfer/status/:reference',
+  validateHeaders,
+  validateRequest,
+  PalmpayController.checkBankTransferStatus
+);
+
 export default router;
