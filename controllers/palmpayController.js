@@ -848,7 +848,7 @@ export const handleBankTransferWebhook = async (req, res, next) => {
     //   throw new ApiError(403, false, 'Invalid signature');
     // }
 
-    if (req.body.orderStatus !== 1) {
+    if (req.body.status !== 1) {
       return res.status(200).json({
         success: true,
         message: 'Webhook received but not processed (non-successful payment)',
