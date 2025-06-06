@@ -798,8 +798,6 @@ export const createBankTransferOrder = async (req, res, next) => {
       }
     );
 
-    console.log('response from palmpay order', response.data);
-
     transaction.metadata.palmPayReference = response.data.data?.orderNo;
     await transaction.save();
 
@@ -824,12 +822,9 @@ export const createBankTransferOrder = async (req, res, next) => {
 };
 
 export const handleBankTransferWebhook = async (req, res, next) => {
-  console.log('data received from webhook', req.body);
   try {
     const forwarded = req.headers['x-forwarded-for'];
     const requestIp = forwarded ? forwarded.split(',')[0].trim() : req.ip;
-
-    console.log(requestIp);
 
     // if (requestIp !== process.env.PALMPAY_IP) {
     //   throw new ApiError(403, false, 'Unauthorized request origin');
@@ -841,8 +836,6 @@ export const handleBankTransferWebhook = async (req, res, next) => {
       process.env.PALMPAY_PUBLIC_KEY,
       'SHA1withRSA'
     );
-
-    console.log('isverified', isVerified);
 
     // if (!isVerified) {
     //   throw new ApiError(403, false, 'Invalid signature');
@@ -893,8 +886,6 @@ async function handleBankTransferPaymentSuccess(paymentData) {
     },
     { new: true }
   );
-
-  console.log('updated transaction', transaction);
 
   if (!transaction) {
     console.error(
