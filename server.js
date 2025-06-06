@@ -6,7 +6,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import connectDB from './Config/Database.js';
-import { startDepositVerificationJob } from './cron-jobs/palmpay.js';
+import { startTransactionTimeoutJob } from './cron-jobs/palmpay.js';
 import accountRoutes from './routes/account.js';
 import analyticsRoutes from './routes/admin/analytics.js';
 import productsRoutes from './routes/admin/products.js';
@@ -144,11 +144,18 @@ app.post('/callback/payment', (req, res) => {
 // error handler
 app.use(errorHandler);
 
-let depositVerificationJob;
+// let depositVerificationJob;
+// try {
+//   depositVerificationJob = startDepositVerificationJob();
+// } catch (error) {
+//   console.error('Failed to start deposit verification job:', error);
+// }
+
+let transactionTimeoutJob;
 try {
-  depositVerificationJob = startDepositVerificationJob();
+  transactionTimeoutJob = startTransactionTimeoutJob();
 } catch (error) {
-  console.error('Failed to start deposit verification job:', error);
+  console.error('Failed to start transaction timeout job:', error);
 }
 
 process.on('SIGTERM', () => {
