@@ -779,7 +779,7 @@ export const createBankTransferOrder = async (req, res, next) => {
       description: `Deposit of ${amount} NGN to ${user.firstName}'s account`,
       userId: user._id.toString(),
       currency: 'NGN',
-      callBackUrl: `${process.env.FRONTEND_URL}/dashboard/transactions`,
+      callBackUrl: `${process.env.FRONTEND_URL}/home`,
       productType: 'bank_transfer',
     };
 
