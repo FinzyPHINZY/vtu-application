@@ -91,13 +91,9 @@ const userEnquiry = async (job) => {
 
     const verificationResult = await verifyUserWithProvider(type, number, user);
 
-    // console.log(45, verificationResult);
-
-    await handleVerificationResult(user, verificationResult);
+    await handleVerificationResult(user, verificationResult, number);
 
     console.log(`✅User ${user.firstName} verified successfully`);
-
-    // console.log(67);
 
     return { success: true, data: verificationResult };
   } catch (error) {
@@ -197,7 +193,7 @@ const verifyUserWithProvider = async (idType, number, user) => {
   }
 };
 
-const handleVerificationResult = async (user, result) => {
+const handleVerificationResult = async (user, result, number) => {
   if (user.verificationStatus === VERIFICATION_STATUS.VERIFIED) {
     verificationStatus = VERIFICATION_STATUS.VERIFIED;
   }
@@ -265,7 +261,7 @@ const handleVerificationResult = async (user, result) => {
 
     if (!user.accountNumber) {
       try {
-        accountInfo = await createPermAccountForUser(user);
+        accountInfo = await createPermAccountForUser(user, number);
         updates.accountNumber = accountInfo.accountNumber;
         updates.accountDetails = {
           accountName: accountInfo.accountName,
@@ -305,15 +301,15 @@ const handleVerificationResult = async (user, result) => {
   }
 };
 
-const createPermAccountForUser = async (user) => {
+const createPermAccountForUser = async (user, number) => {
   try {
     const accountReference = generateRandomReference('VIR_ACC', user.firstName);
     const nonceStr = generateNonceStr();
 
     const payload = {
       virtualAccountName: `${user.firstName} ${user.lastName}`,
-      identityType: 'company',
-      licenseNumber: process.env.BOLDDATA_LICENSE_NUMBER,
+      identityType: 'personal',
+      licenseNumber: number,
       email: user.email,
       customerName: `${user.firstName} ${user.lastName}`,
       accountReference,

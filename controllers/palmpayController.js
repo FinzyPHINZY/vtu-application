@@ -52,8 +52,8 @@ export const createVirtualAccount = async (req, res, next) => {
 
     const payload = {
       virtualAccountName: `${user.firstName} ${user.lastName}`,
-      identityType: 'company',
-      licenseNumber: process.env.BOLDDATA_LICENSE_NUMBER,
+      identityType: 'personal',
+      licenseNumber: user.verificationMetadata.number,
       email: user.email,
       customerName: `${user.firstName} ${user.lastName}`,
       accountReference,
@@ -61,8 +61,6 @@ export const createVirtualAccount = async (req, res, next) => {
       requestTime: Date.now(),
       nonceStr,
     };
-
-    console.log(payload);
 
     const generatedSignature = sign(payload, process.env.PALMPAY_PRIVATE_KEY);
 

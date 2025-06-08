@@ -126,10 +126,6 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    safeHavenAccessToken: {
-      access_token: { type: String, default: null },
-      ibs_client_id: { type: String, default: null },
-    },
     resetPasswordToken: {
       type: String,
       default: null,

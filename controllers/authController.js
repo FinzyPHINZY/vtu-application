@@ -294,10 +294,22 @@ export const completeSignUp = async (req, res) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, otp } = req.body;
 
-    if (!email || !password) {
+    if (!email || !otp) {
       throw new ApiError(400, false, 'Missing required fields');
+    }
+
+    const otpRecord = await OTP.findOne({ email });
+
+    if (!otpRecord) {
+      throw new ApiError(401, false, 'Invalid Request - Not Found');
+    }
+
+    const isOtpCorrect = await bcrypt.compare(otp, otpRecord.codeHash);
+
+    if (!isOtpCorrect) {
+      throw new ApiError(400, false, 'Invalid OTP');
     }
 
     const user = await User.findOne({ email });
@@ -310,21 +322,8 @@ export const login = async (req, res, next) => {
       throw new ApiError(400, false, 'Please sign in with Google.');
     }
 
-    if (!user.password) {
-      throw new ApiError(401, false, 'Invalid Credentials');
-    }
-
     if (!user.isVerified) {
       throw new ApiError(401, false, 'User is not verified');
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      user.failedLoginAttempts += 1;
-      user.lastLoginAttempt = new Date();
-      await user.save();
-
-      throw new ApiError(401, false, 'Invalid Credentials');
     }
 
     // const refreshToken = await getAuthorizationToken();
